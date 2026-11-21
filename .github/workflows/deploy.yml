@@ -68,14 +68,17 @@ jobs:
       PROD_PROJECT_REF: ${{ vars.PROD_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
+      # Pinned: a new CLI release must never change how prod is migrated by surprise.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.2.0
       - run: test -f supabase/config.toml || supabase init
       - name: Show what will run
         run: supabase db push --db-url "$PROD_DB_URL" --dry-run
+      # --yes: the CLI asks before applying and a CI run has no terminal to answer.
+      # The owner already approved this job in the production environment.
       - name: Apply, in file order
-        run: supabase db push --db-url "$PROD_DB_URL"
+        run: supabase db push --db-url "$PROD_DB_URL" --yes
       # After the migrations: the functions call database functions they add.
       - name: Deploy Edge Functions (public sign-in endpoint, so no JWT check)
         run: |
