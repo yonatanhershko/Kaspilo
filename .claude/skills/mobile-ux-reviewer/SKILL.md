@@ -1,6 +1,6 @@
 ---
 name: mobile-ux-reviewer
-description: Audit Finny mobile screens for UX quality, Apple HIG and Material 3 compliance, and accessibility. Use after building a screen and before calling it done.
+description: Audit Kaspilo mobile screens for UX quality, Apple HIG and Material 3 compliance, and accessibility. Use after building a screen and before calling it done.
 ---
 
 # Mobile UX reviewer

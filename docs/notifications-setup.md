@@ -37,7 +37,7 @@ Keep this split. Do not move renewal reminders to local to "save setup": it brin
    ```
 
    It prints a project ID. Put it in `apps/mobile/.env.development` (and `.env.production`) as `EAS_PROJECT_ID=...`, and add the same variable to the EAS environments (`eas env:create`). It is not a secret.
-2. Firebase console → create a project (free) → add an Android app for **each** package: `com.finny.app.dev` and `com.finny.app`.
+2. Firebase console → create a project (free) → add an Android app for **each** package: `com.kaspilo.app.dev` and `com.kaspilo.app`.
 3. Download `google-services.json` (after adding both apps, so it holds both), save it as `apps/mobile/google-services.json`, and add `GOOGLE_SERVICES_JSON=./google-services.json` to `apps/mobile/.env.development` and `.env.production`. `app.config.ts` already reads it. The file holds no secret.
 4. Firebase → Project settings → Service accounts → "Generate new private key". Upload that JSON to EAS:
 

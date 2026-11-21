@@ -1,4 +1,4 @@
-import { advisorWhatsAppUrl } from '@finny/shared';
+import { advisorWhatsAppUrl } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, View } from 'react-native';
@@ -13,8 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { PressScale } from '@/components/ui/PressScale';
 
 /**
- * Shown to every signed-in user without access: waiting for Bit payment
- * approval, rejected, or expired. No way from here into the app.
+ * Shown to every signed-in user without access: waiting for approval, rejected, or expired. No way from here into the app.
  */
 export default function LockedScreen() {
   const { t } = useTranslation();

@@ -1,0 +1,137 @@
+# Production releases (docs/ci-cd.md). Never automatic: started by hand from the
+# Actions tab on `main`, and every job waits in the "production" environment for the
+# owner's approval before it touches prod.
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: What to release
+        type: choice
+        options:
+          - migrations
+          - store build
+          - migrations + store build
+          - update (JS only, no store review)
+        default: migrations
+      platform:
+        description: Store build platform
+        type: choice
+        options: [all, ios, android]
+        default: all
+      message:
+        description: Update message (for "update")
+        type: string
+        default: ''
+      confirm:
+        description: Type "prod" to confirm
+        type: string
+        required: true
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Check request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only from main, only when confirmed
+        env:
+          REF: ${{ github.ref }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then echo "Run this from main."; exit 1; fi
+          if [ "$CONFIRM" != "prod" ]; then echo 'Type "prod" to confirm.'; exit 1; fi
+
+  ci:
+    name: CI must pass on this commit
+    needs: guard
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  migrations:
+    name: Prod migrations + Edge Functions
+    needs: ci
+    if: inputs.what == 'migrations' || inputs.what == 'migrations + store build'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    env:
+      PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+      PROD_PROJECT_REF: ${{ vars.PROD_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: test -f supabase/config.toml || supabase init
+      - name: Show what will run
+        run: supabase db push --db-url "$PROD_DB_URL" --dry-run
+      - name: Apply, in file order
+        run: supabase db push --db-url "$PROD_DB_URL"
+      # After the migrations: the functions call database functions they add.
+      - name: Deploy Edge Functions (public sign-in endpoint, so no JWT check)
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$PROD_PROJECT_REF" ]; then
+            echo "Missing PROD_SUPABASE_ACCESS_TOKEN (secret) or PROD_PROJECT_REF (variable): see docs/ci-cd.md"; exit 1
+          fi
+          supabase functions deploy auth-password --project-ref "$PROD_PROJECT_REF" --no-verify-jwt
+
+  store-build:
+    name: EAS store build
+    needs: [ci, migrations]
+    # Runs after migrations when both were asked for; also when migrations were skipped.
+    if: >-
+      always() && needs.ci.result == 'success' &&
+      (needs.migrations.result == 'success' || needs.migrations.result == 'skipped') &&
+      (inputs.what == 'store build' || inputs.what == 'migrations + store build')
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Start the build on EAS (it runs in Expo's cloud; follow it on expo.dev)
+        working-directory: apps/mobile
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        run: eas build --platform "$PLATFORM" --profile production --non-interactive --no-wait
+
+  update:
+    name: EAS Update (production channel)
+    needs: ci
+    if: inputs.what == 'update (JS only, no store review)'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Publish the update
+        working-directory: apps/mobile
+        env:
+          MESSAGE: ${{ inputs.message }}
+        run: eas update --channel production --environment production --message "${MESSAGE:-$(git log -1 --pretty=%s)}" --non-interactive

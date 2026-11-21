@@ -1,4 +1,4 @@
-import type { Database } from "@finny/shared";
+import type { Database } from "@kaspilo/shared";
 import { createClient } from "@supabase/supabase-js";
 
 import { env } from "@/lib/env";
@@ -11,5 +11,5 @@ import { env } from "@/lib/env";
 export const supabase = createClient<Database>(
   env.supabaseUrl,
   env.supabasePublishableKey,
-  { auth: { storageKey: "finny-admin-auth" } },
+  { auth: { storageKey: "kaspilo-admin-auth" } },
 );

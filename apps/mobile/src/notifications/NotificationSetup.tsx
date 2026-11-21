@@ -1,8 +1,8 @@
-import * as Notifications from 'expo-notifications';
+import type * as ExpoNotifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, Platform } from 'react-native';
+import { AppState } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Dialog } from '@/components/ui/Dialog';
@@ -12,6 +12,7 @@ import {
   getPermission,
   markAsked,
   NOTIFICATION_ROUTES,
+  notificationsSupported,
   type NotificationRoute,
   refreshNotifications,
   requestPermission,
@@ -51,8 +52,10 @@ export function NotificationSetup() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-    const open = (response: Notifications.NotificationResponse | null) => {
+    if (!notificationsSupported) return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Notifications = require('expo-notifications') as typeof ExpoNotifications;
+    const open = (response: ExpoNotifications.NotificationResponse | null) => {
       const url = response?.notification.request.content.data?.url;
       const route = NOTIFICATION_ROUTES.find((known) => known === url) as NotificationRoute | undefined;
       if (!route) return;

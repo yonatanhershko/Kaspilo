@@ -1,5 +1,5 @@
 {
-  "name": "finny",
+  "name": "kaspilo",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
@@ -7,12 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "mobile": "npm run start -w @finny/mobile",
-    "web": "npm run dev -w @finny/web",
+    "mobile": "npm run start -w @kaspilo/mobile",
+    "web": "npm run dev -w @kaspilo/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:db": "node supabase/tests/access.test.mjs && node supabase/tests/money.test.mjs",
+    "test:db": "node supabase/tests/money.test.mjs && node supabase/tests/access.test.mjs && node supabase/tests/auth.test.mjs",
     "setup:android": "bash scripts/setup-android.sh",
     "setup:ios": "bash scripts/setup-ios.sh",
     "ios:device": "cd apps/mobile && npx expo run:ios --device",

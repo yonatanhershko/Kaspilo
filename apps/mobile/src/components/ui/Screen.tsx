@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Backdrop } from '@/components/nature/Backdrop';
 import { LeafBackground, type LeafDensity } from '@/components/nature/LeafBackground';
@@ -22,13 +22,20 @@ export function Screen({
   const { theme } = useTheme();
   // Inside the tab bar the bar floats over the screen, so reserve its height here.
   const tabBarHeight = useTabBarHeight();
+  // Insets from context (not the native SafeAreaView), so the offline bar can take the top one.
+  const insets = useSafeAreaInsets();
   return (
     <View className="flex-1 bg-background">
       <Backdrop theme={theme} />
       {leaves !== 'none' && <LeafBackground density={leaves} />}
-      <SafeAreaView
-        style={{ flex: 1, paddingBottom: tabBarHeight }}
-        edges={tabBarHeight ? ['top', 'left', 'right'] : undefined}>
+      <View
+        style={{
+          flex: 1,
+          paddingTop: insets.top,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          paddingBottom: tabBarHeight || insets.bottom,
+        }}>
         {scroll ? (
           <ScrollView
             contentContainerClassName={`grow ${className}`}
@@ -39,7 +46,7 @@ export function Screen({
         ) : (
           <View className={`flex-1 ${className}`}>{children}</View>
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

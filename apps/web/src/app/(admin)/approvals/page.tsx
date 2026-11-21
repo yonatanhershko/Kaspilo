@@ -1,12 +1,8 @@
-import { UserListPage } from "@/components/UserListPage";
+import { ApprovalsPage } from "./view";
 
-export default function ApprovalsPage() {
-  return (
-    <UserListPage
-      title="Pending approvals"
-      subtitle="New sign-ups waiting for their Bit payment to be checked. Match the payer by name."
-      fixedStatus="pending_approval"
-      emptyText="No one is waiting for approval."
-    />
-  );
+/** Waits for the admin check in the browser, so navigation may block (see layout.tsx). */
+export const instant = false;
+
+export default function Page() {
+  return <ApprovalsPage />;
 }

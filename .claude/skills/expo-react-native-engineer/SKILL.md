@@ -1,6 +1,6 @@
 ---
 name: expo-react-native-engineer
-description: Build and fix the Finny mobile app with Expo, Expo Router, React Native and TypeScript for iOS and Android. Use for any work in apps/mobile.
+description: Build and fix the Kaspilo mobile app with Expo, Expo Router, React Native and TypeScript for iOS and Android. Use for any work in apps/mobile.
 ---
 
 # Expo React Native engineer

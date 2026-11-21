@@ -1,6 +1,6 @@
 ---
 name: financial-product-expert
-description: Transaction semantics, money math, budgets, periods, recurring and installment logic, and analytics correctness for Finny. Use whenever a change affects a number the user sees.
+description: Transaction semantics, money math, budgets, periods, recurring and installment logic, and analytics correctness for Kaspilo. Use whenever a change affects a number the user sees.
 ---
 
 # Financial product expert

@@ -1,4 +1,4 @@
-import type { AccessPlan, AccountStatus } from "@finny/shared";
+import type { AccessPlan, AccountStatus } from "@kaspilo/shared";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { planShort, statusLabel } from "@/lib/format";
@@ -19,7 +19,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={`inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${buttonStyles[variant]} ${className}`}
+      className={`inline-flex h-11 items-center justify-center rounded-lg px-3.5 md:h-9 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${buttonStyles[variant]} ${className}`}
       {...props}
     />
   );

@@ -1,4 +1,4 @@
-import { leafPalette } from '@finny/tokens';
+import { leafPalette } from '@kaspilo/tokens';
 import { StyleSheet, View } from 'react-native';
 
 import { useTabBarHeight } from '@/components/ui/TabBarHeight';

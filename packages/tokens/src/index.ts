@@ -1,5 +1,5 @@
 /**
- * Finny global style. One source for mobile (NativeWind) and web (Tailwind).
+ * Kaspilo global style. One source for mobile (NativeWind) and web (Tailwind).
  * Change a value here, both apps follow.
  */
 

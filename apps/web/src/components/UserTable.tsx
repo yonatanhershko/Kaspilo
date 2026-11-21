@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccessMonths, AccessPlan, Profile } from "@finny/shared";
+import type { AccessMonths, AccessPlan, Profile } from "@kaspilo/shared";
 import { useState } from "react";
 
 import {
@@ -30,7 +30,7 @@ function PlanSelect({
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value as AccessPlan)}
-      className="h-9 rounded-lg border border-border bg-surface px-2 text-sm"
+      className="h-11 rounded-lg border border-border bg-surface px-2 text-sm md:h-9"
     >
       {plans.map((plan) => (
         <option key={plan} value={plan}>
@@ -57,7 +57,7 @@ function DurationSelect({
       aria-label={label}
       value={value}
       onChange={(e) => onChange(Number(e.target.value) as AccessMonths)}
-      className="h-9 rounded-lg border border-border bg-surface px-2 text-sm"
+      className="h-11 rounded-lg border border-border bg-surface px-2 text-sm md:h-9"
     >
       {durations.map((months) => (
         <option key={months} value={months}>

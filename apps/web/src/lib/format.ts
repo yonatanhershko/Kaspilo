@@ -1,4 +1,4 @@
-import type { AccessMonths, AccessPlan, AccountStatus } from "@finny/shared";
+import type { AccessMonths, AccessPlan, AccountStatus } from "@kaspilo/shared";
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",

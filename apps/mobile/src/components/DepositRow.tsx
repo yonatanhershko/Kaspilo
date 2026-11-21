@@ -1,4 +1,4 @@
-import type { Goal, GoalDeposit } from '@finny/shared';
+import type { Goal, GoalDeposit } from '@kaspilo/shared';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 

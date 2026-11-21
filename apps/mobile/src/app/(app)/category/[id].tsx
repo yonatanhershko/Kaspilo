@@ -1,4 +1,4 @@
-import { amountToInput, budgetRemaining, parseAmount, type Transaction } from '@finny/shared';
+import { amountToInput, budgetRemaining, parseAmount } from '@kaspilo/shared';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Screen } from '@/components/ui/Screen';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useMoney } from '@/data/hooks';
+import type { ListedTransaction } from '@/data/outbox';
 import { useCategories, useSaveCategory, useTransactions } from '@/data/queries';
 import { PressScale } from '@/components/ui/PressScale';
 
@@ -28,7 +29,7 @@ export default function CategoryScreen() {
   const transactions = useTransactions(period, id);
   const saveCategory = useSaveCategory();
 
-  const [deleting, setDeleting] = useState<Transaction | null>(null);
+  const [deleting, setDeleting] = useState<ListedTransaction | null>(null);
   const [editingBudget, setEditingBudget] = useState(false);
   const [budgetText, setBudgetText] = useState('');
   const [budgetError, setBudgetError] = useState<string | null>(null);
@@ -96,7 +97,10 @@ export default function CategoryScreen() {
         <Loading />
       ) : transactions.isError ? (
         <ErrorState onRetry={() => void transactions.refetch()} />
-      ) : transactions.data?.length === 0 ? (
+      ) : !transactions.data ? (
+        // Offline and never loaded on this phone.
+        <EmptyState text={t('offline.notLoaded')} />
+      ) : transactions.data.length === 0 ? (
         <EmptyState text={t('category.empty')} />
       ) : (
         <View className="gap-2">

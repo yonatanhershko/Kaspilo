@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌿 Finny
+# 🌿 Kaspilo
 
 **A calm, bilingual personal-finance app. Track spending, plan budgets, save toward goals.**
 
@@ -12,13 +12,13 @@ Hebrew (RTL) + English · iOS + Android · light + dark
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_RLS-3FCF8E?logo=supabase&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 
-<img src="docs/images/screens.png" alt="Finny screens: sign in, home, stats" width="900">
+<img src="docs/images/screens.png" alt="Kaspilo screens: sign in, home, stats" width="900">
 
 </div>
 
 ## About
 
-Finny helps people see where their money goes, with as little friction as possible. Adding an expense takes three taps: home → **Expense** → amount → category → save.
+Kaspilo helps people see where their money goes, with as little friction as possible. Adding an expense takes three taps: home → **Expense** → amount → category → save.
 
 - **Home**: this month's spending, the balance left, and a card for each category with its budget bar. Over-budget categories turn red.
 - **Stats**: donut charts by month or year for expenses, income and balance, with the change from the last period.
@@ -31,7 +31,7 @@ Access is a yearly subscription. Users pay by **Bit**, and an admin approves eac
 ## Architecture
 
 <p align="center">
-  <img src="docs/images/architecture.svg" alt="Finny architecture" width="100%">
+  <img src="docs/images/architecture.svg" alt="Kaspilo architecture" width="100%">
 </p>
 
 | Layer | What it does |
@@ -39,7 +39,7 @@ Access is a yearly subscription. Users pay by **Bit**, and an admin approves eac
 | **Mobile app** | Expo Router screens, NativeWind styling. React Query caches server data. AsyncStorage keeps the session, theme and language. |
 | **Admin dashboard** | Next.js on Vercel. Approves Bit payments, manages users and subscriptions through admin-only RPCs. |
 | **Supabase** | Auth (email, OTP, reset), PostgreSQL with Row Level Security on every table, RPCs for totals, `pg_cron` for daily expiry. |
-| **Shared packages** | `@finny/shared`: money math and budget periods. `@finny/tokens`: one design system for both apps. |
+| **Shared packages** | `@kaspilo/shared`: money math and budget periods. `@kaspilo/tokens`: one design system for both apps. |
 | **Offline + notifications** | Offline cache with a write queue that syncs when back online. Push notifications (daily reminder, subscription expiry) via Edge Function → Expo Push. |
 
 **Money is never a float.** Every amount is stored as an integer in minor units (agorot / cents) and formatted in one place.
@@ -95,9 +95,9 @@ Dev and prod are fully separate. Nothing is shared between them.
 | | Development | Production |
 | --- | --- | --- |
 | Supabase project | dev project | separate clean project |
-| App name | Finny Dev | Finny |
-| Deep link scheme | `finny-dev://` | `finny://` |
-| Bundle id / package | `com.finny.app.dev` | `com.finny.app` |
+| App name | Kaspilo Dev | Kaspilo |
+| Deep link scheme | `kaspilo-dev://` | `kaspilo://` |
+| Bundle id / package | `com.kaspilo.app.dev` | `com.kaspilo.app` |
 | Mobile env file | `apps/mobile/.env.development` | `apps/mobile/.env.production` + EAS `production` environment |
 | Web env | `apps/web/.env.development`, Vercel Preview | Vercel Production |
 

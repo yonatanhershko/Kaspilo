@@ -1,4 +1,4 @@
-import type { Wallet } from '@finny/shared';
+import type { Wallet } from '@kaspilo/shared';
 import { createContext, useContext } from 'react';
 
 export type WalletState = {

@@ -1,5 +1,5 @@
 /**
- * Color values come from @finny/tokens at runtime as CSS variables
+ * Color values come from @kaspilo/tokens at runtime as CSS variables
  * (see src/theme/ThemeProvider.tsx), so light / dark switch without a rebuild.
  * Keep this list in step with the color keys in packages/tokens/src/index.ts.
  */

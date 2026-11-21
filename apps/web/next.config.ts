@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   // Workspace packages ship TypeScript source.
-  transpilePackages: ["@finny/tokens", "@finny/shared"],
+  transpilePackages: ["@kaspilo/tokens", "@kaspilo/shared"],
   turbopack: {
     rules: {
       "*.css": {

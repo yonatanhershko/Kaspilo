@@ -1,4 +1,4 @@
-import { formatAmount, type GoalDeposit, type Transaction } from '@finny/shared';
+import { formatAmount, type GoalDeposit, type Transaction } from '@kaspilo/shared';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';

@@ -1,4 +1,4 @@
-import { colors, type ColorToken, type ThemeName } from '@finny/tokens';
+import { colors, type ColorToken, type ThemeName } from '@kaspilo/tokens';
 import { vars } from 'nativewind';
 import { createContext, type ReactNode, use, useState } from 'react';
 import { useColorScheme, View } from 'react-native';

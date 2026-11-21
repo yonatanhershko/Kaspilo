@@ -6,19 +6,16 @@
  * shorter than `startDay`, it starts on that month's last day
  * (start day 31 -> 28 or 29 Feb, 30 Apr, ...).
  */
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  format,
-  getDate,
-  getDaysInMonth,
-  parse,
-  setDate,
-  startOfMonth,
-  subDays,
-} from 'date-fns';
+// One module per function: the `date-fns` index pulls in the whole library.
+import { addMonths } from 'date-fns/addMonths';
+import { addWeeks } from 'date-fns/addWeeks';
+import { addYears } from 'date-fns/addYears';
+import { format } from 'date-fns/format';
+import { getDaysInMonth } from 'date-fns/getDaysInMonth';
+import { parse } from 'date-fns/parse';
+import { setDate } from 'date-fns/setDate';
+import { startOfMonth } from 'date-fns/startOfMonth';
+import { subDays } from 'date-fns/subDays';
 
 export type ISODate = string;
 export type Period = { start: ISODate; end: ISODate };
@@ -85,6 +82,3 @@ export function occurrenceDate(first: ISODate, frequency: Frequency, n: number):
     frequency === 'weekly' ? addWeeks(start, n) : frequency === 'monthly' ? addMonths(start, n) : addYears(start, n);
   return toISODate(date);
 }
-
-export const addDaysISO = (date: ISODate, days: number): ISODate => toISODate(addDays(fromISODate(date), days));
-export const dayOfMonth = (date: ISODate): number => getDate(fromISODate(date));

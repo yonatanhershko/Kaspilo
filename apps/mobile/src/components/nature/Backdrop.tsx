@@ -1,4 +1,4 @@
-import { backdrop, backdropVariant, colors, type ThemeName } from '@finny/tokens';
+import { backdrop, backdropVariant, colors, type ThemeName } from '@kaspilo/tokens';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 

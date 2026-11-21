@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light theme defaults. ThemeProvider overrides these from @finny/tokens. */
+/* Light theme defaults. ThemeProvider overrides these from @kaspilo/tokens. */
 :root {
   --color-primary: 74 124 111;
   --color-on-primary: 255 255 255;

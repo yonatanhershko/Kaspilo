@@ -11,6 +11,8 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+
+import { signInThroughFunction } from './signin.mjs';
 const root = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
 const require = createRequire(root + '/apps/web/package.json');
 const { createClient } = require('@supabase/supabase-js');
@@ -24,12 +26,8 @@ const creds = Object.fromEntries(
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  -> ' + extra : ''}`); };
 
-async function as(who) {
-  const c = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
-  const { data, error } = await c.auth.signInWithPassword(creds[who]);
-  if (error) throw new Error(`${who} sign-in failed: ${error.message}`);
-  return { c, id: data.user.id };
-}
+// The way the app signs in: through the auth-password Edge Function.
+const as = (who) => signInThroughFunction(createClient, env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, creds[who]);
 
 const anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
 {

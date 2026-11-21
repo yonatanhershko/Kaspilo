@@ -1,0 +1,37 @@
+# Free-plan Supabase projects pause after 7 days without database activity
+# (docs/ci-cd.md "Keep-alive"). Once a day this runs one read query against prod
+# with the public publishable key. RLS returns an empty list; the query still counts.
+# Needs repository variables PROD_SUPABASE_URL and PROD_SUPABASE_PUBLISHABLE_KEY
+# (both public values, the same ones the app ships with). Skips while they are unset.
+name: Keep-alive
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: Query prod once
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one row
+        env:
+          URL: ${{ vars.PROD_SUPABASE_URL }}
+          KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::notice::PROD_SUPABASE_URL / PROD_SUPABASE_PUBLISHABLE_KEY not set yet, skipping."
+            exit 0
+          fi
+          status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+            -H "apikey: $KEY" \
+            "$URL/rest/v1/profiles?select=id&limit=1")
+          echo "HTTP $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Keep-alive query failed with HTTP $status"
+            exit 1
+          fi

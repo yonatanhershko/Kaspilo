@@ -1,6 +1,6 @@
 ---
 name: qa-test-engineer
-description: Plan and run tests for Finny - unit tests for money and period logic, RLS tests, and manual run-throughs on simulator. Use before a phase commit and before release.
+description: Plan and run tests for Kaspilo - unit tests for money and period logic, RLS tests, and manual run-throughs on simulator. Use before a phase commit and before release.
 ---
 
 # QA test engineer

@@ -1,5 +1,5 @@
-import { categoryPalette } from '@finny/tokens';
-import type { Wallet } from '@finny/shared';
+import { categoryPalette } from '@kaspilo/tokens';
+import type { Wallet } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -9,6 +9,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { useWalletName } from '@/data/hooks';
 import { useCreateWallet, useUpdateWallet, WalletLimitError } from '@/data/queries';
+import { saveErrorKey } from '@/lib/network';
 
 export const WALLET_ICONS = [
   'wallet-outline',
@@ -71,7 +72,7 @@ export function WalletForm({
         onSaved(await create.mutateAsync({ name, icon: draft.icon, color: draft.color }));
       }
     } catch (e) {
-      setError(e instanceof WalletLimitError ? t('wallets.limitReached') : t('common.errorGeneric'));
+      setError(e instanceof WalletLimitError ? t('wallets.limitReached') : t(saveErrorKey(e)));
     }
   };
 

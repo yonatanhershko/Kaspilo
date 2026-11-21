@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 WebBrowser.maybeCompleteAuthSession();
 
 /**
- * Landing route for the Google sign-in redirect (finny-dev://auth-callback). The
+ * Landing route for the Google sign-in redirect (kaspilo-dev://auth-callback). The
  * sign-in code reads the session from the URL itself; if Android also opens this
  * route, it just goes back to the entry point.
  */

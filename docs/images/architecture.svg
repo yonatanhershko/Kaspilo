@@ -22,7 +22,7 @@
 
   <rect width="1280" height="780" rx="24" fill="#F5F1E8"/>
 
-  <text x="40" y="54" class="h1">Finny · architecture</text>
+  <text x="40" y="54" class="h1">Kaspilo · architecture</text>
   <text x="40" y="78" class="sub">One Supabase database behind the mobile app and the admin dashboard. Row Level Security on every table.</text>
 
   <!-- ============ Mobile app ============ -->
@@ -74,9 +74,9 @@
   <!-- ============ Middle column ============ -->
   <rect x="490" y="104" width="300" height="140" rx="18" class="card"/>
   <text x="510" y="134" class="title">Shared packages</text>
-  <text x="510" y="160" class="body"><tspan font-weight="700" fill="#2E3D38">@finny/shared</tspan> money math in integer</text>
+  <text x="510" y="160" class="body"><tspan font-weight="700" fill="#2E3D38">@kaspilo/shared</tspan> money math in integer</text>
   <text x="510" y="178" class="body">minor units, budget periods, types</text>
-  <text x="510" y="204" class="body"><tspan font-weight="700" fill="#2E3D38">@finny/tokens</tspan> one design system</text>
+  <text x="510" y="204" class="body"><tspan font-weight="700" fill="#2E3D38">@kaspilo/tokens</tspan> one design system</text>
   <text x="510" y="222" class="body">for mobile + web (light / dark)</text>
 
   <rect x="490" y="388" width="300" height="96" rx="18" class="card"/>

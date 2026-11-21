@@ -1,4 +1,4 @@
-import { leafPalette } from '@finny/tokens';
+import { leafPalette } from '@kaspilo/tokens';
 import Svg, { G, Path } from 'react-native-svg';
 
 const leafBody = 'M0 0 C 26 -36 88 -38 132 0 C 88 38 26 36 0 0Z';

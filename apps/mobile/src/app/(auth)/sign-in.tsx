@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
-import { useAuth } from '@/auth/AuthProvider';
+import { appleAvailable } from '@/auth/apple';
+import { authErrorText, useAuth } from '@/auth/AuthProvider';
 import { checkEmail } from '@/auth/validation';
+import { AppleLogo } from '@/components/AppleLogo';
 import { GoogleLogo } from '@/components/GoogleLogo';
 import { WalletHero } from '@/components/nature/WalletHero';
 import { AppText } from '@/components/ui/AppText';
@@ -15,7 +17,7 @@ import { PressScale } from '@/components/ui/PressScale';
 
 export default function SignInScreen() {
   const { t } = useTranslation();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -33,6 +35,23 @@ export default function SignInScreen() {
     if (error && error !== 'cancelled') setFormError(t('auth.googleFailed'));
   };
 
+  // iPhone only (docs/spec.md "Auth").
+  const [showApple, setShowApple] = useState(false);
+  const [appleBusy, setAppleBusy] = useState(false);
+  useEffect(() => {
+    void appleAvailable().then(setShowApple);
+  }, []);
+
+  const apple = async () => {
+    setFormError(null);
+    setAppleBusy(true);
+    const error = await signInWithApple();
+    setAppleBusy(false);
+    if (error && error !== 'cancelled') setFormError(t('auth.appleFailed'));
+  };
+
+  const otherBusy = busy || googleBusy || appleBusy;
+
   const submit = async () => {
     const emailProblem = checkEmail(email);
     setEmailError(emailProblem ? t(emailProblem) : null);
@@ -45,7 +64,7 @@ export default function SignInScreen() {
     const error = await signIn(email, password);
     setBusy(false);
     // On success the guard in the root layout moves to the right area.
-    if (error) setFormError(t(`auth.errors.${error}`));
+    if (error) setFormError(authErrorText(t, error));
   };
 
   return (
@@ -102,13 +121,23 @@ export default function SignInScreen() {
             </AppText>
             <View className="h-px flex-1 bg-border" />
           </View>
+           {showApple ? (
+            <Button
+              label={t('auth.apple')}
+              variant="outline"
+              icon={<AppleLogo />}
+              onPress={apple}
+              loading={appleBusy}
+              disabled={otherBusy && !appleBusy}
+            />
+          ) : null}
           <Button
             label={t('auth.google')}
             variant="outline"
             icon={<GoogleLogo />}
             onPress={google}
             loading={googleBusy}
-            disabled={busy}
+            disabled={otherBusy && !googleBusy}
           />
         </View>
         <PressScale

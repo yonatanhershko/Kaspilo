@@ -1,4 +1,4 @@
-import { amountToInput, type Currency, currencySymbol, parseAmount } from '@finny/shared';
+import { amountToInput, type Currency, currencySymbol, parseAmount } from '@kaspilo/shared';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney, useWalletName } from '@/data/hooks';
 import { useUpdateSettings, useUpdateWallet } from '@/data/queries';
+import { useOutbox } from '@/data/outbox';
 import { useWallet } from '@/data/walletContext';
 import { changeLanguage, useLanguage, useRowAlign } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
@@ -20,7 +21,7 @@ import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
 import { PressScale } from '@/components/ui/PressScale';
 
-type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'budget' | 'delete';
+type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'budget' | 'delete' | 'signOut';
 
 export default function MoreScreen() {
   const { t } = useTranslation();
@@ -35,6 +36,8 @@ export default function MoreScreen() {
   const saveWallet = (patch: { month_start_day?: number; overall_budget?: number | null }) =>
     updateWallet.mutateAsync({ id: wallet.id, ...patch });
   const money = useMoney();
+  // Transactions added offline and not sent yet are lost on sign out: warn first.
+  const unsent = useOutbox().length;
 
   const [open, setOpen] = useState<Open>(null);
   const [text, setText] = useState('');
@@ -131,7 +134,7 @@ export default function MoreScreen() {
         row('account-circle-outline', t('more.account'), profile?.full_name || profile?.email || null, () =>
           show('name', profile?.full_name ?? ''),
         ),
-        row('translate', t('settings.language'), language === 'he' ? 'עברית' : 'English', () => show('language')),
+        row('translate', t('settings.language'), t(language === 'he' ? 'settings.languageHe' : 'settings.languageEn'), () => show('language')),
         row('theme-light-dark', t('settings.theme'), themeLabel[preference], () => show('theme')),
       ])}
 
@@ -165,9 +168,11 @@ export default function MoreScreen() {
         row('trash-can-outline', t('more.deleteAccount'), null, () => show('delete'), true),
       ])}
 
+      {group([row('information-outline', t('about.title'), null, () => router.push('/about'))])}
+
       <PressScale
         accessibilityRole="button"
-        onPress={() => void signOut()}
+        onPress={() => (unsent > 0 ? show('signOut') : void signOut())}
         className={`min-h-[56px] items-center gap-3 rounded-xl border border-danger bg-danger-surface px-4 active:opacity-70 ${align.row}`}>
         <Icon name="logout" tone="danger" />
         <AppText tone="danger" weight="medium" className="text-[16px]">
@@ -208,8 +213,8 @@ export default function MoreScreen() {
         actions={[{ label: t('common.close'), variant: 'outline', onPress: close }]}>
         {choices<Language>(
           [
-            { value: 'he', label: 'עברית' },
-            { value: 'en', label: 'English' },
+            { value: 'he', label: t('settings.languageHe') },
+            { value: 'en', label: t('settings.languageEn') },
           ],
           language,
           (value) => {
@@ -217,9 +222,6 @@ export default function MoreScreen() {
             void changeLanguage(value);
           },
         )}
-        <AppText tone="muted" className="text-[13px]">
-          {t('settings.languageRestartNote')}
-        </AppText>
       </Dialog>
 
       <Dialog
@@ -309,6 +311,17 @@ export default function MoreScreen() {
         ]}>
         <AmountField value={text} onChangeText={setText} label={t('more.overallBudget')} autoFocus />
         {error && <AppText tone="danger" className="text-[14px]">{error}</AppText>}
+      </Dialog>
+
+      <Dialog
+        visible={open === 'signOut'}
+        title={t('auth.signOut')}
+        onClose={close}
+        actions={[
+          { label: t('offline.signOutAnyway'), variant: 'accent', loading: busy, onPress: () => void run(signOut) },
+          { label: t('common.cancel'), variant: 'outline', onPress: close },
+        ]}>
+        <AppText className="text-[15px] leading-[22px]">{t('offline.signOutWarning', { count: unsent })}</AppText>
       </Dialog>
 
       <Dialog

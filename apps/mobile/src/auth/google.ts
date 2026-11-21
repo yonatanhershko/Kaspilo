@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { isRunningInExpoGo } from 'expo';
+import { Platform, TurboModuleRegistry } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
@@ -14,12 +15,14 @@ type GoogleIds = { web?: string; ios?: string };
 const ids = (Constants.expoConfig?.extra?.googleClientIds ?? {}) as GoogleIds;
 
 /**
- * Native sign-in (Google's own sheet, shows "Finny") needs the native module, which
+ * Native sign-in (Google's own sheet, shows "Kaspilo") needs the native module, which
  * Expo Go and web do not have, and on iOS an iOS client ID. Otherwise: browser flow.
  */
 const useNative =
   Platform.OS !== 'web' &&
-  Constants.executionEnvironment !== 'storeClient' &&
+  !isRunningInExpoGo() &&
+  // Also checks the module is really in this build (asking does not throw, loading does).
+  TurboModuleRegistry.get('RNGoogleSignin') != null &&
   !!ids.web &&
   (Platform.OS !== 'ios' || !!ids.ios);
 
@@ -72,7 +75,7 @@ async function signInNative(): Promise<GoogleResult> {
   }
 }
 
-/** Where Google (through Supabase) sends the user back: finny-dev://auth-callback, finny://auth-callback on prod. */
+/** Where Google (through Supabase) sends the user back: kaspilo-dev://auth-callback, kaspilo://auth-callback on prod. */
 export const googleRedirectUrl = () => Linking.createURL('auth-callback');
 
 /** Reads `#access_token=…&refresh_token=…` (or the query string) from the redirect URL. */

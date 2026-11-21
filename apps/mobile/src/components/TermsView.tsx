@@ -11,7 +11,8 @@ type Section = { title: string; body: string };
 
 /**
  * The terms text with the accept button pinned under it: opening the terms and
- * accepting is enough, no scroll needed. Used by sign-up and by the first Google sign-in.
+ * accepting is enough, no scroll needed. Used by sign-up, the first Google sign-in,
+ * and read only from About.
  */
 export function TermsView({
   onAccept,
@@ -19,7 +20,8 @@ export function TermsView({
   back = true,
   footer,
 }: {
-  onAccept: () => void;
+  /** Without it the terms are read only (About → Terms of use). */
+  onAccept?: () => void;
   busy?: boolean;
   back?: boolean;
   footer?: ReactNode;
@@ -51,10 +53,12 @@ export function TermsView({
           ))}
         </View>
       </ScrollView>
-      <View className="border-t border-border pb-6 pt-3">
-        <Button label={t('terms.iRead')} onPress={onAccept} loading={busy} />
-        {footer}
-      </View>
+      {onAccept && (
+        <View className="border-t border-border pb-6 pt-3">
+          <Button label={t('terms.iRead')} onPress={onAccept} loading={busy} />
+          {footer}
+        </View>
+      )}
     </Screen>
   );
 }

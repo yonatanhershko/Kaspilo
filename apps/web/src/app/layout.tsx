@@ -1,4 +1,4 @@
-import { colors } from "@finny/tokens";
+import { colors } from "@kaspilo/tokens";
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import type { CSSProperties } from "react";
@@ -13,8 +13,8 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "Finny Admin",
-  description: "Finny admin dashboard",
+  title: "Kaspilo Admin",
+  description: "Kaspilo admin dashboard",
 };
 
 const kebab = (name: string) =>
@@ -23,7 +23,7 @@ const kebab = (name: string) =>
 /** Shared tokens -> CSS variables. The admin dashboard is light theme only. */
 const tokenVars = Object.fromEntries(
   Object.entries(colors.light).map(([key, value]) => [
-    `--finny-${kebab(key)}`,
+    `--kaspilo-${kebab(key)}`,
     value,
   ]),
 ) as CSSProperties;
@@ -35,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${rubik.variable} h-full antialiased`}
       style={tokenVars}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body>
+          before React loads; ignore those, this level only. */}
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <AdminAuthProvider>{children}</AdminAuthProvider>
       </body>
     </html>

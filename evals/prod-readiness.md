@@ -19,12 +19,13 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 
 - [ ] `git log -p` contains no secret key, JWT, or private key.
 - [ ] Mobile bundle and web client bundle contain no secret key (grep the build output).
-- [ ] Prod uses its own Supabase project, keys, bundle id, and `finny://` scheme. Nothing points at dev.
+- [ ] Prod uses its own Supabase project, keys, bundle id, and `kaspilo://` scheme. Nothing points at dev.
 - [ ] Dev secret key that was shared in chat has been rotated.
 - [ ] Auth redirect URLs in prod list only prod schemes and domains.
 - [ ] Dev test users do not exist in prod.
-- [ ] Prod Auth: "Confirm email" is off, "Leaked password protection" is on, minimum password length 8.
-- [ ] Prod Auth: custom SMTP is on (same Brevo/Resend account as dev is fine, sender name "Finny") and the Reset Password template contains `{{ .Token }}`.
+- [ ] Prod Auth: "Confirm email" is off, minimum password length 8, "IP address forwarding" on (Rate Limits).
+- [ ] Prod Edge Function `auth-password` deployed with its own `AUTH_PASSWORD_PEPPER` (a copy in the owner's password manager). On a prod build: sign-up with `password123` is refused as leaked; 5 wrong passwords lock for 15 minutes; "Forgot password" unlocks.
+- [ ] Prod Auth: custom SMTP is on (same Brevo/Resend account as dev is fine, sender name "Kaspilo") and the Reset Password template contains `{{ .Token }}`.
 
 ## 3. Money correctness (blocker)
 

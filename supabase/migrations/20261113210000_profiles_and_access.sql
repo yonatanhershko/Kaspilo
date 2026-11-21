@@ -3,7 +3,7 @@
 
 create type public.user_role as enum ('client', 'admin');
 create type public.account_status as enum ('pending_approval', 'active', 'expired', 'rejected');
--- paid: 1 year after Bit payment. vip: 1 year, granted without payment. family: no expiry.
+-- paid: 1 year after payment. vip: 1 year, granted without payment. family: no expiry.
 create type public.access_plan as enum ('paid', 'vip', 'family');
 
 create table public.profiles (

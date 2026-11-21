@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-line Android setup for Finny:  npm run setup:android
+# One-line Android setup for Kaspilo:  npm run setup:android
 # Installs the Android SDK + an emulator through Homebrew, then prints what to do next.
 # Safe to run again: every step checks first.
 set -euo pipefail
@@ -60,7 +60,7 @@ Android is ready. What next:
 
   1. Open a NEW terminal (so the new variables load).
   2. Start the emulator:       emulator -avd finny_pixel
-  3. In another tab, run Finny: npm run mobile      then press  a
+  3. In another tab, run Kaspilo: npm run mobile      then press  a
   4. Real Android phone, no cable: npm run build:android
      It gives a link + QR code. Open it on the phone and install the APK.
 

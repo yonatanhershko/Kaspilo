@@ -1,0 +1,161 @@
+# Every push and pull request to dev / main (docs/ci-cd.md).
+# Checks the code, scans for secrets, builds both apps, replays every migration on an
+# empty database, serves the Edge Functions and runs the DB tests there, and reads the
+# Supabase advisors of dev.
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+  # Also run as the first step of a production deploy.
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - name: Hebrew and English keys match
+        run: node scripts/ci/i18n-check.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Edge Functions type-check and lint
+        run: |
+          deno check supabase/functions/*/index.ts
+          deno lint supabase/functions
+
+  dependencies:
+    name: Dependency report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # On dev a "must" item is a warning, so work is never blocked by an upstream release.
+      # Into main (push or pull request) it fails: nothing reaches prod with a must-fix open.
+      - name: Report (must / recommended / not urgent)
+        env:
+          STRICT: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' }}
+        run: |
+          if [ "$STRICT" = "true" ]; then node scripts/ci/deps-report.mjs --fail-on-must
+          else node scripts/ci/deps-report.mjs; fi
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Build mobile + web
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Public placeholder values: this job only proves the apps build. Real values live in
+    # EAS / Vercel environments, never in the repository.
+    env:
+      EXPO_PUBLIC_APP_ENV: development
+      EXPO_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      NEXT_PUBLIC_APP_ENV: development
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Export iPhone and Android bundles
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --platform android --output-dir dist
+      - name: Bundle size against budget
+        run: node scripts/ci/bundle-size.mjs apps/mobile/dist
+      - name: Build admin dashboard
+        run: npm run build -w @kaspilo/web
+
+  database:
+    name: Migrations on an empty database + DB tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Supabase project files
+        run: test -f supabase/config.toml || supabase init
+      - name: Start a local Supabase (applies every migration in file order)
+        run: supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,storage-api,postgres-meta
+      - name: Serve the Edge Functions (throwaway server secret)
+        run: |
+          echo "AUTH_PASSWORD_PEPPER=$(openssl rand -hex 32)" > supabase/functions/.env
+          nohup supabase functions serve --no-verify-jwt --env-file supabase/functions/.env > "$RUNNER_TEMP/functions.log" 2>&1 &
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://127.0.0.1:54321/functions/v1/auth-password || true)
+            [ "$code" = "200" ] && echo "auth-password is up" && exit 0
+            sleep 2
+          done
+          echo "auth-password did not start"; cat "$RUNNER_TEMP/functions.log"; exit 1
+      - name: Lint database functions
+        run: supabase db lint --level error
+      - name: Seed test users
+        run: |
+          supabase status -o env | sed -E 's/^([A-Z_]+)="?([^"]*)"?$/\1=\2/' >> "$GITHUB_ENV"
+      - run: node supabase/tests/ci-setup.mjs
+      - name: DB tests (money, access, password lock, request limits)
+        run: npm run test:db
+      - name: Edge Function log
+        if: failure()
+        run: cat "$RUNNER_TEMP/functions.log" || true
+      - if: always()
+        run: supabase stop --no-backup
+
+  advisors:
+    name: Supabase advisors (dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Pull requests from forks get no secrets; the script then skips.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ vars.DEV_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/ci/advisors.mjs

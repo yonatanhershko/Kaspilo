@@ -4,14 +4,14 @@ Rule: `docs/spec.md` (Auth). Code: `apps/mobile/src/auth/google.ts`, client IDs 
 
 How it works:
 
-- **Phone (dev build, preview APK, store build):** Google's native sign-in sheet. Google shows the app name from the consent screen ("Finny"). The app gets an ID token and calls `supabase.auth.signInWithIdToken`.
+- **Phone (dev build, preview APK, store build):** Google's native sign-in sheet. Google shows the app name from the consent screen ("Kaspilo"). The app gets an ID token and calls `supabase.auth.signInWithIdToken`.
 - **Web and Expo Go:** fallback to Supabase's hosted Google page in the browser. Google shows the Supabase project address there. This fallback is for testing only.
 
 Everything lives in one Google Cloud project, `finny-f9dba`, at Google Auth Platform: https://console.cloud.google.com/auth/overview?project=finny-f9dba
 
 ## 1. Consent screen (once)
 
-- **Branding:** App name `Finny`, support email. Logo (`docs/brand/finny-logo-120.png`) is optional: once a logo is uploaded, Google must verify the brand before "Publish app", which needs our own domain. Skip it until there is one.
+- **Branding:** App name `Kaspilo`, support email. Logo (`docs/brand/kaspilo-logo-120.png`) is optional: once a logo is uploaded, Google must verify the brand before "Publish app", which needs our own domain. Skip it until there is one.
   - Before publishing, also fill in home page, privacy policy URL and authorized domain.
 - **Audience:** External.
   - While in Testing, only listed test users can sign in.
@@ -23,11 +23,11 @@ Client IDs are not secrets. The web client's secret is a secret: it goes only in
 
 | Client | Type | Values | Status |
 | --- | --- | --- | --- |
-| Finny (web) | Web application | Redirect URIs: `https://fcezhasnvrdeplaklqmv.supabase.co/auth/v1/callback` (dev) and `https://mlirmohdsbcqjewybizc.supabase.co/auth/v1/callback` (prod) | done, `542359804466-g6fe…` |
-| Finny Android dev | Android | package `com.finny.app.dev`, SHA-1 `50:EC:33:41:1E:3F:B1:DB:53:CE:FB:D9:28:02:8C:91:1E:25:1C:71` (EAS dev keystore, read from the preview APK) | to do |
-| Finny iOS dev | iOS | bundle ID `com.finny.app.dev` | done, `542359804466-c6gf…` (in app.config.ts) |
-| Finny Android prod | Android | package `com.finny.app`, SHA-1 of the EAS production keystore and, once on Google Play, the Play "App signing key" SHA-1 too (one client per SHA-1) | at prod |
-| Finny iOS prod | iOS | bundle ID `com.finny.app` | at prod |
+| Kaspilo (web) | Web application | Redirect URIs: `https://fcezhasnvrdeplaklqmv.supabase.co/auth/v1/callback` (dev) and `https://mlirmohdsbcqjewybizc.supabase.co/auth/v1/callback` (prod) | done, `542359804466-g6fe…` |
+| Kaspilo Android dev | Android | package `com.kaspilo.app.dev`, SHA-1 `50:EC:33:41:1E:3F:B1:DB:53:CE:FB:D9:28:02:8C:91:1E:25:1C:71` (EAS dev keystore of the old project: the new EAS project after the rename gets a new keystore, so read the SHA-1 again) | to do |
+| Kaspilo iOS dev | iOS | bundle ID `com.kaspilo.app.dev` | done 2026-11-20, `542359804466-v0ko…` (in app.config.ts). The old `c6gf…` client for `com.finny.app.dev` can be deleted |
+| Kaspilo Android prod | Android | package `com.kaspilo.app`, SHA-1 of the EAS production keystore and, once on Google Play, the Play "App signing key" SHA-1 too (one client per SHA-1) | at prod |
+| Kaspilo iOS prod | iOS | bundle ID `com.kaspilo.app` | at prod |
 
 - **Android clients:** no ID goes into the app. Google matches the package and SHA-1.
 - **iOS clients:** the client ID goes into `app.config.ts` (or `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID_DEV` / `_PROD`). It adds the reversed ID as a URL scheme, so the app needs a rebuild after it is set. Until then, iOS uses the browser fallback.
@@ -43,8 +43,8 @@ In Authentication → Sign In / Providers → Google:
 
 In URL Configuration → Redirect URLs, for the browser fallback:
 
-- **dev:** `finny-dev://auth-callback` and `exp://**`
-- **prod:** `finny://auth-callback`
+- **dev:** `kaspilo-dev://auth-callback` and `exp://**`
+- **prod:** `kaspilo://auth-callback`
 
 ## 4. Test
 

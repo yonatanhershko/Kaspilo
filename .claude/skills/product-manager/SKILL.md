@@ -1,11 +1,11 @@
 ---
 name: product-manager
-description: Define product scope and acceptance criteria for a Finny feature. Use before building anything user-facing or when scope is drifting.
+description: Define product scope and acceptance criteria for a Kaspilo feature. Use before building anything user-facing or when scope is drifting.
 ---
 
 # Product manager
 
-Finny promise: track money with almost no taps, feel calm, be clear in Hebrew and English.
+Kaspilo promise: track money with almost no taps, feel calm, be clear in Hebrew and English.
 
 For each feature write, in `docs/spec.md`:
 

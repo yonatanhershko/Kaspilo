@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccountStatus } from "@finny/shared";
+import type { AccountStatus } from "@kaspilo/shared";
 import { useState } from "react";
 
 import { fetchProfiles, PAGE_SIZE } from "@/lib/admin-api";
@@ -69,7 +69,7 @@ export function UserListPage({
               setSearch(e.target.value);
               setPage(0);
             }}
-            className="h-9 w-full rounded-lg sm:w-64 border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
+            className="h-11 w-full rounded-lg sm:w-64 md:h-9 border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
           />
           {!fixedStatus && (
             <select
@@ -79,7 +79,7 @@ export function UserListPage({
                 setStatus(e.target.value as AccountStatus | "all");
                 setPage(0);
               }}
-              className="h-9 rounded-lg border border-border bg-surface px-2 text-sm"
+              className="h-11 rounded-lg border border-border bg-surface px-2 text-sm md:h-9"
             >
               <option value="all">All statuses</option>
               {allStatuses.map((s) => (

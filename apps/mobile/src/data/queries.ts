@@ -4,17 +4,44 @@ import type {
   Goal,
   GoalDeposit,
   GoalTotal,
+  HistoryRow,
   Period,
   RepeatFrequency,
   Transaction,
   TransactionType,
   UserSettings,
   Wallet,
-} from '@finny/shared';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+} from '@kaspilo/shared';
+import { fromISODate, todayISO, toISODate } from '@kaspilo/shared';
+import {
+  type InfiniteData,
+  type QueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { subMonths } from 'date-fns/subMonths';
+import { randomUUID } from '@/lib/uuid';
+import { useMemo } from 'react';
 
+import { isOnline, isTransient, OfflineError, RateLimitError } from '@/lib/network';
 import { supabase } from '@/lib/supabase';
 
+import {
+  cursorOf,
+  entryOf,
+  HISTORY_BATCH,
+  HISTORY_PAGE,
+  type HistoryCursor,
+  type HistoryEntry,
+  historyKeys,
+  newestFirst,
+  OFFLINE_HISTORY_MONTHS,
+  toPages,
+  txEntry,
+} from './history';
+import { addToTotals, asListed, enqueue, type ListedTransaction, removeQueued, useOutbox } from './outbox';
 import { useWalletId } from './walletContext';
 
 /**
@@ -24,9 +51,18 @@ import { useWalletId } from './walletContext';
  * wallet: every key holds its id, so switching wallets never shows another wallet's rows.
  */
 
-function unwrap<T>(result: { data: T | null; error: { message: string } | null }): T {
-  if (result.error) throw new Error(result.error.message);
+function unwrap<T>(result: { data: T | null; error: { message: string; code?: string } | null; status?: number }): T {
+  if (result.error) {
+    if (result.status === 429) throw new RateLimitError();
+    throw isTransient(result) ? new OfflineError() : new Error(result.error.message);
+  }
   return result.data as T;
+}
+
+/** This wallet's transactions still on the phone (docs/spec.md "Offline"). */
+function useWalletOutbox(wallet: string) {
+  const all = useOutbox();
+  return useMemo(() => all.filter((x) => x.wallet_id === wallet), [all, wallet]);
 }
 
 const keys = {
@@ -48,6 +84,7 @@ function useInvalidateMoney() {
     Promise.all([
       client.invalidateQueries({ queryKey: ['totals'] }),
       client.invalidateQueries({ queryKey: ['transactions'] }),
+      client.invalidateQueries({ queryKey: ['history'] }),
     ]);
 }
 
@@ -127,11 +164,12 @@ export function useCreateWallet() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { name: string; color: string; icon: string }) => {
-      const { data, error } = await supabase.rpc('create_wallet', {
+      const { data, error, status } = await supabase.rpc('create_wallet', {
         p_name: input.name.trim(),
         p_color: input.color,
         p_icon: input.icon,
       });
+      if (error && status === 429) throw new RateLimitError();
       if (error) throw error.message.includes('wallet_limit') ? new WalletLimitError() : new Error(error.message);
       return data as Wallet;
     },
@@ -244,18 +282,25 @@ export function useRemoveCategory() {
 
 export function useCategoryTotals(period: Period) {
   const wallet = useWalletId();
-  return useQuery({
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery({
     queryKey: keys.totals(wallet, period),
     queryFn: async () =>
       unwrap<CategoryTotal[]>(
         await supabase.rpc('category_totals', { p_wallet_id: wallet, p_from: period.start, p_to: period.end }),
       ),
   });
+  // Not yet sent ones count at once; refused ones do not.
+  const { start, end } = period;
+  const data = useMemo(() => {
+    const extra = pending.filter((x) => x.state === 'queued' && x.date >= start && x.date <= end);
+    return query.data ? addToTotals(query.data, extra) : query.data;
+  }, [query.data, pending, start, end]);
+  return { ...query, data };
 }
 
-export function useTransactions(period: Period | null, categoryId?: string) {
-  const wallet = useWalletId();
-  return useQuery({
+function transactionsQuery(wallet: string, period: Period | null, categoryId?: string) {
+  return {
     queryKey: keys.transactions(wallet, period, categoryId),
     queryFn: async () => {
       let query = supabase.from('transactions').select('*').eq('wallet_id', wallet);
@@ -265,7 +310,169 @@ export function useTransactions(period: Period | null, categoryId?: string) {
         await query.order('date', { ascending: false }).order('created_at', { ascending: false }).limit(2000),
       );
     },
+  };
+}
+
+// ---- history (docs/spec.md "Wallets": history list, upcoming, complete export) ----
+
+type HistoryData = InfiniteData<HistoryRow[], HistoryCursor>;
+
+async function historyRead(
+  wallet: string,
+  opts: { upcoming?: boolean; since?: string | null; cursor?: HistoryCursor; limit: number },
+): Promise<HistoryRow[]> {
+  return unwrap<HistoryRow[]>(
+    await supabase.rpc('wallet_history', {
+      p_wallet_id: wallet,
+      p_today: todayISO(),
+      p_upcoming: !!opts.upcoming,
+      p_since: opts.since ?? null,
+      p_cursor_date: opts.cursor?.date ?? null,
+      p_cursor_at: opts.cursor?.at ?? null,
+      p_cursor_id: opts.cursor?.id ?? null,
+      p_limit: opts.limit,
+    }),
+  );
+}
+
+/**
+ * Every matching row, in batches. Stops only on an empty batch, so a server set to
+ * return fewer rows per read than asked can never cut the result short.
+ */
+async function historyReadAll(wallet: string, opts: { upcoming?: boolean; since?: string | null }): Promise<HistoryRow[]> {
+  const all: HistoryRow[] = [];
+  let cursor: HistoryCursor = null;
+  for (;;) {
+    const rows = await historyRead(wallet, { ...opts, cursor, limit: HISTORY_BATCH });
+    if (rows.length === 0) return all;
+    all.push(...rows);
+    cursor = cursorOf(rows[rows.length - 1]);
+  }
+}
+
+/** The whole wallet for a CSV export: every row up to today and every upcoming one. */
+export async function fetchWalletHistory(wallet: string): Promise<HistoryRow[]> {
+  const [past, upcoming] = await Promise.all([
+    historyReadAll(wallet, {}),
+    historyReadAll(wallet, { upcoming: true }),
+  ]);
+  return [...past, ...upcoming];
+}
+
+const offlineSince = () => toISODate(subMonths(fromISODate(todayISO()), OFFLINE_HISTORY_MONTHS));
+
+/**
+ * Load the current wallet's last 3 months of History (and the upcoming rows) in the
+ * background while online, so History has something to show offline (docs/spec.md "Offline").
+ */
+export function usePrefetchHistory() {
+  const client = useQueryClient();
+  const wallet = useWalletId();
+  return async () => {
+    try {
+      const recent = await historyReadAll(wallet, { since: offlineSince() });
+      // Fill the last page up to a full one, so the list knows whether older rows exist.
+      const short = recent.length % HISTORY_PAGE;
+      if (short > 0 || recent.length === 0) {
+        const cursor = recent.length ? cursorOf(recent[recent.length - 1]) : null;
+        recent.push(...(await historyRead(wallet, { cursor, limit: HISTORY_PAGE - short })));
+      }
+      const key = historyKeys.past(wallet);
+      const current = client.getQueryData<HistoryData>(key);
+      // Keep a longer list the user already scrolled to.
+      if (!current || current.pages.flat().length <= recent.length) client.setQueryData<HistoryData>(key, toPages(recent));
+      await client.prefetchQuery(upcomingQuery(wallet));
+    } catch {
+      // Offline or a passing error: keep what is on the phone.
+    }
+  };
+}
+
+/** Drop History pages older than the offline window, so the phone keeps about 3 months. */
+export function trimHistory(client: QueryClient, wallet: string) {
+  const since = offlineSince();
+  client.setQueryData<HistoryData>(historyKeys.past(wallet), (data) => {
+    if (!data) return data;
+    // Keep every page that starts inside the window, plus the one that crosses it.
+    let keep = data.pages.findIndex((page) => page.length > 0 && page[0].date < since);
+    if (keep === -1) return data;
+    keep = Math.max(keep, 1);
+    if (keep >= data.pages.length) return data;
+    return { pages: data.pages.slice(0, keep), pageParams: data.pageParams.slice(0, keep) };
   });
+}
+
+function upcomingQuery(wallet: string) {
+  return {
+    queryKey: historyKeys.upcoming(wallet),
+    queryFn: () => historyReadAll(wallet, { upcoming: true }),
+  };
+}
+
+/** Rows up to today, newest first, 50 at a time. Not yet sent transactions are listed too. */
+export function useHistory() {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useInfiniteQuery({
+    queryKey: historyKeys.past(wallet),
+    initialPageParam: null as HistoryCursor,
+    queryFn: ({ pageParam }) => historyRead(wallet, { cursor: pageParam, limit: HISTORY_PAGE }),
+    getNextPageParam: (last: HistoryRow[]) =>
+      last.length < HISTORY_PAGE ? undefined : cursorOf(last[last.length - 1]),
+  });
+  // Offline with nothing saved yet the query waits; still show what is on the phone.
+  const waiting = query.fetchStatus === 'paused';
+  const today = todayISO();
+  const entries = useMemo((): HistoryEntry[] | undefined => {
+    if (!query.data && !waiting) return undefined;
+    const rows = query.data?.pages.flat() ?? [];
+    const ids = new Set(rows.map((row) => row.id));
+    const own = pending.filter((x) => x.date <= today && !ids.has(x.id)).map((x) => txEntry(asListed(x)));
+    const list = rows.map(entryOf);
+    return own.length ? [...own, ...list].sort(newestFirst) : list;
+  }, [query.data, waiting, pending, today]);
+  return { ...query, entries };
+}
+
+/** Rows after today (remaining installment payments), soonest first. */
+export function useUpcoming() {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery(upcomingQuery(wallet));
+  const today = todayISO();
+  const entries = useMemo((): HistoryEntry[] | undefined => {
+    if (!query.data) return undefined;
+    const ids = new Set(query.data.map((row) => row.id));
+    const own = pending.filter((x) => x.date > today && !ids.has(x.id)).map((x) => txEntry(asListed(x)));
+    const list = query.data.map(entryOf);
+    return own.length ? [...own, ...list].sort((a, b) => newestFirst(b, a)) : list;
+  }, [query.data, pending, today]);
+  return { ...query, entries };
+}
+
+export function useTransactions(period: Period | null, categoryId?: string) {
+  const wallet = useWalletId();
+  const pending = useWalletOutbox(wallet);
+  const query = useQuery(transactionsQuery(wallet, period, categoryId));
+  const start = period?.start;
+  const end = period?.end;
+  // Offline with nothing saved yet the query waits; still show what is on the phone.
+  const waiting = query.fetchStatus === 'paused';
+  const data = useMemo((): ListedTransaction[] | undefined => {
+    if (!query.data && !waiting) return query.data;
+    const server = query.data ?? [];
+    const own = pending.filter(
+      (x) =>
+        (!start || !end || (x.date >= start && x.date <= end)) &&
+        (!categoryId || x.category_id === categoryId) &&
+        !server.some((row) => row.id === x.id),
+    );
+    if (own.length === 0) return query.data;
+    return [...own.map(asListed), ...server].sort((a, b) =>
+      a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date),
+    );
+  }, [query.data, waiting, pending, start, end, categoryId]);
+  return { ...query, data };
 }
 
 export function useTransaction(id: string | undefined) {
@@ -294,9 +501,12 @@ export type TransactionInput = {
 
 export function useAddTransaction() {
   const invalidate = useInvalidateMoney();
+  const wallet = useWalletId();
   return useMutation({
-    mutationFn: async (input: TransactionInput) => {
+    /** 'queued' = no internet: kept on the phone and sent later. */
+    mutationFn: async (input: TransactionInput): Promise<'saved' | 'queued'> => {
       const description = input.description.trim();
+      if (input.repeat.kind !== 'none' && !(await isOnline())) throw new OfflineError();
       if (input.repeat.kind === 'recurring') {
         unwrap(
           await supabase.rpc('create_recurring', {
@@ -320,21 +530,30 @@ export function useAddTransaction() {
           }),
         );
       } else {
-        unwrap(
-          await supabase
-            .from('transactions')
-            .insert({
-              type: input.type,
-              amount: input.amount,
-              description,
-              date: input.date,
-              category_id: input.category_id,
-            })
-            .select(),
-        );
+        // The id is made here, so a send that is repeated later never makes a second row.
+        const row = {
+          id: randomUUID(),
+          wallet_id: wallet,
+          type: input.type,
+          amount: input.amount,
+          description,
+          date: input.date,
+          category_id: input.category_id,
+        };
+        if (!(await isOnline())) {
+          enqueue(row);
+          return 'queued';
+        }
+        const result = await supabase.from('transactions').insert(row).select();
+        if (result.error && isTransient(result)) {
+          enqueue(row);
+          return 'queued';
+        }
+        unwrap(result);
       }
+      return 'saved';
     },
-    onSuccess: invalidate,
+    onSuccess: (outcome) => (outcome === 'saved' ? invalidate() : undefined),
   });
 }
 
@@ -364,18 +583,11 @@ export function useUpdateTransaction() {
 export function useDeleteTransaction() {
   const invalidate = useInvalidateMoney();
   return useMutation({
-    mutationFn: async (id: string) => {
-      unwrap(await supabase.from('transactions').delete().eq('id', id).select());
-    },
-    onSuccess: invalidate,
-  });
-}
-
-/** Stop a recurring rule: no new occurrences. Past transactions stay. */
-export function useStopRecurring() {
-  return useMutation({
-    mutationFn: async (ruleId: string) => {
-      unwrap(await supabase.from('recurring_rules').update({ active: false }).eq('id', ruleId).select());
+    mutationFn: async (tx: Pick<ListedTransaction, 'id' | 'sync'>) => {
+      // Still on the phone: the server never had it.
+      if (tx.sync) return removeQueued(tx.id);
+      unwrap(await supabase.from('transactions').delete().eq('id', tx.id).select());
+      await invalidate();
     },
   });
 }
@@ -412,7 +624,9 @@ export function useGoalDepositsInPeriod(period: Period) {
   return useQuery({
     // Under the 'goals' key so a new deposit refreshes it.
     queryKey: [...keys.walletGoals(wallet), 'deposits', period.start, period.end] as const,
-    queryFn: async (): Promise<Map<string, number>> => {
+    // Kept as a plain object: the cache is saved on the phone as JSON, which drops a Map.
+    select: (sums: Record<string, number>) => new Map(Object.entries(sums)),
+    queryFn: async (): Promise<Record<string, number>> => {
       const rows = unwrap<Pick<GoalDeposit, 'goal_id' | 'amount'>[]>(
         await supabase
           .from('goal_deposits')
@@ -422,8 +636,8 @@ export function useGoalDepositsInPeriod(period: Period) {
           .lte('date', period.end)
           .limit(2000),
       );
-      const sums = new Map<string, number>();
-      for (const r of rows) sums.set(r.goal_id, (sums.get(r.goal_id) ?? 0) + r.amount);
+      const sums: Record<string, number> = {};
+      for (const r of rows) sums[r.goal_id] = (sums[r.goal_id] ?? 0) + r.amount;
       return sums;
     },
   });
@@ -442,7 +656,11 @@ export function useSaveGoal() {
         unwrap(await supabase.from('goals').insert({ ...fields, name, wallet_id: wallet }).select());
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -460,25 +678,11 @@ export function useDeleteGoal() {
         unwrap(await supabase.from('goals').delete().eq('id', input.id).select());
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
-  });
-}
-
-/** Every deposit, newest first. Archived goals' deposits are included. */
-export function useAllDeposits() {
-  const wallet = useWalletId();
-  return useQuery({
-    queryKey: [...keys.walletGoals(wallet), 'deposits', 'all'] as const,
-    queryFn: async () =>
-      unwrap<GoalDeposit[]>(
-        await supabase
-          .from('goal_deposits')
-          .select('*')
-          .eq('wallet_id', wallet)
-          .order('date', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(2000),
-      ),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -489,7 +693,11 @@ export function useDeleteDeposit() {
     mutationFn: async (id: string) => {
       unwrap(await supabase.from('goal_deposits').delete().eq('id', id).select());
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }
 
@@ -499,6 +707,10 @@ export function useDeposit() {
     mutationFn: async (input: { goal_id: string; amount: number }) => {
       unwrap(await supabase.from('goal_deposits').insert(input).select());
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.goals }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: keys.goals }),
+        client.invalidateQueries({ queryKey: ['history'] }),
+      ]),
   });
 }

@@ -1,5 +1,8 @@
-import { fromISODate, type ISODate, toISODate, todayISO } from '@finny/shared';
-import { addMonths, getDay, getDaysInMonth, startOfMonth } from 'date-fns';
+import { fromISODate, type ISODate, toISODate, todayISO } from '@kaspilo/shared';
+import { addMonths } from 'date-fns/addMonths';
+import { getDay } from 'date-fns/getDay';
+import { getDaysInMonth } from 'date-fns/getDaysInMonth';
+import { startOfMonth } from 'date-fns/startOfMonth';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
-import { useAuth } from '@/auth/AuthProvider';
+import { authErrorText, useAuth } from '@/auth/AuthProvider';
 import { checkEmail, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
 import { WalletHero } from '@/components/nature/WalletHero';
 import { AppText } from '@/components/ui/AppText';
@@ -37,7 +37,7 @@ export default function ForgotPasswordScreen() {
     const failure = await requestPasswordReset(email);
     setBusy(false);
     if (failure) {
-      setError(t(`auth.errors.${failure}`));
+      setError(authErrorText(t, failure));
       return;
     }
     setStep('code');
@@ -57,7 +57,7 @@ export default function ForgotPasswordScreen() {
     setBusy(true);
     const failure = await resetPassword(email, code, password);
     setBusy(false);
-    if (failure) setError(t(`auth.errors.${failure}`));
+    if (failure) setError(authErrorText(t, failure));
   };
 
   return (

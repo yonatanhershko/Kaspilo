@@ -1,4 +1,4 @@
-# Finny
+# Kaspilo
 
 Personal-finance mobile app (Expo) + admin web dashboard (Next.js) on one Supabase database.
 Access is a yearly subscription paid by Bit and approved by hand by an admin.
@@ -16,6 +16,7 @@ Access is a yearly subscription paid by Bit and approved by hand by an admin.
 | `supabase/` | Migrations, edge functions, seed |
 | `docs/spec.md` | Approved product decisions. Business rules live here |
 | `evals/prod-readiness.md` | Checklist to pass before dev → prod |
+| `.github/` | CI on every push (with a dependency report), manual prod deploy. See `docs/ci-cd.md` |
 
 ## Claude setup
 

@@ -1,6 +1,6 @@
 ---
 name: software-architect
-description: Decide structure and data model for Finny. Use before major structural changes, new tables, new packages, or cross-app contracts.
+description: Decide structure and data model for Kaspilo. Use before major structural changes, new tables, new packages, or cross-app contracts.
 ---
 
 # Software architect
@@ -8,7 +8,7 @@ description: Decide structure and data model for Finny. Use before major structu
 Shape of the system:
 
 - npm workspaces monorepo. `apps/mobile` (Expo Router), `apps/web` (Next.js admin), `packages/tokens` (style), `packages/shared` (money, periods, types), `supabase/` (migrations, functions).
-- One Supabase project per environment. Dev and prod never share keys, bundle ids, or deep link schemes (`finny-dev://` vs `finny://`).
+- One Supabase project per environment. Dev and prod never share keys, bundle ids, or deep link schemes (`kaspilo-dev://` vs `kaspilo://`).
 - Business logic that produces numbers lives in `packages/shared` (pure, tested) or in Postgres. Not in screens.
 - Privileged actions are Postgres `security definer` functions or edge functions. Clients call them; clients never hold the secret key.
 

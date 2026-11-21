@@ -1,13 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addDays, set } from 'date-fns';
+import { addDays } from 'date-fns/addDays';
+import { set } from 'date-fns/set';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import { AndroidImportance } from 'expo-notifications/build/NotificationChannelManager.types';
 import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 
 import i18n, { currentLanguage } from '@/i18n';
+import { hasApplicationModule } from '@/lib/nativeApp';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -26,17 +26,21 @@ export type PermissionState = 'granted' | 'denied' | 'undetermined' | 'unsupport
 export const NOTIFICATION_ROUTES = ['/renew', '/today'] as const;
 export type NotificationRoute = (typeof NOTIFICATION_ROUTES)[number];
 
-const PREFS_KEY = 'finny.notifications';
-const ASKED_KEY = 'finny.notifications.asked';
-const TOKEN_KEY = 'finny.notifications.token';
+const PREFS_KEY = 'kaspilo.notifications';
+const ASKED_KEY = 'kaspilo.notifications.asked';
+const TOKEN_KEY = 'kaspilo.notifications.token';
 const CHANNEL_ID = 'default';
 
 /** Days after the last app open, and the hour of day, for the inactivity reminders. */
 const INACTIVITY_DAYS = [4, 14, 24] as const;
 const INACTIVITY_HOUR = 19;
-const inactivityId = (index: number) => `finny-inactive-${index + 1}`;
+const inactivityId = (index: number) => `kaspilo-inactive-${index + 1}`;
 
-const supported = Platform.OS !== 'web';
+// Expo Go on Android lacks a native module expo-notifications loads, so there it is not loaded at all.
+export const notificationsSupported = Platform.OS !== 'web' && hasApplicationModule;
+const supported = notificationsSupported;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Notifications = (supported ? require('expo-notifications') : null) as typeof import('expo-notifications');
 
 // ---- per-device switches ----------------------------------------------------
 
@@ -144,8 +148,8 @@ export async function configureNotifications(): Promise<void> {
     });
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-        name: 'Finny',
-        importance: AndroidImportance.DEFAULT,
+        name: 'Kaspilo',
+        importance: Notifications.AndroidImportance.DEFAULT,
       });
     }
   } catch {
@@ -156,6 +160,7 @@ export async function configureNotifications(): Promise<void> {
 // ---- inactivity (local) -----------------------------------------------------
 
 async function cancelInactivityReminders(): Promise<void> {
+  if (!supported) return;
   await Promise.all(
     INACTIVITY_DAYS.map((_, index) =>
       Notifications.cancelScheduledNotificationAsync(inactivityId(index)).catch(() => undefined),

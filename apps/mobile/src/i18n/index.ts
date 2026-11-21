@@ -15,7 +15,7 @@ import he from './he.json';
 const i18n = createInstance();
 
 export const languages: Language[] = ['he', 'en'];
-const RELOAD_MARK_KEY = 'finny.dirReload';
+const RELOAD_MARK_KEY = 'kaspilo.dirReload';
 
 /** Hebrew phone -> Hebrew. Any other phone language -> English. */
 export function deviceLanguage(): Language {
@@ -29,28 +29,27 @@ export function deviceLanguage(): Language {
  * The layout never mirrors: same on iPhone, Android and web (owner decision).
  * Hebrew only changes text alignment and icon/text row order, see `useRowAlign`.
  * A phone set to Hebrew would otherwise flip everything natively, so switch that off.
- * Native needs one reload the first time the flag changes; returns true when it happened.
+ * Native needs one reload the first time the flag changes.
  */
-async function applyDirection(language: Language): Promise<boolean> {
+async function applyDirection(language: Language): Promise<void> {
   if (Platform.OS === 'web') {
     if (typeof document !== 'undefined') {
       document.documentElement.dir = 'ltr';
       document.documentElement.lang = language;
     }
-    return false;
+    return;
   }
   I18nManager.allowRTL(false);
   I18nManager.forceRTL(false);
   if (!I18nManager.isRTL) {
     await AsyncStorage.removeItem(RELOAD_MARK_KEY).catch(() => undefined);
-    return false;
+    return;
   }
   // One reload only. If the platform still reports RTL after it, do not loop.
   const tried = await AsyncStorage.getItem(RELOAD_MARK_KEY).catch(() => null);
-  if (tried === 'ltr') return false;
+  if (tried === 'ltr') return;
   await AsyncStorage.setItem(RELOAD_MARK_KEY, 'ltr').catch(() => undefined);
   await reloadAppAsync();
-  return true;
 }
 
 /**

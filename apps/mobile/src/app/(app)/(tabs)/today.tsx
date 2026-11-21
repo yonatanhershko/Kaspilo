@@ -1,8 +1,9 @@
-import { budgetRemaining, type Category, percentOf, periodBalance } from '@finny/shared';
+import { budgetRemaining, type Category, percentOf, periodBalance } from '@kaspilo/shared';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Backdrop } from '@/components/nature/Backdrop';
 import { LeafBackground } from '@/components/nature/LeafBackground';
@@ -14,17 +15,22 @@ import { CategoryIcon, Icon } from '@/components/ui/Icon';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { useCategoryName, useCurrentPeriod, useDateFormat, useMoney } from '@/data/hooks';
 import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals } from '@/data/queries';
+import { useOutbox } from '@/data/outbox';
 import { useWallet } from '@/data/walletContext';
 import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useCountUp } from '@/lib/useCountUp';
+import { introPlayed, markIntroPlayed } from '@/lib/launchIntro';
+import { StaggerIn, staggerDelay, STAGGER_ITEM_MS } from '@/components/ui/StaggerIn';
+import { useReducedMotion } from 'react-native-reanimated';
 
 export default function TodayScreen() {
   const { t } = useTranslation();
   const align = useRowAlign();
   const { colors, theme } = useTheme();
   const tabBarHeight = useTabBarHeight();
+  const insets = useSafeAreaInsets();
   const money = useMoney();
   const nameOf = useCategoryName();
   const { dayMonth } = useDateFormat();
@@ -34,6 +40,8 @@ export default function TodayScreen() {
   const totals = useCategoryTotals(period);
   const goals = useGoals();
   const deposits = useGoalDepositsInPeriod(period);
+  // Added offline and refused by the server: the user must retry or delete them (History).
+  const rejected = useOutbox().filter((x) => x.wallet_id === wallet.id && x.state === 'rejected').length;
 
   const loading = categories.isLoading || totals.isLoading;
   const failed = categories.isError || totals.isError;
@@ -72,11 +80,37 @@ export default function TodayScreen() {
     .map((g) => ({ goal: g, amount: deposits.data?.get(g.id) ?? 0 }))
     .filter((d) => d.amount > 0);
 
+  // Cards come in one after another, only the first time home shows after launch
+  // (docs/spec.md "home cards intro"). Later mounts (wallet switch, new card) show at once.
+  const reduceMotion = useReducedMotion();
+  const [playCards, setPlayCards] = useState(() => !reduceMotion && !introPlayed('today.cards'));
+  const cardCount = cards.length + depositCards.length + incomeCards.length;
+  const cardsShown = !loading && !failed && cardCount > 0;
+  useEffect(() => {
+    if (!playCards || !cardsShown) return;
+    markIntroPlayed('today.cards');
+    const done = setTimeout(
+      () => setPlayCards(false),
+      staggerDelay(cardCount - 1, cardCount) + STAGGER_ITEM_MS + 100,
+    );
+    return () => clearTimeout(done);
+    // Ends once; a count change while it plays must not restart the timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playCards, cardsShown]);
+  const stagger = (index: number) => ({ index, count: cardCount, play: playCards });
+
   return (
     <View className="flex-1 bg-background">
       <Backdrop theme={theme} />
       <LeafBackground density="medium" topCorner />
-      <SafeAreaView style={{ flex: 1, paddingBottom: tabBarHeight }} edges={['top', 'left', 'right']}>
+      <View
+        style={{
+          flex: 1,
+          paddingTop: insets.top,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          paddingBottom: tabBarHeight,
+        }}>
         <ScrollView
           contentContainerClassName="px-5 pb-8"
           showsVerticalScrollIndicator={false}
@@ -127,6 +161,17 @@ export default function TodayScreen() {
             )}
           </View>
 
+          {rejected > 0 && (
+            <PressScale
+              accessibilityRole="button"
+              onPress={() => router.push('/history')}
+              className={`mt-3 min-h-[44px] items-center gap-2 rounded-lg border border-accent bg-surface px-3 ${align.row}`}>
+              <Icon name="cloud-alert" size={18} tone="primary" />
+              <AppText className="flex-1 text-[14px]">{t('offline.rejectedLine', { count: rejected })}</AppText>
+              <Icon name={align.he ? 'chevron-left' : 'chevron-right'} size={20} tone="muted" />
+            </PressScale>
+          )}
+
           <View className="mt-4 flex-row gap-3">
             <PressScale
               accessibilityRole="button"
@@ -162,8 +207,10 @@ export default function TodayScreen() {
             <EmptyState text={t('today.empty')} />
           ) : (
             <View className="gap-3">
-              {cards.map((category) => (
-                <CategoryCard key={category.id} category={category} spent={spentBy.get(category.id) ?? 0} />
+              {cards.map((category, i) => (
+                <StaggerIn key={category.id} {...stagger(i)}>
+                  <CategoryCard category={category} spent={spentBy.get(category.id) ?? 0} />
+                </StaggerIn>
               ))}
             </View>
           )}
@@ -174,15 +221,16 @@ export default function TodayScreen() {
                 {t('today.depositsThisPeriod')}
               </AppText>
               <View className="gap-3">
-                {depositCards.map(({ goal, amount }) => (
-                  <SummaryCard
-                    key={goal.id}
-                    name={goal.name}
-                    icon={goal.icon}
-                    color={colors.primary}
-                    amount={amount}
-                    onPress={() => router.push('/goals')}
-                  />
+                {depositCards.map(({ goal, amount }, i) => (
+                  <StaggerIn key={goal.id} {...stagger(cards.length + i)}>
+                    <SummaryCard
+                      name={goal.name}
+                      icon={goal.icon}
+                      color={colors.primary}
+                      amount={amount}
+                      onPress={() => router.push('/goals')}
+                    />
+                  </StaggerIn>
                 ))}
               </View>
             </>
@@ -194,21 +242,22 @@ export default function TodayScreen() {
                 {t('today.incomeSection')}
               </AppText>
               <View className="gap-3">
-                {incomeCards.map((category) => (
-                  <SummaryCard
-                    key={category.id}
-                    name={nameOf(category)}
-                    icon={category.icon}
-                    color={category.color}
-                    amount={incomeBy.get(category.id) ?? 0}
-                    onPress={() => router.push({ pathname: '/category/[id]', params: { id: category.id } })}
-                  />
+                {incomeCards.map((category, i) => (
+                  <StaggerIn key={category.id} {...stagger(cards.length + depositCards.length + i)}>
+                    <SummaryCard
+                      name={nameOf(category)}
+                      icon={category.icon}
+                      color={category.color}
+                      amount={incomeBy.get(category.id) ?? 0}
+                      onPress={() => router.push({ pathname: '/category/[id]', params: { id: category.id } })}
+                    />
+                  </StaggerIn>
                 ))}
               </View>
             </>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

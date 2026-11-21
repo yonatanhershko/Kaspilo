@@ -1,11 +1,9 @@
 {
-  "app": {
-    "name": "Finny"
-  },
   "common": {
     "loading": "Loading…",
     "retry": "Try again",
     "errorGeneric": "Something went wrong. Try again.",
+    "tooManyActions": "Too many actions. Wait a minute and try again.",
     "next": "Continue",
     "back": "Back",
     "save": "Save",
@@ -24,7 +22,6 @@
   },
   "auth": {
     "signIn": "Sign in",
-    "signUp": "Sign up",
     "signOut": "Sign out",
     "signInTitle": "Welcome back",
     "signUpTitle": "Create your account",
@@ -48,7 +45,9 @@
       "network": "No connection. Try again",
       "generic": "Something went wrong. Try again",
       "codeInvalid": "That code is wrong or has expired. Send a new one",
-      "tooManyRequests": "Too many tries. Wait a few minutes and try again"
+      "tooManyRequests": "Too many tries. Wait a few minutes and try again",
+      "locked": "Too many wrong passwords. Try again in {{minutes}} minutes, or reset your password",
+      "passwordLeaked": "This password appeared in a data leak. Choose another"
     },
     "forgot": {
       "title": "Reset your password",
@@ -65,6 +64,8 @@
     "or": "or",
     "google": "Continue with Google",
     "googleFailed": "Google sign-in did not work. Try again.",
+    "apple": "Continue with Apple",
+    "appleFailed": "Apple sign-in did not work. Try again.",
     "declineTerms": "I do not agree, sign out"
   },
   "settings": {
@@ -74,27 +75,26 @@
     "theme": "Theme",
     "themeSystem": "Match phone",
     "themeLight": "Light",
-    "themeDark": "Dark",
-    "languageRestartNote": "The app reloads to flip direction."
+    "themeDark": "Dark"
   },
   "locked": {
-    "contactAdvisor": "Contact your advisor",
+    "contactAdvisor": "Contact the Kaspilo team",
     "checkAgain": "Check again",
     "askAgain": "Send request again",
     "stillLocked": "Still waiting for approval.",
     "whatsappFailed": "Couldn't open WhatsApp. The number is 052-320-3902",
-    "whatsappMessage": "Hi, I signed up for Finny and paid with Bit. Name: {{name}}, email: {{email}}",
+    "whatsappMessage": "Hi, I signed up for Kaspilo. Name: {{name}}, email: {{email}}",
     "pending": {
-      "title": "Your account is waiting for Bit payment approval",
-      "body": "Once the payment is approved, you get full access to the app for one year."
+      "title": "Your account is waiting for approval",
+      "body": "Once the Kaspilo team approves your account, you get full access to the app."
     },
     "rejected": {
       "title": "Your request wasn't approved",
-      "body": "If you paid with Bit, contact your advisor or send the request again."
+      "body": "Contact the Kaspilo team or send the request again."
     },
     "expired": {
       "title": "Your subscription has ended",
-      "body": "Your data is kept. Renew with Bit to get back into the app."
+      "body": "Your data is kept. Contact the Kaspilo team to renew your access."
     },
     "error": {
       "title": "Couldn't load your account",
@@ -249,6 +249,11 @@
     "deleteTypeToConfirm": "Type \"{{word}}\" to confirm",
     "deleteConfirm": "Delete account for good"
   },
+  "history": {
+    "upcoming": "Upcoming payments ({{count}})",
+    "olderOffline": "Older entries show when you are back online.",
+    "loadingMore": "Loading more entries"
+  },
   "export": {
     "button": "Export to Excel (CSV)",
     "date": "Date",
@@ -262,7 +267,7 @@
   },
   "terms": {
     "title": "Terms of use",
-    "updated": "Last updated: November 15, 2026",
+    "updated": "Last updated: November 20, 2026",
     "iRead": "I agree to the terms of use",
     "readFirst": "Open the terms of use and accept them to continue",
     "openLink": "Read the terms of use",
@@ -270,11 +275,11 @@
     "sections": [
       {
         "title": "1. Who we are",
-        "body": "Finny is a personal-finance app. It is run by Yonatan Hershko as a private individual (the \"operator\", \"we\"). You can reach us by email: yonher8@gmail.com.\nBy signing up for Finny or using it, you agree to these terms and to the privacy policy in section 9. If you do not agree, do not use the app."
+        "body": "Kaspilo is a personal-finance app. It is run by Yonatan Hershko as a private individual (the \"operator\", \"we\"). You can reach us by email: MyKaspilo@gmail.com.\nBy signing up for Kaspilo or using it, you agree to these terms and to the privacy policy in section 9. If you do not agree, do not use the app."
       },
       {
-        "title": "2. What Finny does",
-        "body": "• Finny helps you log income and expenses, set budgets, save toward goals and see statistics.\n• Finny is a tool for logging and tracking only. It is not financial, investment, tax or legal advice. Your money decisions are your own responsibility. Before a major decision, ask a licensed advisor.\n• Every number in the app is calculated from the data you enter. If the data is wrong, the results will be wrong too.\n• Finny does not connect to your bank account and does not make payments for you."
+        "title": "2. What Kaspilo does",
+        "body": "• Kaspilo helps you log income and expenses, set budgets, save toward goals and see statistics.\n• You can keep up to 4 separate wallets (for example personal and business). Each wallet has its own categories, transactions, budgets and goals.\n• Kaspilo is a tool for logging and tracking only. It is not financial, investment, tax or legal advice. Your money decisions are your own responsibility. Before a major decision, ask a licensed advisor.\n• Every number in the app is calculated from the data you enter. If the data is wrong, the results will be wrong too.\n• Kaspilo does not connect to your bank account and does not make payments for you."
       },
       {
         "title": "3. Sign-up and account",
@@ -282,15 +287,15 @@
       },
       {
         "title": "4. Subscription and payment",
-        "body": "• Access to Finny is a subscription for a set period. The length and price depend on the option chosen, and are given to you before you pay (by WhatsApp, phone or email).\n• Payment is by Bit. Once the payment is received, the operator approves it by hand, and access opens from the day of approval for the period you paid for.\n• The operator may, at its discretion, grant access without payment or without an expiry date.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
+        "body": "• Access to Kaspilo is a subscription for a set period. The length and price depend on the option chosen, and are given to you before you pay (by WhatsApp, phone or email).\n• Payment is made directly to the operator, outside the app. Once the payment is received, the operator approves it by hand, and access opens from the day of approval for the period you paid for.\n• The operator may, at its discretion, grant access without payment or without an expiry date.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
       },
       {
         "title": "5. Cancellation and refunds",
-        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent by Bit within 14 days of your cancellation request.\n• To cancel, email yonher8@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Finny altogether, we will refund the unused part of your subscription.\n• Refunds apply only to a paid subscription."
+        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent the same way you paid, within 14 days of your cancellation request.\n• To cancel, email MyKaspilo@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Kaspilo altogether, we will refund the unused part of your subscription.\n• Refunds apply only to a paid subscription."
       },
       {
         "title": "6. Your data",
-        "body": "• The data you enter belongs to you.\n• Export: while your subscription is active, you can export all your transactions to an Excel file (CSV) from More → History and export. If your access is blocked, email us and we will send you the file.\n• Deletion: you can delete your account at any time from More → Delete account. Deletion is final and cannot be undone. It covers all transactions, categories, budgets, goals and the account itself.\n• We back up the system regularly, but we cannot promise that data will never be lost. Export a backup from time to time."
+        "body": "• The data you enter belongs to you.\n• Export: while your subscription is active, you can export the open wallet's transactions to an Excel file (CSV) from More → History and export, and any wallet's transactions from More → Wallets. If your access is blocked, email us and we will send you the file.\n• Deletion: you can delete your account at any time from More → Delete account. Deletion is final and cannot be undone. It covers all wallets, transactions, categories, budgets, goals and the account itself.\n• You can also delete a single wallet from More → Wallets. That deletion is final too: it removes all the data in that wallet, and your other wallets stay as they are.\n• We back up the system regularly, but we cannot promise that data will never be lost. Export a backup from time to time."
       },
       {
         "title": "7. Prohibited use",
@@ -302,7 +307,7 @@
       },
       {
         "title": "9. Privacy",
-        "body": "What we keep:\n• Your name and email.\n• The transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\nWhy: only to run the app, manage your subscription and send reminders.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email yonher8@gmail.com."
+        "body": "What we keep:\n• Your name and email.\n• The wallets, transactions, categories, budgets and goals you enter.\n• Your settings: language, theme, currency and reminders.\n• Your subscription status and when you accepted the terms.\n• A push-notification token, if you allowed notifications.\n• App usage data: when you opened the app and when you signed up, with the device type (iPhone or Android) and the app version. We count app use, not your money: amounts, categories and wallets are never included.\nWhy: only to run the app, manage your subscription, send reminders and understand how many people use Kaspilo.\nWhat we do not do: we do not sell data, show ads or share data with marketers.\nWho processes data for us:\n• Supabase hosts the database on cloud servers outside Israel.\n• Expo, Apple and Google deliver notifications.\nSecurity: each user sees only their own data. The connection is encrypted.\nYour rights: you can view, correct, export and delete your data. For any such request, email MyKaspilo@gmail.com."
       },
       {
         "title": "10. Availability and changes to the service",
@@ -314,7 +319,7 @@
       },
       {
         "title": "12. Intellectual property",
-        "body": "The design, code, logo and the name Finny belong to the operator. You get a personal right to use the app while your subscription is active."
+        "body": "The design, code, logo and the name Kaspilo belong to the operator. You get a personal right to use the app while your subscription is active."
       },
       {
         "title": "13. Changes to these terms",
@@ -326,12 +331,9 @@
       },
       {
         "title": "15. Contact",
-        "body": "For any question, request or complaint: yonher8@gmail.com"
+        "body": "For any question, request or complaint: MyKaspilo@gmail.com"
       }
     ]
-  },
-  "splash": {
-    "loading": "Loading your money…"
   },
   "notifications": {
     "title": "Notifications",
@@ -351,7 +353,7 @@
     },
     "off": {
       "title": "Notifications are off on this phone",
-      "body": "To get notifications from Finny, turn them on in the phone settings.",
+      "body": "To get notifications from Kaspilo, turn them on in the phone settings.",
       "openSettings": "Open settings"
     },
     "notAsked": {
@@ -361,7 +363,7 @@
     },
     "unsupported": "This device has no notifications.",
     "ask": {
-      "title": "Get reminders from Finny?",
+      "title": "Get reminders from Kaspilo?",
       "body": "We remind you before your subscription ends, and nudge you if you forget to track. No spam, and each one can be switched off.",
       "allow": "Yes, turn on",
       "later": "Not now"
@@ -387,9 +389,9 @@
     "daysLeft_one": "1 day left",
     "daysLeft_other": "{{count}} days left",
     "noExpiry": "Your access has no end date.",
-    "how": "To renew, contact your advisor on WhatsApp. After the Bit payment your subscription is extended.",
-    "contact": "Contact your advisor on WhatsApp",
-    "whatsappMessage": "Hi, I want to renew my Finny subscription. Name: {{name}}, email: {{email}}"
+    "how": "To renew, contact the Kaspilo team on WhatsApp. The team extends your access.",
+    "contact": "Contact the Kaspilo team on WhatsApp",
+    "whatsappMessage": "Hi, I want to renew my Kaspilo subscription. Name: {{name}}, email: {{email}}"
   },
   "wallets": {
     "title": "Wallets",
@@ -422,5 +424,30 @@
     "exportFirst": "Export first",
     "inWallet": "In wallet: {{name}}",
     "settingsOf": "Settings of wallet \"{{name}}\""
+  },
+  "offline": {
+    "notLoaded": "Not loaded on this phone yet. Connect to the internet to see it.",
+    "bar": "No connection. What you add is saved and sent later.",
+    "notSynced": "Not synced",
+    "rejected": "Pending: the server did not accept it",
+    "rejectedLine_one": "1 transaction was not saved. Review",
+    "rejectedLine_other": "{{count}} transactions were not saved. Review",
+    "needsInternet": "This needs an internet connection.",
+    "repeatNeedsInternet": "Repeats and installments need an internet connection. A one-time income or expense can be added offline.",
+    "signOutAnyway": "Sign out anyway",
+    "signOutWarning_one": "1 transaction was added offline and not sent yet. Signing out deletes it.",
+    "signOutWarning_other": "{{count}} transactions were added offline and not sent yet. Signing out deletes them."
+  },
+  "about": {
+    "title": "About",
+    "appName": "Kaspilo",
+    "blurb": "Kaspilo helps you log income and expenses, stay on budget and save for goals. Simple, calm, no ads.",
+    "terms": "Terms of use and privacy",
+    "rate": "Rate us",
+    "opensStore": "Opens the store",
+    "contact": "Contact us",
+    "opensMail": "Opens a new email",
+    "noMailApp": "No mail app on this phone. Write to us at {{email}}. Press and hold the address to copy it.",
+    "version": "Version {{version}}"
   }
 }

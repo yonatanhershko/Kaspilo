@@ -1,6 +1,6 @@
 ---
 name: grill-me
-description: Interview the owner to sharpen a plan before building a substantial Finny feature. Use when requirements are unclear or a business rule is not in docs/spec.md.
+description: Interview the owner to sharpen a plan before building a substantial Kaspilo feature. Use when requirements are unclear or a business rule is not in docs/spec.md.
 ---
 
 # Grill me

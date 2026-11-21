@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: Design system, visual polish, illustration and micro-interactions for Finny. Use when creating or restyling screens, tokens, leaf art, the wallet logo, or animations.
+description: Design system, visual polish, illustration and micro-interactions for Kaspilo. Use when creating or restyling screens, tokens, leaf art, the wallet logo, or animations.
 ---
 
 # UI/UX pro max

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-line iPhone setup check for Finny:  npm run setup:ios
+# One-line iPhone setup check for Kaspilo:  npm run setup:ios
 # Checks Xcode, the simulator and the build tools, then prints what to do next.
 # Safe to run again. Installs nothing without telling you.
 set -uo pipefail
@@ -61,5 +61,5 @@ iPhone is ready. Pick one:
        npm run submit:ios       (uploads it to App Store Connect)
      Then in App Store Connect > TestFlight add yourself as a tester and
      install with the TestFlight app. Create the app there first with
-     bundle id com.finny.app.dev.
+     bundle id com.kaspilo.app.dev.
 GUIDE

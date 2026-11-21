@@ -11,6 +11,7 @@ const nav = [
   { href: "/", label: "Dashboard" },
   { href: "/approvals", label: "Pending approvals" },
   { href: "/users", label: "Users" },
+  { href: "/analytics", label: "Analytics" },
 ] as const;
 
 function Logo() {
@@ -43,7 +44,7 @@ export function AdminShell({
       <header className="flex items-center justify-between bg-text px-4 py-3 text-background md:hidden">
         <div className="flex items-center gap-2">
           <Logo />
-          <span className="text-xl font-bold">Finny</span>
+          <span className="text-xl font-bold">Kaspilo</span>
         </div>
         <button
           type="button"
@@ -65,7 +66,7 @@ export function AdminShell({
         <div>
           <div className="mb-8 hidden items-center gap-3 px-2 md:flex">
             <Logo />
-            <span className="text-2xl font-bold">Finny</span>
+            <span className="text-2xl font-bold">Kaspilo</span>
           </div>
           <nav className="space-y-1" aria-label="Main">
             {nav.map((item) => {

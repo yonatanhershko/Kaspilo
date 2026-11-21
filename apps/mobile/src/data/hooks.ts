@@ -7,7 +7,7 @@ import {
   periodFor,
   todayISO,
   type Wallet,
-} from '@finny/shared';
+} from '@kaspilo/shared';
 import { useTranslation } from 'react-i18next';
 
 import { useLanguage } from '@/i18n';

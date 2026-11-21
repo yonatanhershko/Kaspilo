@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type Language = 'he' | 'en';
 
-const THEME_KEY = 'finny.theme';
-const LANGUAGE_KEY = 'finny.language';
+const THEME_KEY = 'kaspilo.theme';
+const LANGUAGE_KEY = 'kaspilo.language';
 
 export async function loadThemePreference(): Promise<ThemePreference> {
   const value = await AsyncStorage.getItem(THEME_KEY).catch(() => null);
@@ -28,9 +28,9 @@ export async function saveLanguagePreference(value: Language): Promise<void> {
 
 /** The wallet last open on this device, per user. null = never chosen. */
 export async function loadLastWallet(userId: string): Promise<string | null> {
-  return AsyncStorage.getItem(`finny.wallet.${userId}`).catch(() => null);
+  return AsyncStorage.getItem(`kaspilo.wallet.${userId}`).catch(() => null);
 }
 
 export async function saveLastWallet(userId: string, walletId: string): Promise<void> {
-  await AsyncStorage.setItem(`finny.wallet.${userId}`, walletId).catch(() => undefined);
+  await AsyncStorage.setItem(`kaspilo.wallet.${userId}`, walletId).catch(() => undefined);
 }

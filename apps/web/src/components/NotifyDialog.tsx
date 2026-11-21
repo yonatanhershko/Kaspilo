@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationKind } from "@finny/shared";
+import type { NotificationKind } from "@kaspilo/shared";
 import { useEffect, useId, useRef, useState } from "react";
 
 import {
@@ -149,7 +149,7 @@ export function NotifyDialog({
               setSent(null);
               setError(null);
             }}
-            className={`h-9 ${field}`}
+            className={`h-11 md:h-9 ${field}`}
           >
             {(Object.keys(kindLabel) as NotificationKind[]).map((k) => (
               <option key={k} value={k}>
@@ -174,7 +174,7 @@ export function NotifyDialog({
                 maxLength={TITLE_MAX}
                 dir="auto"
                 onChange={(e) => setTitle(e.target.value)}
-                className={`h-9 ${field}`}
+                className={`h-11 md:h-9 ${field}`}
               />
             </label>
             <label className="block space-y-1 text-sm">

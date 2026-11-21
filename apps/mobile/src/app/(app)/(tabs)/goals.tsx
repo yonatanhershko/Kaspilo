@@ -1,8 +1,9 @@
-import { parseAmount, percentOf } from '@finny/shared';
+import { parseAmount, percentOf } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { useAuth } from '@/auth/AuthProvider';
 import { AmountField } from '@/components/ui/AmountField';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +18,9 @@ import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
 import { type GoalWithSaved, useDeleteGoal, useDeposit, useGoals, useSaveGoal } from '@/data/queries';
 import { useRowAlign } from '@/i18n';
+import { noteGoalReached } from '@/lib/review';
 import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
+import { saveErrorKey } from '@/lib/network';
 
 const GOAL_ICONS = ['flag', 'airplane', 'chart-line', 'home', 'car', 'school', 'beach', 'piggy-bank', 'gift', 'laptop'];
 
@@ -162,8 +165,8 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
     try {
       await save.mutateAsync({ name, target_amount: amount, icon });
       onClose();
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 
@@ -210,6 +213,7 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
 function DepositDialog({ goal, onClose }: { goal: GoalWithSaved; onClose: () => void }) {
   const { t } = useTranslation();
   const deposit = useDeposit();
+  const userId = useAuth().session?.user.id;
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -218,9 +222,11 @@ function DepositDialog({ goal, onClose }: { goal: GoalWithSaved; onClose: () => 
     if (minor === null) return setError(t('add.errors.amount'));
     try {
       await deposit.mutateAsync({ goal_id: goal.id, amount: minor });
+      const reached = goal.saved < goal.target_amount && goal.saved + minor >= goal.target_amount;
+      if (reached && userId) void noteGoalReached(userId);
       onClose();
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 

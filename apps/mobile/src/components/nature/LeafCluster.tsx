@@ -1,4 +1,4 @@
-import { leafPalette } from '@finny/tokens';
+import { leafPalette } from '@kaspilo/tokens';
 import Svg, { G, Path } from 'react-native-svg';
 
 /**

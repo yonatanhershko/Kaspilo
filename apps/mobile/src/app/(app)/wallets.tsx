@@ -1,4 +1,4 @@
-import { type Wallet, WALLET_LIMIT } from '@finny/shared';
+import { type Wallet, WALLET_LIMIT } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

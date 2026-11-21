@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
-import { useAuth } from '@/auth/AuthProvider';
+import { authErrorText, useAuth } from '@/auth/AuthProvider';
 import { resetTermsRead, useTermsRead } from '@/auth/terms';
 import { checkEmail, checkName, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
 import { WalletHero } from '@/components/nature/WalletHero';
@@ -14,6 +14,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useRowAlign } from '@/i18n';
+import { trackSignupStarted } from '@/lib/analytics';
 import { useTheme } from '@/theme/ThemeProvider';
 import { PressScale } from '@/components/ui/PressScale';
 
@@ -28,6 +29,8 @@ export default function SignUpScreen() {
   const { colors } = useTheme();
   const { signUp } = useAuth();
   const [stepIndex, setStepIndex] = useState(0);
+  // Analytics: "sign-up started" once per visit (docs/spec.md "Analytics").
+  const startedSent = useRef(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,6 +56,10 @@ export default function SignUpScreen() {
       return;
     }
     setError(null);
+    if (step === 'name' && !startedSent.current) {
+      startedSent.current = true;
+      trackSignupStarted();
+    }
     if (step !== 'password') {
       setStepIndex(stepIndex + 1);
       return;
@@ -62,7 +69,7 @@ export default function SignUpScreen() {
     setBusy(false);
     // On success the guard moves the new user to the locked (pending) screen.
     if (failure) {
-      setError(t(`auth.errors.${failure}`));
+      setError(authErrorText(t, failure));
       if (failure === 'emailTaken' || failure === 'emailInvalid') setStepIndex(1);
     }
   };
@@ -89,12 +96,11 @@ export default function SignUpScreen() {
           accessibilityRole="progressbar"
           accessibilityLabel={t('auth.stepOf', { step: stepIndex + 1, total: STEPS.length })}
           accessibilityValue={{ min: 1, max: STEPS.length, now: stepIndex + 1 }}>
-          {STEPS.map((s, i) => (
-            <View
-              key={s}
-              className={`h-[6px] w-10 rounded-full ${i <= stepIndex ? 'bg-primary' : 'bg-border'}`}
-            />
-          ))}
+          {/* Fills from the right in Hebrew, from the left in English (owner 2026-11-20). */}
+          {STEPS.map((s, i) => {
+            const done = (align.he ? STEPS.length - 1 - i : i) <= stepIndex;
+            return <View key={s} className={`h-[6px] w-10 rounded-full ${done ? 'bg-primary' : 'bg-border'}`} />;
+          })}
         </View>
 
         <View className="w-full gap-4">

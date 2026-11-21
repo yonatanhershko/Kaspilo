@@ -16,7 +16,7 @@ export function daysUntilExpiry(profile: Pick<Profile, 'expires_at'>, now = new 
   return Math.ceil((new Date(profile.expires_at).getTime() - now.getTime()) / 86_400_000);
 }
 
-/** Advisor contact for the locked screen (international format, no plus sign). */
+/** Kaspilo team WhatsApp contact for the locked screen (international format, no plus sign). */
 export const ADVISOR_WHATSAPP_NUMBER = '972523203902';
 
 export function advisorWhatsAppUrl(message: string): string {

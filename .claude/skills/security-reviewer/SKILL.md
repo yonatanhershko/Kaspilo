@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Security review for Finny - RLS, authorization, secrets, subscription gating, admin actions, account deletion. Use for security-sensitive changes and before any release.
+description: Security review for Kaspilo - RLS, authorization, secrets, subscription gating, admin actions, account deletion. Use for security-sensitive changes and before any release.
 ---
 
 # Security reviewer

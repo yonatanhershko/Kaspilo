@@ -1,7 +1,9 @@
-import type { Category, Goal, GoalDeposit, Transaction, Wallet } from '@finny/shared';
+import type { Category, Goal, Wallet } from '@kaspilo/shared';
 import { useTranslation } from 'react-i18next';
 
+import { asDeposit, asTransaction } from '@/data/history';
 import { useCategoryName, useWalletName } from '@/data/hooks';
+import { fetchWalletHistory } from '@/data/queries';
 import { supabase } from '@/lib/supabase';
 
 import { buildCsv, shareCsv } from './export';
@@ -21,14 +23,14 @@ export function useExportWallet() {
   const categoryName = useCategoryName();
   const walletName = useWalletName();
   return async (wallet: Wallet): Promise<boolean> => {
-    const [categories, transactions, deposits, goals] = await Promise.all([
+    // Every row in batches, upcoming payments included: never cut short (docs/spec.md "Wallets").
+    const [categories, history, goals] = await Promise.all([
       rows<Category>(supabase.from('categories').select('*').eq('wallet_id', wallet.id)),
-      rows<Transaction>(
-        supabase.from('transactions').select('*').eq('wallet_id', wallet.id).order('date', { ascending: false }).limit(5000),
-      ),
-      rows<GoalDeposit>(supabase.from('goal_deposits').select('*').eq('wallet_id', wallet.id).limit(5000)),
+      fetchWalletHistory(wallet.id),
       rows<Goal>(supabase.from('goals').select('*').eq('wallet_id', wallet.id)),
     ]);
+    const transactions = history.filter((r) => r.kind === 'tx').map(asTransaction);
+    const deposits = history.filter((r) => r.kind === 'deposit').map(asDeposit);
     const byId = new Map(categories.map((c) => [c.id, c]));
     const goalById = new Map(goals.map((g) => [g.id, g]));
     const csv = buildCsv(
@@ -50,6 +52,6 @@ export function useExportWallet() {
       },
     );
     const safe = walletName(wallet).replace(/[\\/:*?"<>|\s]+/g, '-');
-    return shareCsv(csv, `finny-${safe}.csv`);
+    return shareCsv(csv, `kaspilo-${safe}.csv`);
   };
 }

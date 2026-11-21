@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 /*
- * Color values are injected on <html> from @finny/tokens (see layout.tsx),
+ * Color values are injected on <html> from @kaspilo/tokens (see layout.tsx),
  * so web and mobile share one source. Use classes like bg-primary, text-text-muted.
  */
 @theme inline {
-  --color-primary: var(--finny-primary);
-  --color-on-primary: var(--finny-on-primary);
-  --color-secondary: var(--finny-secondary);
-  --color-background: var(--finny-background);
-  --color-surface: var(--finny-surface);
-  --color-surface-muted: var(--finny-surface-muted);
-  --color-accent: var(--finny-accent);
-  --color-on-accent: var(--finny-on-accent);
-  --color-text: var(--finny-text);
-  --color-text-muted: var(--finny-text-muted);
-  --color-border: var(--finny-border);
-  --color-danger: var(--finny-danger);
-  --color-danger-surface: var(--finny-danger-surface);
-  --color-success: var(--finny-success);
+  --color-primary: var(--kaspilo-primary);
+  --color-on-primary: var(--kaspilo-on-primary);
+  --color-secondary: var(--kaspilo-secondary);
+  --color-background: var(--kaspilo-background);
+  --color-surface: var(--kaspilo-surface);
+  --color-surface-muted: var(--kaspilo-surface-muted);
+  --color-accent: var(--kaspilo-accent);
+  --color-on-accent: var(--kaspilo-on-accent);
+  --color-text: var(--kaspilo-text);
+  --color-text-muted: var(--kaspilo-text-muted);
+  --color-border: var(--kaspilo-border);
+  --color-danger: var(--kaspilo-danger);
+  --color-danger-surface: var(--kaspilo-danger-surface);
+  --color-success: var(--kaspilo-success);
   --font-sans: var(--font-rubik);
 }
 
 body {
-  background: var(--finny-background);
-  color: var(--finny-text);
+  background: var(--kaspilo-background);
+  color: var(--kaspilo-text);
 }

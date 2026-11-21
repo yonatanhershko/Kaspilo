@@ -7,7 +7,7 @@ import type {
   NotificationKind,
   Profile,
   PushAudience,
-} from "@finny/shared";
+} from "@kaspilo/shared";
 
 import { supabase } from "@/lib/supabase";
 

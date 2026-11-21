@@ -1,5 +1,5 @@
-import { categoryPalette } from '@finny/tokens';
-import type { Category, TransactionType } from '@finny/shared';
+import { categoryPalette } from '@kaspilo/tokens';
+import type { Category, TransactionType } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
@@ -12,6 +12,7 @@ import { Dialog } from './ui/Dialog';
 import { CategoryIcon, Icon } from './ui/Icon';
 import { TextField } from './ui/TextField';
 import { PressScale } from '@/components/ui/PressScale';
+import { saveErrorKey } from '@/lib/network';
 
 export const CATEGORY_ICONS = [
   'tag', 'car', 'gas-station', 'bus', 'silverware-fork-knife', 'coffee', 'cart', 'food-apple',
@@ -117,8 +118,8 @@ export function CategoryGrid({
       setAdding(false);
       setDraft({ name: '', icon: 'tag', color: categoryPalette[0] });
       setError(null);
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      setError(t(saveErrorKey(e)));
     }
   };
 

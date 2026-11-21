@@ -1,6 +1,6 @@
 ---
 name: backend-supabase
-description: Supabase work for Finny - PostgreSQL schema, migrations, Row Level Security, auth, storage, edge functions and cron. Use for anything under supabase/ or any query design.
+description: Supabase work for Kaspilo - PostgreSQL schema, migrations, Row Level Security, auth, storage, edge functions and cron. Use for anything under supabase/ or any query design.
 ---
 
 # Backend Supabase

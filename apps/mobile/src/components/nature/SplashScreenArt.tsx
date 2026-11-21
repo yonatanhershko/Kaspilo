@@ -1,28 +1,24 @@
-import { colors as tokenColors } from '@finny/tokens';
+import { colors as tokenColors } from '@kaspilo/tokens';
 import { useColorScheme, View } from 'react-native';
 
-import i18n, { currentLanguage, deviceLanguage } from '@/i18n';
-import en from '@/i18n/en.json';
-import he from '@/i18n/he.json';
+import type { ThemePreference } from '@/lib/preferences';
 
 import { Backdrop } from './Backdrop';
-import { JumpingText } from './JumpingText';
-import { Sway } from './Sway';
-import { Wallet } from './Wallet';
+import { WalletLoader } from './WalletLoader';
 
 /**
- * Loading screen: the wallet turning on the app background. Shown after the
- * native splash (which cannot animate) hands over. Works before the theme
- * provider exists, so it reads the phone's light/dark setting directly.
+ * Loading screen: the logo wallet popping its cards on the app background. Shown
+ * after the native splash (which cannot animate) hands over. No words on purpose:
+ * it shows before the saved language is read, so text would flash in the wrong
+ * language. Works before the theme provider exists: the user's saved light/dark choice
+ * once it is read, the phone's setting until then (and for "system").
  */
-export function SplashScreenArt() {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  // Shown before i18n is ready, so read the strings straight from the files.
-  const language = i18n.isInitialized ? currentLanguage() : deviceLanguage();
-  const label = (language === 'he' ? he : en).splash.loading;
+export function SplashScreenArt({ preference = 'system' }: { preference?: ThemePreference | null }) {
+  const phone = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const scheme = preference === 'light' || preference === 'dark' ? preference : phone;
   return (
     <View
-      accessibilityLabel="Finny"
+      accessibilityLabel="Kaspilo"
       style={{
         flex: 1,
         alignItems: 'center',
@@ -30,12 +26,7 @@ export function SplashScreenArt() {
         backgroundColor: tokenColors[scheme].background,
       }}>
       <Backdrop theme={scheme} />
-      <Sway flat rotateY={26} rotateX={7} tilt={2} bob={6} duration={1400}>
-        <Wallet size={160} />
-      </Sway>
-      <View style={{ marginTop: 28 }}>
-        <JumpingText text={label} color={tokenColors[scheme].text} rtl={language === 'he'} />
-      </View>
+      <WalletLoader width={160} burstColor={tokenColors[scheme].accent} />
     </View>
   );
 }

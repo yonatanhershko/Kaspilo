@@ -1,5 +1,5 @@
 /**
- * Database types for the Finny Supabase schema.
+ * Database types for the Kaspilo Supabase schema.
  * Source of truth is supabase/migrations. After a schema change, regenerate
  * (Supabase "generate TypeScript types") and bring this file in line.
  */
@@ -20,6 +20,8 @@ export type Profile = {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  /** Never counted in analytics (the owner's test accounts). Set by hand. */
+  analytics_excluded: boolean;
 };
 
 export type SubscriptionEvent = {
@@ -57,6 +59,55 @@ export type DashboardStats = {
   active_subscribers: number;
   pending_approvals: number;
   expiring_soon: number;
+};
+
+/** Events the app sends. sign-up completed is recorded by the database itself. */
+export type AnalyticsEventName = 'first_open' | 'signup_started' | 'first_app_entry' | 'app_open';
+
+/** One Israel-time day of product analytics (docs/spec.md "Analytics"). */
+export type AnalyticsDay = {
+  day: string;
+  dau: number;
+  wau: number;
+  mau: number;
+  new_users: number;
+  returning_users: number;
+  first_opens: number;
+  signups_started: number;
+  signups_completed: number;
+  approved: number;
+  first_entries: number;
+  /** Active users that day by the device of their last app open. */
+  dau_ios: number;
+  dau_android: number;
+};
+
+/** A user seen on both counts once, by the device of their last app open in the range. */
+export type PlatformSplit = {
+  active_ios: number;
+  active_android: number;
+  first_open_ios: number;
+  first_open_android: number;
+};
+
+/** A weekly cohort by first app entry. dN = came back exactly N days later, out of dN_eligible. */
+export type RetentionCohort = {
+  week: string;
+  users: number;
+  d1: number;
+  d1_eligible: number;
+  d7: number;
+  d7_eligible: number;
+  d30: number;
+  d30_eligible: number;
+};
+
+export type AnalyticsReport = {
+  today: string;
+  platforms: PlatformSplit;
+  days: AnalyticsDay[];
+  retention: RetentionCohort[];
+  not_started: number;
 };
 
 export type TransactionType = 'income' | 'expense';
@@ -166,6 +217,25 @@ export type GoalDeposit = {
   created_at: string;
 };
 
+/** One row of `wallet_history`: a transaction (`kind` 'tx') or a goal deposit (`kind` 'deposit'). */
+export type HistoryRow = {
+  kind: 'tx' | 'deposit';
+  id: string;
+  date: string;
+  created_at: string;
+  /** null for a deposit */
+  type: TransactionType | null;
+  amount: number;
+  description: string;
+  /** null for a deposit */
+  category_id: string | null;
+  recurring_rule_id: string | null;
+  /** null for a transaction */
+  goal_id: string | null;
+  wallet_id: string;
+  user_id: string;
+};
+
 export type CategoryTotal = { category_id: string; type: TransactionType; total: number; count: number };
 export type GoalTotal = { goal_id: string; saved: number };
 
@@ -209,6 +279,17 @@ export type Database = {
       admin_extend_user: { Args: { p_user_id: string; p_months?: AccessMonths }; Returns: Profile };
       admin_set_plan: { Args: { p_user_id: string; p_plan: AccessPlan }; Returns: Profile };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
+      admin_analytics: { Args: { p_from: string; p_to: string }; Returns: AnalyticsReport };
+      track_event: {
+        Args: {
+          p_name: AnalyticsEventName;
+          p_device_id: string | null;
+          p_platform: string | null;
+          p_app_version: string | null;
+          p_occurred_at: string;
+        };
+        Returns: undefined;
+      };
       admin_notification_catalog: { Args: Record<never, never>; Returns: NotificationCatalogItem[] };
       admin_push_audience: { Args: { p_user_id?: string | null }; Returns: PushAudience };
       admin_send_notification: {
@@ -241,6 +322,19 @@ export type Database = {
           p_first_date: string;
         };
         Returns: string;
+      };
+      wallet_history: {
+        Args: {
+          p_wallet_id: string;
+          p_today: string;
+          p_upcoming?: boolean;
+          p_since?: string | null;
+          p_cursor_date?: string | null;
+          p_cursor_at?: string | null;
+          p_cursor_id?: string | null;
+          p_limit?: number;
+        };
+        Returns: HistoryRow[];
       };
       category_totals: { Args: { p_wallet_id: string; p_from: string; p_to: string }; Returns: CategoryTotal[] };
       create_wallet: { Args: { p_name: string; p_color: string; p_icon: string }; Returns: Wallet };

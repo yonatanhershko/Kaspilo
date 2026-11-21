@@ -1,11 +1,8 @@
-import { UserListPage } from "@/components/UserListPage";
+import { UsersPage } from "./view";
 
-export default function UsersPage() {
-  return (
-    <UserListPage
-      title="Users"
-      subtitle="Extend access, change plans, renew expired accounts."
-      emptyText="No users match."
-    />
-  );
+/** Waits for the admin check in the browser, so navigation may block (see layout.tsx). */
+export const instant = false;
+
+export default function Page() {
+  return <UsersPage />;
 }

@@ -1,4 +1,4 @@
-import { walletPalette as c } from '@finny/tokens';
+import { walletPalette as c } from '@kaspilo/tokens';
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
 
 /** The owner's wallet.svg. `size` is the width. `shadow` draws the ground shadow. */

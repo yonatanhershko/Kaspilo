@@ -1,5 +1,5 @@
 {
-  "name": "@finny/web",
+  "name": "@kaspilo/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,12 +10,13 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@finny/shared": "*",
-    "@finny/tokens": "*",
-    "@supabase/supabase-js": "^2.119.0",
+    "@kaspilo/shared": "*",
+    "@kaspilo/tokens": "*",
+    "@supabase/supabase-js": "^2.119.2",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "recharts": "^3.11.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",

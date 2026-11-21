@@ -1,4 +1,4 @@
-import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@finny/shared';
+import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@kaspilo/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,8 +16,11 @@ import { Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useDateFormat, useMoney, useWalletName } from '@/data/hooks';
 import { useWallet } from '@/data/walletContext';
+import { useAuth } from '@/auth/AuthProvider';
 import { useRowAlign } from '@/i18n';
 import { useKeyboardVisible } from '@/lib/keyboard';
+import { OfflineError, saveErrorKey } from '@/lib/network';
+import { noteTransactionSaved } from '@/lib/review';
 import {
   type Repeat,
   useAddTransaction,
@@ -54,6 +57,7 @@ export default function AddTransactionSheet() {
   const { short } = useDateFormat();
   const align = useRowAlign();
   const { wallet } = useWallet();
+  const userId = useAuth().session?.user.id;
   const walletName = useWalletName()(wallet);
 
   const [amount, setAmount] = useState('');
@@ -111,11 +115,21 @@ export default function AddTransactionSheet() {
             : repeat === 'installments'
               ? { kind: 'installments', count: installments }
               : { kind: 'recurring', frequency: repeat };
-        await add.mutateAsync({ type, amount: minor, description, date, category_id: categoryId, repeat: repeatInput });
+        const outcome = await add.mutateAsync({
+          type,
+          amount: minor,
+          description,
+          date,
+          category_id: categoryId,
+          repeat: repeatInput,
+        });
+        // Offline adds count once the server has them, not on the phone.
+        if (userId && outcome === 'saved') void noteTransactionSaved(userId);
       }
       closeSheet();
-    } catch {
-      fail(t('common.errorGeneric'));
+    } catch (e) {
+      // Offline only a plain income or expense can be added (docs/spec.md "Offline").
+      fail(t(e instanceof OfflineError ? (isEdit ? 'offline.needsInternet' : 'offline.repeatNeedsInternet') : saveErrorKey(e)));
     }
   };
 

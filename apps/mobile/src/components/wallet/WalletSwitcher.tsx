@@ -1,4 +1,4 @@
-import { type Wallet, WALLET_LIMIT } from '@finny/shared';
+import { type Wallet, WALLET_LIMIT } from '@kaspilo/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
