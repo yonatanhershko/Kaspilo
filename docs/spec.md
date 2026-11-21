@@ -9,7 +9,7 @@ Decided by the owner on 2026-11-13. Lines marked **(assumed)** were proposed by 
 - Mobile app (Expo, iOS + Android) for tracking income, expenses, budgets, goals. Admin web dashboard (Next.js on Vercel free tier). One Supabase database per environment.
 - Dev environment first. Prod gets a clean, separate Supabase project later.
 - Languages: Hebrew and English. Phone language decides at first launch: Hebrew phone → Hebrew, any other language → English (changed by the owner 2026-11-14). User can switch in More.
-- Layout direction: the screen layout is the same on iPhone, Android and web and never mirrors (tab bar, header, button pairs keep their left-to-right places). Language only changes (1) where text starts: Hebrew text sits at the right, English at the left, centered text stays centered, and text that is only a number (amount, date, time, phone) is always at the left and reads left to right, also in Hebrew; the currency sign is left of the number. Number inputs (amount, budget, deposit, month start day, counts) start at the right in Hebrew and at the left in English, digits still left to right, sign still left of the number **(owner 2026-11-18)**. Typed text moves the cursor with it (owner 2026-11-19): email, password and code fields always start at the left; other text fields start by the first letter typed (Hebrew right, English left), empty fields by the app language. The password eye sits at the right.; and (2) the order inside rows of icon + text (Hebrew: icon at the right). No app reload when the language changes. **(owner request 2026-11-15)**
+- Layout direction: the screen layout is the same on iPhone, Android and web and never mirrors (tab bar, header, button pairs keep their left-to-right places). Language only changes (1) where text starts: Hebrew text sits at the right, English at the left, centered text stays centered, and text that is only a number (amount, date, time, phone) is always at the left and reads left to right, also in Hebrew; the currency sign is left of the number. Number inputs (amount, budget, deposit, month start day, counts) start at the right in Hebrew and at the left in English, digits still left to right, sign still left of the number **(owner 2026-11-18)**. Typed text moves the cursor with it: email, password and code fields start by the app language (Hebrew right, English left; their content still reads left to right) (owner 2026-11-21, was "always at the left"); other text fields start by the first letter typed (Hebrew right, English left), empty fields by the app language (owner 2026-11-19). The password eye sits across from where typing starts: Hebrew at the left, English at the right.; and (2) the order inside rows of icon + text (Hebrew: icon at the right). No app reload when the language changes. **(owner request 2026-11-15)**
 - Themes: light and dark, tokens in `.claude/rules/design.md`.
 
 ## Build order
@@ -19,8 +19,9 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 ## Subscription and access
 
 - Yearly subscription paid by Bit, outside the app. No payment proof upload. Admin matches the payer by name.
+- Store rules (owner 2026-11-21): the app never names the payment method and never asks the user to pay. Locked and renew screens speak of the Kaspilo team's approval only (the app never says "advisor": the owner is not a financial advisor); the terms of use say payment is made directly to the operator, outside the app. No price or Bit in the store listing either. Google Play's outside-payment programs do not cover Israel.
 - Phone number is not required at sign-up.
-- Locked screen button "Contact your advisor" opens WhatsApp to 052-320-3902. A bot may replace this later.
+- Locked screen button "Contact the Kaspilo team" opens WhatsApp to 052-320-3902. A bot may replace this later.
 - `profiles.status`: `pending_approval` | `active` | `expired` | `rejected`.
 - `profiles.role`: `client` | `admin`.
 - `profiles.plan`: `paid` (1 year), `vip` (1 year, granted by admin without payment), `family` (never expires, granted by admin). Confirmed by the owner 2026-11-14.
@@ -55,7 +56,7 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
   - Users from before this change: their first correct sign-in moves their password to the new form, by itself.
   - If the server secret is lost, every password stops working; users get back in with "Forgot password". The owner keeps a copy of it outside Supabase.
   - Accepted: a signed-in user who changes their own password straight through Supabase (not through the app) weakens only their own account.
-- Apple sign-in: not wanted. **Open issue, now live:** with Google sign-in on iOS, App Store guideline 4.8 asks for an equivalent privacy-focused login (Sign in with Apple), or review may reject the app. Decide before the first App Store submission: add Apple, or hide the Google button on iOS.
+- Apple sign-in (owner 2026-11-21, replaces "not wanted"): "Continue with Apple" on the sign-in screen, right under "Continue with Google", same size and style (App Store guideline 4.8). iPhone only: Android shows no Apple button (the Android web flow needs a secret that Apple makes expire every 6 months; add later only if asked). (iPhone-only chosen by Claude) Apple's native sheet, then Supabase checks the ID token with a nonce. Signs in an existing user or creates a new one, same terms gate and locked screen as Google. Apple sends the name only on the very first sign-in, so the app saves it then; with "Hide my email" the profile email is Apple's relay address. **Open before the App Store submission:** guideline 5.1.1(v) asks that deleting an account also revokes the Apple token (needs the Apple key in an Edge Function). Setup steps: `docs/apple-sign-in.md`.
 
 ## Request limits (owner 2026-11-21)
 
@@ -171,7 +172,7 @@ Decided by the owner 2026-11-18.
 Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
 
 - Three kinds, each with its own switch (small animation) on a Notifications screen under More. The home bell opens the same screen. All default on.
-- **Renewal** — sent by the server (push), so it always follows the real `expires_at`, also when the admin extended access and the app was not opened. Sent 30 days, 7 days and 1 day before expiry, and on the expiry day. `family` (no expiry) gets none. Tap opens a Renew screen: expiry date + "Contact your advisor" on WhatsApp. Sent once per kind per expiry date.
+- **Renewal** — sent by the server (push), so it always follows the real `expires_at`, also when the admin extended access and the app was not opened. Sent 30 days, 7 days and 1 day before expiry, and on the expiry day. `family` (no expiry) gets none. Tap opens a Renew screen: expiry date + "Contact the Kaspilo team" on WhatsApp. Sent once per kind per expiry date.
   - Sent by the daily job at 08:00 UTC (10:00 Israel in winter, 11:00 in summer). Days are counted in Israel time. **(assumed)**
   - Needs a development / store build and push credentials (Firebase for Android, Apple Developer account for iPhone). Does not work in Expo Go. iPhone starts working when the owner adds the Apple account; see `docs/notifications-setup.md`.
 - **Inactivity** — scheduled by the phone itself (local, no server). "Use" = opening the app. Reminders at 19:00 on day 4, day 14 and day 24 after the last open, then silence until the next open. Light tone, three different texts.
@@ -199,7 +200,7 @@ Product analytics: growth, use and engagement. Never the users' money: no amount
 - Events (all others are computed from these):
   - `first_open`: first launch on a device. Carries a random device id made on the phone (no user yet).
   - `signup_started`: "Continue" pressed on the name step of sign-up.
-  - `signup_completed`: account created; method `email` | `google`.
+  - `signup_completed`: account created; method `email` | `google` | `apple`.
   - `first_app_entry`: first time the user reaches home with access (after admin approval).
   - `app_open`: the app comes to the front while signed in, at most once per 30 minutes.
   - "Approved" is read from `profiles.approved_at`, no event.

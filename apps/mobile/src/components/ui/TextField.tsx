@@ -19,19 +19,18 @@ const hebrewLetter = /[\u0590-\u05FF]/;
 const latinLetter = /[A-Za-z]/;
 
 /**
- * Where typing starts, so the cursor moves with the text (owner 2026-11-19):
- *  - email, password, code: always left to right (their content is never Hebrew);
- *  - otherwise by the first letter typed (Hebrew: right, English: left);
+ * Where typing starts, so the cursor moves with the text:
+ *  - email, password, code: by the app language (Hebrew: right, owner 2026-11-21), but the
+ *    content always reads left to right, so an address or code never scrambles;
+ *  - otherwise by the first letter typed (Hebrew: right, English: left, owner 2026-11-19);
  *  - empty or digits only: by the app language.
  */
-function typingDirection(value: string | undefined, he: boolean, alwaysLtr: boolean) {
+function typingDirection(value: string | undefined, he: boolean, latinContent: boolean) {
+  if (latinContent) return { textAlign: he ? 'right' : 'left', writingDirection: 'ltr' } as const;
   let rtl = he;
-  if (alwaysLtr) rtl = false;
-  else {
-    const first = value?.match(/[\u0590-\u05FFA-Za-z]/)?.[0];
-    if (first && hebrewLetter.test(first)) rtl = true;
-    else if (first && latinLetter.test(first)) rtl = false;
-  }
+  const first = value?.match(/[\u0590-\u05FFA-Za-z]/)?.[0];
+  if (first && hebrewLetter.test(first)) rtl = true;
+  else if (first && latinLetter.test(first)) rtl = false;
   return { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' } as const;
 }
 
@@ -40,9 +39,9 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
   const { colors } = useTheme();
   const { t } = useTranslation();
   const align = useRowAlign();
-  const alwaysLtr =
+  const latinContent =
     !!secureTextEntry || props.keyboardType === 'email-address' || props.textContentType === 'oneTimeCode';
-  const direction = typingDirection(props.value, align.he, alwaysLtr);
+  const direction = typingDirection(props.value, align.he, latinContent);
   // Android does not re-align a field while it is open, so it is remade (keeping the
   // keyboard up) when the direction changes. That happens at most on the first letter.
   const [focused, setFocused] = useState(false);
@@ -66,8 +65,9 @@ export function TextField({ label, error, secureTextEntry, ...props }: TextField
         {label}
       </AppText>
       {secureTextEntry ? (
-        // Passwords are typed from the left in both languages, so the eye sits at the right.
-        <View className={`min-h-[52px] flex-row items-center rounded-lg border bg-surface pl-4 ${borderClass}`}>
+        // The eye sits across from where typing starts: Hebrew at the left, English at the right.
+        <View
+          className={`min-h-[52px] items-center rounded-lg border bg-surface ${align.row} ${align.he ? 'pr-4' : 'pl-4'} ${borderClass}`}>
           <TextInput
             accessibilityLabel={label}
             placeholderTextColor={colors.textMuted}

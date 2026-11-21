@@ -64,6 +64,8 @@
     "or": "or",
     "google": "Continue with Google",
     "googleFailed": "Google sign-in did not work. Try again.",
+    "apple": "Continue with Apple",
+    "appleFailed": "Apple sign-in did not work. Try again.",
     "declineTerms": "I do not agree, sign out"
   },
   "settings": {
@@ -76,23 +78,23 @@
     "themeDark": "Dark"
   },
   "locked": {
-    "contactAdvisor": "Contact your advisor",
+    "contactAdvisor": "Contact the Kaspilo team",
     "checkAgain": "Check again",
     "askAgain": "Send request again",
     "stillLocked": "Still waiting for approval.",
     "whatsappFailed": "Couldn't open WhatsApp. The number is 052-320-3902",
-    "whatsappMessage": "Hi, I signed up for Kaspilo and paid with Bit. Name: {{name}}, email: {{email}}",
+    "whatsappMessage": "Hi, I signed up for Kaspilo. Name: {{name}}, email: {{email}}",
     "pending": {
-      "title": "Your account is waiting for Bit payment approval",
-      "body": "Once the payment is approved, you get full access to the app for one year."
+      "title": "Your account is waiting for approval",
+      "body": "Once the Kaspilo team approves your account, you get full access to the app."
     },
     "rejected": {
       "title": "Your request wasn't approved",
-      "body": "If you paid with Bit, contact your advisor or send the request again."
+      "body": "Contact the Kaspilo team or send the request again."
     },
     "expired": {
       "title": "Your subscription has ended",
-      "body": "Your data is kept. Renew with Bit to get back into the app."
+      "body": "Your data is kept. Contact the Kaspilo team to renew your access."
     },
     "error": {
       "title": "Couldn't load your account",
@@ -285,11 +287,11 @@
       },
       {
         "title": "4. Subscription and payment",
-        "body": "• Access to Kaspilo is a subscription for a set period. The length and price depend on the option chosen, and are given to you before you pay (by WhatsApp, phone or email).\n• Payment is by Bit. Once the payment is received, the operator approves it by hand, and access opens from the day of approval for the period you paid for.\n• The operator may, at its discretion, grant access without payment or without an expiry date.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
+        "body": "• Access to Kaspilo is a subscription for a set period. The length and price depend on the option chosen, and are given to you before you pay (by WhatsApp, phone or email).\n• Payment is made directly to the operator, outside the app. Once the payment is received, the operator approves it by hand, and access opens from the day of approval for the period you paid for.\n• The operator may, at its discretion, grant access without payment or without an expiry date.\n• The subscription does not renew automatically. You get an in-app reminder 30 days and 7 days before it expires.\n• If the subscription expires and you do not renew, access to the app is blocked until you pay. Your data is not deleted. It is kept until you delete your account.\n• If the price changes, we will tell you in advance. The change does not apply to a subscription you have already paid for."
       },
       {
         "title": "5. Cancellation and refunds",
-        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent by Bit within 14 days of your cancellation request.\n• To cancel, email MyKaspilo@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Kaspilo altogether, we will refund the unused part of your subscription.\n• Refunds apply only to a paid subscription."
+        "body": "• You can cancel a new subscription within 14 days of payment, under the Israeli Consumer Protection Law. If you received these terms later, the 14 days count from the day you received them.\n• When you cancel this way, we refund your payment minus a cancellation fee of 5% of the price or ₪100, whichever is lower. The refund is sent the same way you paid, within 14 days of your cancellation request.\n• To cancel, email MyKaspilo@gmail.com.\n• After 14 days there is no refund. If you do not want to continue, simply do not renew.\n• If we stop running Kaspilo altogether, we will refund the unused part of your subscription.\n• Refunds apply only to a paid subscription."
       },
       {
         "title": "6. Your data",
@@ -387,8 +389,8 @@
     "daysLeft_one": "1 day left",
     "daysLeft_other": "{{count}} days left",
     "noExpiry": "Your access has no end date.",
-    "how": "To renew, contact your advisor on WhatsApp. After the Bit payment your subscription is extended.",
-    "contact": "Contact your advisor on WhatsApp",
+    "how": "To renew, contact the Kaspilo team on WhatsApp. The team extends your access.",
+    "contact": "Contact the Kaspilo team on WhatsApp",
     "whatsappMessage": "Hi, I want to renew my Kaspilo subscription. Name: {{name}}, email: {{email}}"
   },
   "wallets": {

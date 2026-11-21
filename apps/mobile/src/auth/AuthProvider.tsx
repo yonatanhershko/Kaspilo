@@ -11,6 +11,7 @@ import { AUTH_STORAGE_KEY, supabase } from '@/lib/supabase';
 import { resetOutbox } from '@/data/outbox';
 import { clearNotificationsOnSignOut } from '@/notifications';
 
+import { signInWithApple } from './apple';
 import { signInWithGoogle, signOutGoogle } from './google';
 import { TERMS_VERSION } from './terms';
 import { MIN_PASSWORD_LENGTH } from './validation';
@@ -40,12 +41,14 @@ type AuthContextValue = {
   access: boolean;
   /**
    * The signed-in user accepted the terms. Email sign-up accepts them on the way in;
-   * a first Google sign-in is sent to accept them before anything else.
+   * a first Google or Apple sign-in is sent to accept them before anything else.
    */
   termsAccepted: boolean;
   signIn: (email: string, password: string) => Promise<AuthErrorCode | null>;
   /** Sign in or sign up with Google. `cancelled` = the user closed the Google page. */
   signInWithGoogle: () => Promise<AuthErrorCode | 'cancelled' | null>;
+  /** Sign in or sign up with Apple (iPhone only). `cancelled` = the user closed Apple's sheet. */
+  signInWithApple: () => Promise<AuthErrorCode | 'cancelled' | null>;
   /** Saves the current terms version and time on the signed-in user. */
   acceptTerms: () => Promise<AuthErrorCode | null>;
   signUp: (fullName: string, email: string, password: string) => Promise<AuthErrorCode | null>;
@@ -214,6 +217,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn: (email, password) => passwordAction({ action: 'sign-in', email: email.trim(), password }),
     signInWithGoogle: async () => {
       const result = await signInWithGoogle();
+      if (result === 'cancelled') return 'cancelled';
+      return result === 'ok' ? null : 'generic';
+    },
+    signInWithApple: async () => {
+      const result = await signInWithApple();
       if (result === 'cancelled') return 'cancelled';
       return result === 'ok' ? null : 'generic';
     },

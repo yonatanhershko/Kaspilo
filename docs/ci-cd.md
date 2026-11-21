@@ -30,6 +30,10 @@ Never automatic. Actions tab → "Deploy to production" → Run workflow, on `ma
 
 Migration versions: dev was migrated through the Supabase MCP, which records each migration under the time it was applied, not the file name. So dev's history does not match the files, and the deploy workflow never pushes to dev. Prod starts empty and gets the files in order, under their own names.
 
+## Keep-alive (`.github/workflows/keepalive.yml`)
+
+Owner decision 2026-11-21: prod stays on the free Supabase plan, which pauses a project after 7 days without database activity. Once a day (06:17 UTC) the workflow runs one read query on prod with the publishable key (RLS returns nothing; the query still counts). It needs the repository **variables** `PROD_SUPABASE_URL` and `PROD_SUPABASE_PUBLISHABLE_KEY` (public values) and skips while they are unset. GitHub turns off scheduled workflows in a public repository after 60 days without commits; a commit or a manual run turns it back on. The free plan has no backups.
+
 ## Dependencies (CI job "Dependency report")
 
 Owner decision 2026-11-21: nothing updates by itself, no automatic dependency PRs. Every CI run writes a report to its job summary (Actions → the run → Summary), from `scripts/ci/deps-report.mjs`:

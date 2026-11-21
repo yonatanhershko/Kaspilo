@@ -54,6 +54,9 @@ const config: ExpoConfig = {
     // Optional: signing team for local device builds, set per machine (APPLE_TEAM_ID=...). Not stored in git.
     appleTeamId: process.env.APPLE_TEAM_ID,
     supportsTablet: false,
+    // Sign in with Apple (App Store guideline 4.8, since Google sign-in is offered). EAS turns
+    // the capability on for the App ID at build time.
+    usesAppleSignIn: true,
     // No custom encryption (HTTPS only), so App Store Connect skips the export-compliance question.
     infoPlist: { ITSAppUsesNonExemptEncryption: false },
   },
@@ -81,6 +84,7 @@ const config: ExpoConfig = {
     ...(googleIosUrlScheme
       ? [['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }] as [string, object]]
       : []),
+    'expo-apple-authentication',
     ['expo-localization', { supportedLocales: { ios: ['he', 'en'], android: ['he', 'en'] } }],
     [
       'expo-splash-screen',
