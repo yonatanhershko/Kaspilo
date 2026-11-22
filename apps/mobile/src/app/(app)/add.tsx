@@ -1,4 +1,11 @@
-import { amountToInput, parseAmount, type RepeatFrequency, splitInstallments, todayISO } from '@kaspilo/shared';
+import {
+  amountToInput,
+  parseAmount,
+  purchasePrefill,
+  type RepeatFrequency,
+  splitInstallments,
+  todayISO,
+} from '@kaspilo/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +32,7 @@ import {
   type Repeat,
   useAddTransaction,
   useCategories,
+  useSettings,
   useTransaction,
   useUpdateTransaction,
 } from '@/data/queries';
@@ -48,7 +56,16 @@ export default function AddTransactionSheet() {
   const insets = useSafeAreaInsets();
   // With the keyboard open it already covers the home-indicator area: no gap between sheet and keys.
   const keyboardOpen = useKeyboardVisible();
-  const params = useLocalSearchParams<{ type?: string; id?: string }>();
+  // `purchase=1` (+ amountMinor, currency, merchant): opened from a "purchase detected" notification.
+  const params = useLocalSearchParams<{
+    type?: string;
+    id?: string;
+    purchase?: string;
+    amountMinor?: string;
+    currency?: string;
+    merchant?: string;
+  }>();
+  const settings = useSettings();
   const editing = useTransaction(params.id);
   const categories = useCategories();
   const add = useAddTransaction();
@@ -84,6 +101,19 @@ export default function AddTransactionSheet() {
     setDescription(loaded.description);
     setDate(loaded.date);
     setCategoryId(loaded.category_id);
+  }
+
+  // A tapped purchase notification (docs/spec.md "Purchase detected"): fill amount and merchant
+  // once, after the user's currency is known (no conversion). Never a category.
+  const [prefilled, setPrefilled] = useState(false);
+  if (!params.id && params.purchase === '1' && !prefilled && settings.data) {
+    setPrefilled(true);
+    const fill = purchasePrefill(
+      { amountMinor: params.amountMinor, currency: params.currency, merchant: params.merchant },
+      settings.data.currency,
+    );
+    if (fill.amountMinor !== null) setAmount(amountToInput(fill.amountMinor));
+    setDescription(fill.description);
   }
 
   const isEdit = !!params.id;

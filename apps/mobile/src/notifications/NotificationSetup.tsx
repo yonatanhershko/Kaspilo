@@ -56,7 +56,25 @@ export function NotificationSetup() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Notifications = require('expo-notifications') as typeof ExpoNotifications;
     const open = (response: ExpoNotifications.NotificationResponse | null) => {
-      const url = response?.notification.request.content.data?.url;
+      const data = response?.notification.request.content.data;
+      // "Purchase detected" (made on the phone, docs/spec.md): open the expense sheet with what
+      // was caught. Only plain strings pass; the sheet checks them again before filling.
+      if (data?.kind === 'purchase') {
+        Notifications.clearLastNotificationResponse();
+        const text = (value: unknown) => (typeof value === 'string' || typeof value === 'number' ? String(value) : '');
+        router.push({
+          pathname: '/add',
+          params: {
+            type: 'expense',
+            purchase: '1',
+            amountMinor: text(data.amountMinor),
+            currency: text(data.currency),
+            merchant: text(data.merchant).slice(0, 200),
+          },
+        });
+        return;
+      }
+      const url = data?.url;
       const route = NOTIFICATION_ROUTES.find((known) => known === url) as NotificationRoute | undefined;
       if (!route) return;
       Notifications.clearLastNotificationResponse();
