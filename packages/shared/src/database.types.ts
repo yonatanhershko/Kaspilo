@@ -298,6 +298,10 @@ export type Database = {
         Args: { p_user_id: string | null; p_kind: string; p_title?: string | null; p_body?: string | null };
         Returns: number;
       };
+      admin_send_purchase_test: {
+        Args: { p_user_id: string | null; p_amount_minor: number; p_merchant: string };
+        Returns: number;
+      };
       request_approval: { Args: Record<never, never>; Returns: Profile };
       has_access: { Args: Record<never, never>; Returns: boolean };
       is_admin: { Args: Record<never, never>; Returns: boolean };

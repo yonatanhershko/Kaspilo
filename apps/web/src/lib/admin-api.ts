@@ -105,6 +105,24 @@ export type NotificationChoice =
   | { kind: NotificationKind }
   | { kind: "custom"; title: string; body: string };
 
+/**
+ * Test of "Purchase detected" (docs/spec.md "Manual send"): the phone's purchase reminder,
+ * sent as a push so it can be seen on a device. Returns how many devices it went to.
+ */
+export async function sendPurchaseTest(
+  userId: string | null,
+  amountMinor: number,
+  merchant: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("admin_send_purchase_test", {
+    p_user_id: userId,
+    p_amount_minor: amountMinor,
+    p_merchant: merchant,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 /** Sends now. Returns how many devices it went to. `userId` null = all active users. */
 export async function sendNotification(
   userId: string | null,
