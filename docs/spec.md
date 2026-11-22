@@ -176,7 +176,25 @@ Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
   - Sent by the daily job at 08:00 UTC (10:00 Israel in winter, 11:00 in summer). Days are counted in Israel time. **(assumed)**
   - Needs a development / store build and push credentials (Firebase for Android, Apple Developer account for iPhone). Does not work in Expo Go. iPhone starts working when the owner adds the Apple account; see `docs/notifications-setup.md`.
 - **Inactivity** — scheduled by the phone itself (local, no server). "Use" = opening the app. Reminders at 19:00 on day 4, day 14 and day 24 after the last open, then silence until the next open. Light tone, three different texts.
-- **Purchase detected** (Apple Pay / Google Pay → "Add this expense?" → opens the expense sheet with the amount filled, the user saves) — separate phase after this one. Android: automatic through a notification listener. iPhone: Apple does not allow it; the user sets up a Shortcuts automation once, with an in-app guide. Until then the switch shows "Soon".
+- **Purchase detected** (owner 2026-11-22, replaces the earlier one-line plan). A reminder only: it never adds anything by itself, so no amount, budget or stat changes until the user saves.
+  - **What the user sees:** after an Apple Pay / Google Pay purchase, a local notification (not push, made on the phone). The app does not open by itself. Tapping it opens the expense sheet: amount filled, the merchant name in the description, date today, the current wallet (changeable from the "In wallet: X" chip), **no category chosen**: the user always picks it, then saves. No merchant → category memory.
+  - **Texts** (app language):
+    - Amount and merchant: "Purchase detected" / "₪45 at Shufersal. Add it?"
+    - Purchase in another currency than the user's: amount left empty (no conversion, see "Money"), merchant only: "Purchase at Amazon. Add it?"
+    - Amount or merchant could not be read: a generic text, "Hey, we caught a purchase. Let's add it" (owner wording, final text in both languages at build time), and the sheet opens empty.
+  - Every purchase gets its own notification; each one opens its own amount and merchant.
+  - Not sent when the user's access has ended (the app is locked, they cannot add). Not sent when signed out or when the switch is off.
+  - **iPhone:** Apple gives apps no access to payments. The app ships a native Shortcuts action ("Kaspilo purchase", an App Intent) that takes amount, currency and merchant and shows the notification without opening the app. Works only for Apple Pay with cards in Wallet. Setup, once, from the Notifications screen (and offered on the last onboarding screen), a short guided flow in the app's style (owner 2026-11-22, from reference screenshots):
+    - Intro screen: "Set it up once, then it happens by itself", three short points (one-time, stays on your phone, guided with pictures), "Let's set it up" / "Later".
+    - **iOS 27 and later (automatic, owner 2026-11-22):** in iOS 27 an automation lives inside the shortcut, so the shared Kaspilo shortcut already contains the Wallet "Transaction" trigger. Steps: "Add shortcut" (opens Apple's sheet, one tap) → turn its automation on (Apple keeps automations from shared shortcuts off until the user switches them on; one switch, shown in the guide). The intro tells the user this is the quick path.
+    - **iOS 17 to 26 (manual):** a step-by-step guide with a progress bar, a screenshot per step with the tap point marked, Back / Next and "Open Shortcuts": Automation → + → Transaction (Wallet) → choose cards → Run Immediately → "Kaspilo purchase". The intro says automatic setup needs iOS 27 and how to update (Settings → General → Software Update), with the manual path below it.
+    - Below iOS 17: no Wallet trigger. The row says it needs iOS 17 or later; manual adding still works.
+    - Apple's sharing behaviour on iOS 27 is checked on a real iOS 27 iPhone at build time; if it differs, iOS 27 falls back to the manual guide.
+  - **Android:** the app reads only Google Wallet's payment notifications (a notification listener; every other app's notifications are ignored). Setup, once: an explanation screen first, then the phone's "Notification access" settings to switch Kaspilo on. Google Play requires that explanation (prominent disclosure).
+  - **Privacy:** amount and merchant stay on the phone; nothing is sent to the server or stored until the user saves the expense. The privacy page says so.
+  - **Switch:** the "Purchase detected" row on the Notifications screen. Before setup it shows "Set up" instead of a switch; after setup it is a switch like the others, on by default. (layout chosen by Claude)
+  - Offline: works (all on the phone); saving uses the offline queue like any expense.
+  - Needs native code on both platforms, so it ships in a store build, never in an update. Until that build the row keeps showing "Soon".
 - Permission: asked after the first arrival at home, with a short explanation before the system prompt. If refused, the Notifications screen shows "Open settings".
 - Switches are saved per device (a new phone starts with all on). Both switches and the device language are also saved with the device's push token, so the server knows whether and in which language to send.
 - Language: notifications use the app language. Changing the language changes them too, with nothing for the user to do.
@@ -184,7 +202,7 @@ Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
 - Push delivery: Firebase (free Spark plan) is used only as the delivery pipe to Android; no data is kept there. iPhone goes through Apple when the developer account exists. (owner 2026-11-16)
 - **Manual send** from the admin dashboard (owner 2026-11-16), for sending by hand or testing:
   - To one active user (a "Notify" button in that user's row) or to all active users (a "Notify all" button above the list).
-  - A dropdown lists every kind: renewal in a month / in a week / tomorrow / today, the three inactivity texts, and "Custom message". Purchase detection joins when it is built.
+  - A dropdown lists every kind: renewal in a month / in a week / tomorrow / today, the three inactivity texts, and "Custom message". Purchase detection is not in this list: it is made on the phone from a real purchase, so the server has nothing to send. (Claude's choice)
   - Custom message: a one-time title (up to 60 characters) and text (up to 200), sent as written to every device, in whatever language the admin wrote. Not saved.
   - Ready-made kinds arrive in each device's own language.
   - Resets nothing: not written to the sent log, does not move the inactivity countdown, and the automatic reminder still arrives on its day.
