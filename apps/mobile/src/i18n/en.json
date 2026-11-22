@@ -246,6 +246,7 @@
     "deleteAccount": "Delete account",
     "deleteTitle": "Delete your account?",
     "deleteBody": "All your data is deleted for good: transactions, categories, budgets and goals. This can't be undone.",
+    "deleteAppleNote": "Since you signed in with Apple, Apple will ask you to confirm once more. This disconnects Kaspilo from your Apple ID.",
     "deleteWord": "delete",
     "deleteTypeToConfirm": "Type \"{{word}}\" to confirm",
     "deleteConfirm": "Delete account for good"

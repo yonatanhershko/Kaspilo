@@ -246,6 +246,7 @@
     "deleteAccount": "מחיקת חשבון",
     "deleteTitle": "למחוק את החשבון?",
     "deleteBody": "כל הנתונים שלך יימחקו לצמיתות: פעולות, קטגוריות, תקציבים ומטרות. אי אפשר לבטל.",
+    "deleteAppleNote": "מכיוון שנכנסת עם Apple, Apple תבקש ממך לאשר פעם נוספת. כך החיבור של Kaspilo ל-Apple ID שלך מתבטל.",
     "deleteWord": "מחק",
     "deleteTypeToConfirm": "הקלד \"{{word}}\" לאישור",
     "deleteConfirm": "מחק את החשבון לצמיתות"

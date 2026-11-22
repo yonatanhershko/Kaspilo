@@ -29,7 +29,9 @@ export default function MoreScreen() {
   const language = useLanguage();
   const align = useRowAlign();
   const { preference, setPreference } = useTheme();
-  const { profile, signOut, refreshProfile } = useAuth();
+  const { profile, session, signOut, refreshProfile } = useAuth();
+  // Deleting an Apple account shows Apple's sheet once more (to disconnect at Apple): say so first.
+  const appleAccount = !!session?.user.identities?.some((i) => i.provider === 'apple');
   // Apple's "Hide My Email" address means nothing to read, so show a label instead.
   const shownEmail = isAppleHiddenEmail(profile?.email) ? t('more.appleHiddenEmail') : profile?.email;
   const update = useUpdateSettings();
@@ -350,6 +352,9 @@ export default function MoreScreen() {
           { label: t('common.cancel'), variant: 'outline', onPress: close },
         ]}>
         <AppText className="text-[15px] leading-[22px]">{t('more.deleteBody')}</AppText>
+        {appleAccount && (
+          <AppText className="text-[15px] leading-[22px]">{t('more.deleteAppleNote')}</AppText>
+        )}
         <TextField
           label={t('more.deleteTypeToConfirm', { word: t('more.deleteWord') })}
           value={text}
