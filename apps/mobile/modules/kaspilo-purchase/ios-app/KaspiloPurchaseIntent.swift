@@ -11,7 +11,7 @@ import UserNotifications
 @available(iOS 16.0, *)
 struct KaspiloPurchaseIntent: AppIntent {
   static var title: LocalizedStringResource = "Kaspilo purchase"
-  static var description = IntentDescription("Reminds you to add an Apple Pay purchase to Kaspilo.")
+  static var description = IntentDescription("Reminds you to add a card purchase to Kaspilo.")
   static var openAppWhenRun: Bool = false
   static var isDiscoverable: Bool = true
 
