@@ -68,9 +68,12 @@ jobs:
         run: |
           # Up to 20 minutes: a deploy started right after a merge waits for its CI.
           for i in $(seq 1 60); do
-            runs=$(gh run list --workflow ci.yml --commit "$SHA" --limit 50 \
+            # A GitHub API hiccup (502) is not a CI result: wait and ask again.
+            if ! runs=$(gh run list --workflow ci.yml --commit "$SHA" --limit 50 \
               --json status,conclusion,event,url \
-              --jq '[.[] | select(.event == "push" or .event == "workflow_dispatch")]')
+              --jq '[.[] | select(.event == "push" or .event == "workflow_dispatch")]'); then
+              runs='[]'; echo "GitHub API error, asking again..."; sleep 20; continue
+            fi
             if echo "$runs" | jq -e 'any(.[]; .conclusion == "success")' > /dev/null; then
               echo "CI passed on $SHA:"; echo "$runs" | jq -r '.[] | select(.conclusion == "success") | .url'
               exit 0
