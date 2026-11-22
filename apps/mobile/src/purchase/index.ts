@@ -165,17 +165,16 @@ export const purchaseNeedsNewerIos = Platform.OS === 'ios' && iosMajor < 17;
 
 /**
  * iOS 27 and later: the shared Kaspilo shortcut (an iCloud link) already holds the Wallet
- * automation, so setup is "add shortcut" + one switch (docs/spec.md). It must be made on an
- * iOS 27 iPhone. Empty until then: every iPhone gets the manual guide, and the
- * "update to iOS 27" advice stays hidden, since it would promise a path that is not there.
+ * automation, so setup is "add shortcut" + its switches (docs/spec.md). It must be made on an
+ * iOS 27 iPhone. Empty until then: iOS 27 gets the manual guide.
  */
 export const IOS27_SHORTCUT_URL = '';
 
 /** Whether this iPhone gets the quick iOS 27 path. */
 export const quickSetupHere = Platform.OS === 'ios' && iosMajor >= 27 && IOS27_SHORTCUT_URL !== '';
 
-/** Whether to advise updating to iOS 27 (an older iPhone, once the quick path exists). */
-export const adviseIosUpdate = Platform.OS === 'ios' && iosMajor < 27 && IOS27_SHORTCUT_URL !== '';
+/** iPhone below iOS 27: the setup opens with the advice to update, manual setup under it (owner 2026-11-23). */
+export const adviseIosUpdate = Platform.OS === 'ios' && iosMajor < 27;
 
 export function openListenerSettings(): void {
   try {

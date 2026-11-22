@@ -406,18 +406,17 @@
       "guided": "The guide has screenshots that show where to tap.",
       "quickTitle": "You have iOS 27: the quick way",
       "quickBody": "Add one shortcut and turn on one switch. That's it.",
-      "manualBody": "This is the manual setup, about a minute. On iOS 27 it takes two taps.",
-      "howToUpdate": "How to update",
+      "manualBody": "This is the manual setup for iOS {{version}}, about a minute.",
       "start": "Let's set it up",
       "later": "I'll do it later"
     },
     "update": {
       "title": "Automatic setup needs iOS 27 or later",
-      "body": "On iOS 27 you add one shortcut and turn on a switch, that's it. Until then you can set it up by hand, or add expenses as usual.",
-      "how": "To update: Settings → General → Software Update.",
+      "body": "For smooth automatic capture, update your iPhone to iOS 27 or later. Until then you can set it up by hand, or add expenses as usual.",
+      "how": "To update: open Settings → General → Software Update.",
       "howButton": "How to update to iOS 27",
       "howNote": "Opens Apple's update guide",
-      "manual": "Set it up by hand without updating",
+      "manual": "Manual setup for iOS {{version}}",
       "manualNote": "A few more steps, about a minute"
     },
     "guide": {
@@ -435,12 +434,8 @@
           "body": "Scroll the list to \"Wallet\" and tap it."
         },
         "cards": {
-          "title": "Cards, and run at once",
-          "body": "On the screen that opens:",
-          "pick": "Select the cards you pay with.",
-          "runNow": "Choose \"Run Immediately\", so it runs without asking.",
-          "noNotify": "Turn off \"Notify When Run\", if it shows.",
-          "next": "Tap \"Next\"."
+          "title": "Choose cards and tap \"Next\"",
+          "body": "Keep the cards you pay with and all the categories selected. If \"Run Immediately\" shows up later, choose it."
         },
         "search": {
           "title": "Search \"Kaspilo\"",
@@ -464,7 +459,10 @@
       },
       "turnOn": {
         "title": "Turn on the automation",
-        "body": "Apple keeps an automation that comes in a shared shortcut off. In Shortcuts, open the Kaspilo shortcut and turn on its automation switch."
+        "body": "Apple adds a shared shortcut with its automation off. In Shortcuts, open the Kaspilo shortcut, and in the automation at its top:",
+        "automation": "Leave Automation on.",
+        "confirm": "Turn off Confirm Before Run.",
+        "locked": "Allow running when the phone is locked."
       }
     },
     "android": {

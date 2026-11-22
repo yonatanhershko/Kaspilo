@@ -1,203 +1,163 @@
-import { router } from "expo-router";
-import { type ReactNode, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  AppState,
-  Image,
-  type ImageSourcePropType,
-  Linking,
-  Platform,
-  View,
-} from "react-native";
+import { colors as palette } from '@kaspilo/tokens';
+import { router } from 'expo-router';
+import { type ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AppState, Image, type ImageSourcePropType, Linking, Platform, ScrollView, View } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
-import { AppText } from "@/components/ui/AppText";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { PressScale } from "@/components/ui/PressScale";
-import { ProgressFill } from "@/components/ui/ProgressFill";
-import { Screen } from "@/components/ui/Screen";
-import { useRowAlign } from "@/i18n";
+import { AppText } from '@/components/ui/AppText';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import { PressScale } from '@/components/ui/PressScale';
+import { ProgressFill } from '@/components/ui/ProgressFill';
+import { Screen } from '@/components/ui/Screen';
+import { useRowAlign } from '@/i18n';
 import {
   adviseIosUpdate,
   IOS27_SHORTCUT_URL,
+  iosMajor,
   isListenerEnabled,
   markPurchaseSetupDone,
   openListenerSettings,
   quickSetupHere,
-} from "@/purchase";
-import { useTheme } from "@/theme/ThemeProvider";
+} from '@/purchase';
+import { useTheme } from '@/theme/ThemeProvider';
 
 /**
  * "Purchase detected" setup, once per phone (docs/spec.md "Purchase detected").
- * iPhone: intro → manual guide with screenshots (or, on iOS 27 with the shared shortcut, the
- * two-step quick path) → done. An iPhone below iOS 27 is advised to update when the quick
- * path exists. Android: the notification-access explanation Google Play requires → settings → done.
+ * iPhone below iOS 27: first the advice to update (automatic setup needs iOS 27), with the
+ * manual path under it → intro → 7-step guide with screenshots → done.
+ * iOS 27 and later: intro → the two-step quick path with the shared shortcut (the manual guide
+ * while that link is not set) → done.
+ * Android: the notification-access explanation Google Play requires → settings → done.
  */
 
 // Apple's own "Update your iPhone" page (opens in the browser).
-const IOS_UPDATE_HELP_URL = "https://support.apple.com/HT204204";
+const IOS_UPDATE_HELP_URL = 'https://support.apple.com/HT204204';
+
+/** The iOS version named in "manual setup for iOS N" (26 off an iPhone, e.g. on web). */
+const manualVersion = iosMajor > 0 ? iosMajor : 26;
 
 type Mark = { x: number; y: number };
 type Shot = { source: ImageSourcePropType; ratio: number };
-type GuideStep = { key: string; image?: Shot; mark?: Mark };
+type GuideStep = { key: string; image: Shot; mark: Mark };
 
-// Screenshots from an iOS 26 iPhone (Hebrew), status bar cropped off, 600 px wide (`ratio` is
-// width / height). `mark` is the tap point in percent of the picture.
+// Screenshots from the owner's iOS 26 iPhone (Hebrew), status bar cropped off and the cards
+// blurred, 600 px wide (`ratio` is width / height). `mark` is the tap point in percent.
 const GUIDE: GuideStep[] = [
   {
-    key: "automation",
-    image: {
-      source: require("../../../assets/images/purchase-setup/1-new-automation.jpg"),
-      ratio: 600 / 1209,
-    },
+    key: 'automation',
+    image: { source: require('../../../assets/images/purchase-setup/1-new-automation.jpg'), ratio: 600 / 1209 },
     mark: { x: 50, y: 60.5 },
   },
   {
-    key: "wallet",
-    image: {
-      source: require("../../../assets/images/purchase-setup/2-wallet.jpg"),
-      ratio: 600 / 1209,
-    },
+    key: 'wallet',
+    image: { source: require('../../../assets/images/purchase-setup/2-wallet.jpg'), ratio: 600 / 1209 },
     mark: { x: 76, y: 49 },
   },
-  { key: "cards" },
   {
-    key: "search",
-    image: {
-      source: require("../../../assets/images/purchase-setup/4-search.jpg"),
-      ratio: 600 / 553,
-    },
+    key: 'cards',
+    image: { source: require('../../../assets/images/purchase-setup/3-cards.jpg'), ratio: 600 / 722 },
+    mark: { x: 12.2, y: 8 },
+  },
+  {
+    key: 'search',
+    image: { source: require('../../../assets/images/purchase-setup/4-search.jpg'), ratio: 600 / 553 },
     mark: { x: 62, y: 88.5 },
   },
   {
-    key: "amount",
-    image: {
-      source: require("../../../assets/images/purchase-setup/5-amount.jpg"),
-      ratio: 600 / 1220,
-    },
+    key: 'amount',
+    image: { source: require('../../../assets/images/purchase-setup/5-amount.jpg'), ratio: 600 / 1220 },
     mark: { x: 82, y: 93 },
   },
   {
-    key: "merchant",
-    image: {
-      source: require("../../../assets/images/purchase-setup/6-merchant.jpg"),
-      ratio: 600 / 1211,
-    },
+    key: 'merchant',
+    image: { source: require('../../../assets/images/purchase-setup/6-merchant.jpg'), ratio: 600 / 1211 },
     mark: { x: 82, y: 76.8 },
   },
 ];
 
 type Stage =
-  | { name: "intro" }
-  | { name: "update" }
-  | { name: "guide"; step: number }
-  | { name: "quick"; step: number }
-  | { name: "android"; tried: boolean }
-  | { name: "done" };
+  | { name: 'update' }
+  | { name: 'intro' }
+  | { name: 'guide'; step: number }
+  | { name: 'quick'; step: number }
+  | { name: 'android'; tried: boolean }
+  | { name: 'done' };
+
+function firstStage(): Stage {
+  if (Platform.OS === 'android') return { name: 'android', tried: false };
+  return adviseIosUpdate ? { name: 'update' } : { name: 'intro' };
+}
 
 export default function PurchaseSetupScreen() {
-  const [stage, setStage] = useState<Stage>(
-    Platform.OS === "android"
-      ? { name: "android", tried: false }
-      : { name: "intro" },
-  );
+  const [stage, setStage] = useState<Stage>(firstStage);
 
   useEffect(() => {
-    if (stage.name === "done") void markPurchaseSetupDone();
+    if (stage.name === 'done') void markPurchaseSetupDone();
   }, [stage.name]);
 
   // Android: back from the phone's settings with Kaspilo switched on → done.
   useEffect(() => {
-    if (stage.name !== "android") return;
-    const sub = AppState.addEventListener("change", (state) => {
-      if (state === "active" && isListenerEnabled()) setStage({ name: "done" });
+    if (stage.name !== 'android') return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && isListenerEnabled()) setStage({ name: 'done' });
     });
     return () => sub.remove();
   }, [stage.name]);
 
-  const close = () =>
-    router.canGoBack() ? router.back() : router.replace("/notifications");
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/notifications'));
 
   switch (stage.name) {
-    case "intro":
+    case 'update':
+      return <UpdateAdvice onClose={close} onManual={() => setStage({ name: 'intro' })} />;
+    case 'intro':
       return (
         <Intro
           onClose={close}
-          onStart={() =>
-            setStage(
-              quickSetupHere
-                ? { name: "quick", step: 0 }
-                : { name: "guide", step: 0 },
-            )
-          }
-          onUpdate={() => setStage({ name: "update" })}
+          onStart={() => setStage(quickSetupHere ? { name: 'quick', step: 0 } : { name: 'guide', step: 0 })}
         />
       );
-    case "update":
-      return (
-        <UpdateAdvice
-          onClose={close}
-          onManual={() => setStage({ name: "guide", step: 0 })}
-        />
-      );
-    case "guide":
+    case 'guide':
       return (
         <Guide
           step={stage.step}
           onClose={close}
-          onBack={() =>
-            setStage(
-              stage.step === 0
-                ? { name: "intro" }
-                : { name: "guide", step: stage.step - 1 },
-            )
-          }
+          onBack={() => setStage(stage.step === 0 ? { name: 'intro' } : { name: 'guide', step: stage.step - 1 })}
           onNext={() =>
-            setStage(
-              stage.step === GUIDE.length - 1
-                ? { name: "done" }
-                : { name: "guide", step: stage.step + 1 },
-            )
+            setStage(stage.step === GUIDE.length - 1 ? { name: 'done' } : { name: 'guide', step: stage.step + 1 })
           }
         />
       );
-    case "quick":
+    case 'quick':
       return (
         <Quick
           step={stage.step}
           onClose={close}
-          onBack={() =>
-            setStage(
-              stage.step === 0 ? { name: "intro" } : { name: "quick", step: 0 },
-            )
-          }
-          onNext={() =>
-            setStage(
-              stage.step === 0 ? { name: "quick", step: 1 } : { name: "done" },
-            )
-          }
+          onBack={() => setStage(stage.step === 0 ? { name: 'intro' } : { name: 'quick', step: 0 })}
+          onNext={() => setStage(stage.step === 0 ? { name: 'quick', step: 1 } : { name: 'done' })}
         />
       );
-    case "android":
+    case 'android':
       return (
         <AndroidDisclosure
           tried={stage.tried}
           onClose={close}
           onAgree={() => {
-            if (isListenerEnabled()) return setStage({ name: "done" });
+            if (isListenerEnabled()) return setStage({ name: 'done' });
             openListenerSettings();
-            setStage({ name: "android", tried: true });
+            setStage({ name: 'android', tried: true });
           }}
         />
       );
-    case "done":
+    case 'done':
       return <Done onFinish={close} />;
   }
 }
@@ -218,40 +178,36 @@ function Shell({
   const { t } = useTranslation();
   const { colors } = useTheme();
   return (
-    <Screen leaves="none" scroll className="gap-5 px-5 pt-3">
+    // Buttons stay pinned at the bottom on every phone size; only the content scrolls.
+    <Screen leaves="none" className="px-5 pt-3">
       <View className="min-h-[44px] flex-row items-center gap-3">
         <PressScale
           accessibilityRole="button"
-          accessibilityLabel={t("purchaseSetup.close")}
+          accessibilityLabel={t('purchaseSetup.close')}
           className="h-11 w-11 items-center justify-center"
-          onPress={onClose}
-        >
+          onPress={onClose}>
           <Icon name="close" size={26} />
         </PressScale>
         {progress !== undefined && (
           <View
             className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary"
             accessibilityRole="progressbar"
-            accessibilityValue={{
-              min: 0,
-              max: 100,
-              now: Math.round(progress * 100),
-            }}
-          >
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}>
             <ProgressFill
               ratio={progress}
-              style={{
-                backgroundColor: colors.primary,
-                height: "100%",
-                borderRadius: 999,
-              }}
+              style={{ backgroundColor: colors.primary, height: '100%', borderRadius: 999 }}
             />
           </View>
         )}
         {progress !== undefined && <View className="w-11" />}
       </View>
-      <View className="flex-1 gap-5">{children}</View>
-      <View className="gap-3 pb-4">{footer}</View>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-5 pb-5 pt-5"
+        showsVerticalScrollIndicator={false}>
+        {children}
+      </ScrollView>
+      <View className="gap-3 pb-4 pt-2">{footer}</View>
     </Screen>
   );
 }
@@ -259,11 +215,7 @@ function Shell({
 function Title({ title, body }: { title: string; body?: string }) {
   return (
     <View className="gap-2">
-      <AppText
-        weight="bold"
-        className="text-[26px] leading-[34px]"
-        accessibilityRole="header"
-      >
+      <AppText weight="bold" className="text-[26px] leading-[34px]" accessibilityRole="header">
         {title}
       </AppText>
       {body ? (
@@ -285,36 +237,24 @@ function Point({ icon, text }: { icon: string; text: string }) {
   );
 }
 
-function TextLink({ label, onPress }: { label: string; onPress: () => void }) {
+function TextLink({ label, onPress, strong = false }: { label: string; onPress: () => void; strong?: boolean }) {
   return (
     <PressScale
       accessibilityRole="button"
       accessibilityLabel={label}
       className="min-h-[44px] justify-center"
-      onPress={onPress}
-    >
+      onPress={onPress}>
       <AppText
-        weight="medium"
-        tone="muted"
-        className="text-center text-[15px] underline"
-      >
+        weight={strong ? 'bold' : 'medium'}
+        tone={strong ? 'text' : 'muted'}
+        className={`text-center underline ${strong ? 'text-[17px]' : 'text-[15px]'}`}>
         {label}
       </AppText>
     </PressScale>
   );
 }
 
-function Note({
-  icon,
-  title,
-  body,
-  action,
-}: {
-  icon: string;
-  title: string;
-  body: string;
-  action?: ReactNode;
-}) {
+function Note({ icon, title, body }: { icon: string; title: string; body: string }) {
   const align = useRowAlign();
   return (
     <View className="gap-2 rounded-xl border border-border bg-surface p-4">
@@ -327,75 +267,20 @@ function Note({
       <AppText tone="muted" className="text-[14px] leading-[20px]">
         {body}
       </AppText>
-      {action}
     </View>
   );
 }
 
-function Intro({
-  onClose,
-  onStart,
-  onUpdate,
-}: {
-  onClose: () => void;
-  onStart: () => void;
-  onUpdate: () => void;
-}) {
-  const { t } = useTranslation();
+function Caption({ children }: { children: string }) {
   return (
-    <Shell
-      progress={0.02}
-      onClose={onClose}
-      footer={
-        <>
-          <Button label={t("purchaseSetup.intro.start")} onPress={onStart} />
-          <TextLink label={t("purchaseSetup.intro.later")} onPress={onClose} />
-        </>
-      }
-    >
-      <Title
-        title={t("purchaseSetup.intro.title")}
-        body={t("purchaseSetup.intro.body")}
-      />
-      <View className="gap-4">
-        <Point icon="creation-outline" text={t("purchaseSetup.intro.quick")} />
-        <Point
-          icon="shield-lock-outline"
-          text={t("purchaseSetup.intro.private")}
-        />
-        <Point icon="gesture-tap" text={t("purchaseSetup.intro.guided")} />
-      </View>
-      {quickSetupHere && (
-        <Note
-          icon="lightning-bolt-outline"
-          title={t("purchaseSetup.intro.quickTitle")}
-          body={t("purchaseSetup.intro.quickBody")}
-        />
-      )}
-      {adviseIosUpdate && (
-        <Note
-          icon="arrow-up-circle-outline"
-          title={t("purchaseSetup.update.title")}
-          body={t("purchaseSetup.intro.manualBody")}
-          action={
-            <TextLink
-              label={t("purchaseSetup.intro.howToUpdate")}
-              onPress={onUpdate}
-            />
-          }
-        />
-      )}
-    </Shell>
+    <AppText tone="muted" className="-mt-2 text-center text-[13px]">
+      {children}
+    </AppText>
   );
 }
 
-function UpdateAdvice({
-  onClose,
-  onManual,
-}: {
-  onClose: () => void;
-  onManual: () => void;
-}) {
+/** iOS below 27, first screen: automatic setup is better, the manual path is under it. */
+function UpdateAdvice({ onClose, onManual }: { onClose: () => void; onManual: () => void }) {
   const { t } = useTranslation();
   return (
     <Shell
@@ -403,37 +288,85 @@ function UpdateAdvice({
       footer={
         <>
           <Button
-            label={t("purchaseSetup.update.howButton")}
+            label={t('purchaseSetup.update.howButton')}
             icon={<Icon name="open-in-new" tone="onPrimary" size={20} />}
-            onPress={() =>
-              void Linking.openURL(IOS_UPDATE_HELP_URL).catch(() => undefined)
-            }
+            onPress={() => void Linking.openURL(IOS_UPDATE_HELP_URL).catch(() => undefined)}
           />
-          <AppText tone="muted" className="text-center text-[13px]">
-            {t("purchaseSetup.update.howNote")}
-          </AppText>
-          <TextLink
-            label={t("purchaseSetup.update.manual")}
-            onPress={onManual}
-          />
-          <AppText tone="muted" className="text-center text-[13px]">
-            {t("purchaseSetup.update.manualNote")}
-          </AppText>
+          <Caption>{t('purchaseSetup.update.howNote')}</Caption>
+          <TextLink strong label={t('purchaseSetup.update.manual', { version: manualVersion })} onPress={onManual} />
+          <Caption>{t('purchaseSetup.update.manualNote')}</Caption>
         </>
-      }
-    >
-      <View className="items-center py-4">
-        <View className="h-28 w-28 items-center justify-center rounded-full bg-surface">
-          <Icon name="cellphone-arrow-down" tone="primary" size={56} />
+      }>
+      <UpdateArt />
+      <Title title={t('purchaseSetup.update.title')} body={t('purchaseSetup.update.body')} />
+      <AppText weight="medium" className="text-[15px] leading-[22px]">
+        {t('purchaseSetup.update.how')}
+      </AppText>
+    </Shell>
+  );
+}
+
+/** A tilted phone showing "iOS 27" and an "update" arrow, in the app's colors. */
+function UpdateArt() {
+  return (
+    <View
+      className="h-56 items-center justify-center overflow-hidden rounded-3xl bg-surface"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants">
+      <View className="flex-row items-end gap-4">
+        <View
+          className="h-40 w-24 items-center justify-center rounded-[26px] border-[3px] border-text bg-background"
+          style={{ transform: [{ rotate: '7deg' }] }}>
+          <View className="absolute top-3 h-1.5 w-8 rounded-full bg-text" />
+          <AppText weight="medium" className="text-center text-[14px]">
+            iOS
+          </AppText>
+          <AppText weight="bold" className="text-center text-[44px] leading-[48px]">
+            27
+          </AppText>
+          <View className="absolute bottom-3 h-1 w-8 rounded-full bg-text" />
+        </View>
+        <View className="mb-6 h-14 w-14 items-center justify-center rounded-full border-[3px] border-text bg-accent">
+          <Icon name="arrow-up" size={30} tone="onAccent" />
         </View>
       </View>
-      <Title
-        title={t("purchaseSetup.update.title")}
-        body={t("purchaseSetup.update.body")}
-      />
-      <AppText weight="medium" className="text-[15px] leading-[22px]">
-        {t("purchaseSetup.update.how")}
-      </AppText>
+      <View className="absolute bottom-6 h-[3px] w-56 rounded-full bg-text opacity-80" />
+    </View>
+  );
+}
+
+function Intro({ onClose, onStart }: { onClose: () => void; onStart: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Shell
+      progress={0.02}
+      onClose={onClose}
+      footer={
+        <>
+          <Button label={t('purchaseSetup.intro.start')} onPress={onStart} />
+          <TextLink label={t('purchaseSetup.intro.later')} onPress={onClose} />
+        </>
+      }>
+      <Title title={t('purchaseSetup.intro.title')} body={t('purchaseSetup.intro.body')} />
+      <View className="gap-4">
+        <Point icon="creation-outline" text={t('purchaseSetup.intro.quick')} />
+        <Point icon="shield-lock-outline" text={t('purchaseSetup.intro.private')} />
+        <Point icon="gesture-tap" text={t('purchaseSetup.intro.guided')} />
+      </View>
+      {quickSetupHere && (
+        <Note
+          icon="lightning-bolt-outline"
+          title={t('purchaseSetup.intro.quickTitle')}
+          body={t('purchaseSetup.intro.quickBody')}
+        />
+      )}
+      {adviseIosUpdate && (
+        <Note
+          icon="arrow-up-circle-outline"
+          title={t('purchaseSetup.update.title')}
+          body={t('purchaseSetup.intro.manualBody', { version: manualVersion })}
+        />
+      )}
     </Shell>
   );
 }
@@ -443,40 +376,21 @@ function OpenShortcuts() {
   return (
     <Button
       variant="outline"
-      label={t("purchaseSetup.guide.openShortcuts")}
+      label={t('purchaseSetup.guide.openShortcuts')}
       icon={<Icon name="open-in-new" size={20} />}
-      onPress={() =>
-        void Linking.openURL("shortcuts://").catch(() => undefined)
-      }
+      onPress={() => void Linking.openURL('shortcuts://').catch(() => undefined)}
     />
   );
 }
 
-function BackNext({
-  onBack,
-  onNext,
-  nextLabel,
-}: {
-  onBack: () => void;
-  onNext: () => void;
-  nextLabel?: string;
-}) {
+function BackNext({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
   const { t } = useTranslation();
   const align = useRowAlign();
   return (
     <View className={`gap-3 ${align.row}`}>
       {/* Back first: Hebrew puts Next at the left (forward), English at the right. */}
-      <Button
-        className="flex-1"
-        variant="outline"
-        label={t("purchaseSetup.guide.back")}
-        onPress={onBack}
-      />
-      <Button
-        className="flex-[2]"
-        label={nextLabel ?? t("purchaseSetup.guide.next")}
-        onPress={onNext}
-      />
+      <Button className="flex-1" variant="outline" label={t('purchaseSetup.guide.back')} onPress={onBack} />
+      <Button className="flex-[2]" label={t('purchaseSetup.guide.next')} onPress={onNext} />
     </View>
   );
 }
@@ -505,109 +419,99 @@ function Guide({
           <OpenShortcuts />
           <BackNext onBack={onBack} onNext={onNext} />
         </>
-      }
-    >
+      }>
       <View className="gap-2">
         <AppText tone="muted" className="text-[13px]">
-          {t("purchaseSetup.guide.stepOf", { n: step + 1, total })}
+          {t('purchaseSetup.guide.stepOf', { n: step + 1, total })}
         </AppText>
         <Title title={t(`${base}.title`)} body={t(`${base}.body`)} />
       </View>
-      {current.image ? (
-        <Screenshot
-          image={current.image}
-          mark={current.mark}
-          label={t(`${base}.title`)}
-        />
-      ) : (
-        <View className="gap-4 rounded-xl border border-border bg-surface p-4">
-          <Point
-            icon="credit-card-check-outline"
-            text={t("purchaseSetup.guide.steps.cards.pick")}
-          />
-          <Point
-            icon="play-circle-outline"
-            text={t("purchaseSetup.guide.steps.cards.runNow")}
-          />
-          <Point
-            icon="bell-off-outline"
-            text={t("purchaseSetup.guide.steps.cards.noNotify")}
-          />
-          <Point
-            icon="chevron-right-circle-outline"
-            text={t("purchaseSetup.guide.steps.cards.next")}
-          />
-        </View>
-      )}
+      <Screenshot key={current.key} image={current.image} mark={current.mark} label={t(`${base}.title`)} />
     </Shell>
   );
 }
 
-/** A screenshot in a phone-like frame, with a pulsing ring on the place to tap. */
-function Screenshot({
-  image,
-  mark,
-  label,
-}: {
-  image: Shot;
-  mark?: Mark;
-  label: string;
-}) {
+/** A screenshot in a phone-like frame, with a soft pulsing mark on the place to tap. */
+function Screenshot({ image, mark, label }: { image: Shot; mark: Mark; label: string }) {
   const { source, ratio } = image;
-  const tall = ratio < 0.8;
   return (
     <View
       className="self-center overflow-hidden rounded-[28px] border-4 border-border"
-      style={{ width: tall ? "64%" : "92%", aspectRatio: ratio }}
+      style={{ width: ratio < 0.6 ? '54%' : ratio < 1 ? '72%' : '88%', aspectRatio: ratio }}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={label}
-    >
-      <Image
-        source={source}
-        style={{ width: "100%", height: "100%" }}
-        resizeMode="cover"
-      />
-      {mark && <TapMark mark={mark} />}
+      accessibilityLabel={label}>
+      <Image source={source} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+      <TapMark mark={mark} />
     </View>
   );
 }
 
+// The screenshots are light, so the mark uses the light theme's green in both themes.
+const MARK = palette.light.primary;
+const MARK_SIZE = 40;
+
+/**
+ * Where to tap: a see-through green ring with a small dot, and a soft halo that grows and
+ * fades (2.2 s, calm). The label under it stays readable. Still with "reduce motion".
+ */
 function TapMark({ mark }: { mark: Mark }) {
   const reduceMotion = useReducedMotion();
   const pulse = useSharedValue(0);
   useEffect(() => {
     pulse.set(
       reduceMotion
-        ? 0.5
-        : withRepeat(withTiming(1, { duration: 1600 }), -1, false),
+        ? 0
+        : withRepeat(withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) }), -1, false),
     );
   }, [pulse, reduceMotion]);
-  const ring = useAnimatedStyle(() => ({
-    opacity: 0.6 * (1 - pulse.get()),
-    transform: [{ scale: 1 + pulse.get() * 0.8 }],
+  const halo = useAnimatedStyle(() => ({
+    opacity: 0.35 * (1 - pulse.get()),
+    transform: [{ scale: 1 + pulse.get() * 0.9 }],
   }));
+  const half = MARK_SIZE / 2;
   return (
     <View
       pointerEvents="none"
-      className="absolute h-11 w-11"
       style={{
+        position: 'absolute',
         left: `${mark.x}%`,
         top: `${mark.y}%`,
-        marginLeft: -22,
-        marginTop: -22,
-      }}
-    >
+        width: MARK_SIZE,
+        height: MARK_SIZE,
+        marginLeft: -half,
+        marginTop: -half,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
       <Animated.View
-        className="absolute h-11 w-11 rounded-full border-2 border-primary"
-        style={ring}
+        style={[
+          { position: 'absolute', width: MARK_SIZE, height: MARK_SIZE, borderRadius: half, backgroundColor: MARK },
+          halo,
+        ]}
       />
-      {/* A ring, not a dot: the label under it stays readable. */}
-      <View className="h-11 w-11 rounded-full border-[3px] border-primary" />
+      <View
+        style={{
+          width: MARK_SIZE,
+          height: MARK_SIZE,
+          borderRadius: half,
+          borderWidth: 2.5,
+          borderColor: MARK,
+          opacity: 0.8,
+          shadowColor: palette.light.text,
+          shadowOpacity: 0.18,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+        }}
+      />
+      <View
+        style={{ position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: MARK, opacity: 0.65 }}
+      />
     </View>
   );
 }
 
+/** iOS 27 and later with the shared shortcut: add it, then turn its automation on. */
 function Quick({
   step,
   onClose,
@@ -620,7 +524,7 @@ function Quick({
   onNext: () => void;
 }) {
   const { t } = useTranslation();
-  const key = step === 0 ? "add" : "turnOn";
+  const key = step === 0 ? 'add' : 'turnOn';
   return (
     <Shell
       progress={(step + 1) / 3}
@@ -630,82 +534,54 @@ function Quick({
           {step === 0 ? (
             <Button
               variant="outline"
-              label={t("purchaseSetup.quick.add.button")}
+              label={t('purchaseSetup.quick.add.button')}
               icon={<Icon name="plus-circle-outline" size={20} />}
-              onPress={() =>
-                void Linking.openURL(IOS27_SHORTCUT_URL).catch(() => undefined)
-              }
+              onPress={() => void Linking.openURL(IOS27_SHORTCUT_URL).catch(() => undefined)}
             />
           ) : (
             <OpenShortcuts />
           )}
           <BackNext onBack={onBack} onNext={onNext} />
         </>
-      }
-    >
+      }>
       <View className="gap-2">
         <AppText tone="muted" className="text-[13px]">
-          {t("purchaseSetup.guide.stepOf", { n: step + 1, total: 2 })}
+          {t('purchaseSetup.guide.stepOf', { n: step + 1, total: 2 })}
         </AppText>
-        <Title
-          title={t(`purchaseSetup.quick.${key}.title`)}
-          body={t(`purchaseSetup.quick.${key}.body`)}
-        />
+        <Title title={t(`purchaseSetup.quick.${key}.title`)} body={t(`purchaseSetup.quick.${key}.body`)} />
       </View>
+      {step === 1 && (
+        <View className="gap-4 rounded-xl border border-border bg-surface p-4">
+          <Point icon="toggle-switch-outline" text={t('purchaseSetup.quick.turnOn.automation')} />
+          <Point icon="hand-back-left-off-outline" text={t('purchaseSetup.quick.turnOn.confirm')} />
+          <Point icon="lock-open-outline" text={t('purchaseSetup.quick.turnOn.locked')} />
+        </View>
+      )}
     </Shell>
   );
 }
 
-function AndroidDisclosure({
-  tried,
-  onClose,
-  onAgree,
-}: {
-  tried: boolean;
-  onClose: () => void;
-  onAgree: () => void;
-}) {
+function AndroidDisclosure({ tried, onClose, onAgree }: { tried: boolean; onClose: () => void; onAgree: () => void }) {
   const { t } = useTranslation();
   return (
     <Shell
       onClose={onClose}
       footer={
         <>
-          <Button
-            label={t(
-              tried
-                ? "purchaseSetup.android.again"
-                : "purchaseSetup.android.agree",
-            )}
-            onPress={onAgree}
-          />
-          <TextLink label={t("purchaseSetup.intro.later")} onPress={onClose} />
+          <Button label={t(tried ? 'purchaseSetup.android.again' : 'purchaseSetup.android.agree')} onPress={onAgree} />
+          <TextLink label={t('purchaseSetup.intro.later')} onPress={onClose} />
         </>
-      }
-    >
-      <Title
-        title={t("purchaseSetup.android.title")}
-        body={t("purchaseSetup.android.body")}
-      />
+      }>
+      <Title title={t('purchaseSetup.android.title')} body={t('purchaseSetup.android.body')} />
       <View className="gap-4">
-        <Point icon="wallet-outline" text={t("purchaseSetup.android.only")} />
-        <Point
-          icon="eye-off-outline"
-          text={t("purchaseSetup.android.others")}
-        />
-        <Point
-          icon="shield-lock-outline"
-          text={t("purchaseSetup.android.private")}
-        />
+        <Point icon="wallet-outline" text={t('purchaseSetup.android.only')} />
+        <Point icon="eye-off-outline" text={t('purchaseSetup.android.others')} />
+        <Point icon="shield-lock-outline" text={t('purchaseSetup.android.private')} />
       </View>
       <Note
         icon="toggle-switch-outline"
-        title={t("purchaseSetup.android.stepTitle")}
-        body={t(
-          tried
-            ? "purchaseSetup.android.notYet"
-            : "purchaseSetup.android.stepBody",
-        )}
+        title={t('purchaseSetup.android.stepTitle')}
+        body={t(tried ? 'purchaseSetup.android.notYet' : 'purchaseSetup.android.stepBody')}
       />
     </Shell>
   );
@@ -714,25 +590,15 @@ function AndroidDisclosure({
 function Done({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   return (
-    <Shell
-      progress={1}
-      onClose={onFinish}
-      footer={
-        <Button label={t("purchaseSetup.done.finish")} onPress={onFinish} />
-      }
-    >
+    <Shell progress={1} onClose={onFinish} footer={<Button label={t('purchaseSetup.done.finish')} onPress={onFinish} />}>
       <View className="items-center py-6">
         <View className="h-28 w-28 items-center justify-center rounded-full bg-surface">
           <Icon name="check-circle-outline" tone="primary" size={64} />
         </View>
       </View>
       <Title
-        title={t("purchaseSetup.done.title")}
-        body={t(
-          Platform.OS === "android"
-            ? "purchaseSetup.done.bodyAndroid"
-            : "purchaseSetup.done.bodyIos",
-        )}
+        title={t('purchaseSetup.done.title')}
+        body={t(Platform.OS === 'android' ? 'purchaseSetup.done.bodyAndroid' : 'purchaseSetup.done.bodyIos')}
       />
     </Shell>
   );
