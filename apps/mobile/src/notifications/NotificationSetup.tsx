@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
+import { useAuth } from '@/auth/AuthProvider';
 import { AppText } from '@/components/ui/AppText';
 import { Dialog } from '@/components/ui/Dialog';
+import { useSettings } from '@/data/queries';
 import { useLanguage } from '@/i18n';
+import { syncPurchaseDetection } from '@/purchase';
 
 import {
   getPermission,
@@ -38,6 +41,15 @@ export function NotificationSetup() {
     return () => sub.remove();
   }, [language]);
 
+  // Purchase detection runs natively, without this app open: hand it the switch, the plan's
+  // end, the currency and the texts in the app language (docs/spec.md "Purchase detected").
+  const currency = useSettings().data?.currency;
+  const { profile } = useAuth();
+  const accessUntil = profile?.role === 'admin' ? null : (profile?.expires_at ?? null);
+  useEffect(() => {
+    if (currency) void syncPurchaseDetection({ currency, accessUntil });
+  }, [currency, accessUntil, language]);
+
   // First arrival at home: explain, then let the user decide.
   useEffect(() => {
     let alive = true;
@@ -56,7 +68,25 @@ export function NotificationSetup() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Notifications = require('expo-notifications') as typeof ExpoNotifications;
     const open = (response: ExpoNotifications.NotificationResponse | null) => {
-      const url = response?.notification.request.content.data?.url;
+      const data = response?.notification.request.content.data;
+      // "Purchase detected" (made on the phone, docs/spec.md): open the expense sheet with what
+      // was caught. Only plain strings pass; the sheet checks them again before filling.
+      if (data?.kind === 'purchase') {
+        Notifications.clearLastNotificationResponse();
+        const text = (value: unknown) => (typeof value === 'string' || typeof value === 'number' ? String(value) : '');
+        router.push({
+          pathname: '/add',
+          params: {
+            type: 'expense',
+            purchase: '1',
+            amountMinor: text(data.amountMinor),
+            currency: text(data.currency),
+            merchant: text(data.merchant).slice(0, 200),
+          },
+        });
+        return;
+      }
+      const url = data?.url;
       const route = NOTIFICATION_ROUTES.find((known) => known === url) as NotificationRoute | undefined;
       if (!route) return;
       Notifications.clearLastNotificationResponse();

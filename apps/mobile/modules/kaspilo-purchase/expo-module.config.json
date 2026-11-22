@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["KaspiloPurchaseModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.kaspilopurchase.KaspiloPurchaseModule"]
+  }
+}

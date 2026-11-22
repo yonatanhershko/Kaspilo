@@ -186,9 +186,15 @@ jobs:
         env:
           APP_VARIANT: production
         run: |
+          # The same EAS production variables `eas update` will use (the file is gitignored).
+          eas env:pull production --non-interactive --path .env.local
           npx expo config --type public --json > "$RUNNER_TEMP/config.json"
           jq -e '.ios.bundleIdentifier == "com.kaspilo.app" and .scheme == "kaspilo" and .extra.appVariant == "production"' "$RUNNER_TEMP/config.json" \
             || { echo "The update would ship a non-prod app config."; exit 1; }
+          # Updates go only to builds with the same native fingerprint (app.config.ts
+          # runtimeVersion), so one made with the Google iOS client never reaches a build without it.
+          jq -e '.runtimeVersion.policy == "fingerprint"' "$RUNNER_TEMP/config.json" \
+            || { echo "runtimeVersion must use the fingerprint policy, or an update could reach a build it crashes."; exit 1; }
       - name: Publish the update
         working-directory: apps/mobile
         env:

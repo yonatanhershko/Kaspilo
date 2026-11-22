@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 
 import i18n, { currentLanguage } from '@/i18n';
 import { hasApplicationModule } from '@/lib/nativeApp';
+import { disablePurchaseDetection } from '@/purchase';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -240,6 +241,7 @@ export async function syncPushToken(): Promise<void> {
 
 /** Sign-out: this device stops getting reminders. Call while still signed in. */
 export async function clearNotificationsOnSignOut(): Promise<void> {
+  disablePurchaseDetection();
   if (!supported) return;
   try {
     await cancelInactivityReminders();
