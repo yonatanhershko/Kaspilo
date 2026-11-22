@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { Sway } from '@/components/nature/Sway';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -22,7 +23,6 @@ import { useRowAlign } from '@/i18n';
 import {
   adviseIosUpdate,
   IOS27_SHORTCUT_URL,
-  iosMajor,
   isListenerEnabled,
   markPurchaseSetupDone,
   openListenerSettings,
@@ -42,8 +42,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 // Apple's own "Update your iPhone" page (opens in the browser).
 const IOS_UPDATE_HELP_URL = 'https://support.apple.com/HT204204';
 
-/** The iOS version named in "manual setup for iOS N" (26 off an iPhone, e.g. on web). */
-const manualVersion = iosMajor > 0 ? iosMajor : 26;
+/** "Manual setup for iOS 26": always 26, as in the owner's reference (owner 2026-11-23). */
+const manualVersion = 26;
 
 type Mark = { x: number; y: number };
 type Shot = { source: ImageSourcePropType; ratio: number };
@@ -306,17 +306,15 @@ function UpdateAdvice({ onClose, onManual }: { onClose: () => void; onManual: ()
   );
 }
 
-/** A tilted phone showing "iOS 27" and an "update" arrow, in the app's colors. */
+/** A phone showing "iOS 27", swaying slowly in 3D like the wallet on the login screen. */
 function UpdateArt() {
   return (
     <View
       className="h-56 items-center justify-center overflow-hidden rounded-3xl bg-surface"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants">
-      <View className="flex-row items-end gap-4">
-        <View
-          className="h-40 w-24 items-center justify-center rounded-[26px] border-[3px] border-text bg-background"
-          style={{ transform: [{ rotate: '7deg' }] }}>
+      <Sway rotateY={24} rotateX={8} tilt={3} baseRotate={6} bob={5} duration={3000}>
+        <View className="h-40 w-24 items-center justify-center rounded-[26px] border-[3px] border-text bg-background">
           <View className="absolute top-3 h-1.5 w-8 rounded-full bg-text" />
           <AppText weight="medium" className="text-center text-[14px]">
             iOS
@@ -326,11 +324,7 @@ function UpdateArt() {
           </AppText>
           <View className="absolute bottom-3 h-1 w-8 rounded-full bg-text" />
         </View>
-        <View className="mb-6 h-14 w-14 items-center justify-center rounded-full border-[3px] border-text bg-accent">
-          <Icon name="arrow-up" size={30} tone="onAccent" />
-        </View>
-      </View>
-      <View className="absolute bottom-6 h-[3px] w-56 rounded-full bg-text opacity-80" />
+      </Sway>
     </View>
   );
 }
