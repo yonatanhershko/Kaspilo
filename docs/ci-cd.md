@@ -2,9 +2,17 @@
 
 Decided by the owner 2026-11-21: every push is checked; production changes only by hand, with approval.
 
-## On every push and pull request (`.github/workflows/ci.yml`)
+## On every push (`.github/workflows/ci.yml`)
 
-Branches `dev` and `main`. All jobs must be green before merging into `main`.
+Every push to `dev` and `main`, and pull requests into `dev`. All jobs must be green before merging into `main`.
+
+Each commit is checked once (owner decision 2026-11-22, to save Actions minutes once the repository is private):
+
+- A pull request from `dev` into `main` runs no CI of its own. Branch protection reads the results of the push to `dev` on the same commit.
+- The push to `main` after the merge checks the merge commit, which is exactly what prod gets.
+- A deploy does not run the full CI again. It requires a passing run on its commit, and re-runs only the three checks that can change with time.
+
+About 9 billed minutes per push and about 27 per full release (push to dev, merge, deploy), down from about 38.
 
 | Job | What it proves |
 | --- | --- |
@@ -19,11 +27,16 @@ Accepted advisor warnings (not errors): `security definer` functions callable by
 
 ## Production (`.github/workflows/deploy.yml`)
 
-Never automatic. Actions tab → "Deploy to production" → Run workflow, on `main`, type `prod`. CI runs again on that commit, then each job waits for the owner's approval in the `production` environment.
+Never automatic. Actions tab → "Deploy to production" → Run workflow, on `main`, type `prod`. Before anything touches prod, two jobs run:
+
+- **CI passed on this commit:** finds a passing CI run (from the push, or started by hand) on this exact commit. If CI is still running, it waits up to 20 minutes. If there is none, the deploy stops: fix CI on `main`, or run it by hand (Actions → CI → Run workflow → `main`), then deploy again.
+- **Checks that can change with time:** the secret scan, the dependency report (strict, so a "must" item stops the deploy) and the dev advisors. Same code, but a new vulnerability or scanner rule may have appeared since the merge.
+
+Then each job waits for the owner's approval in the `production` environment.
 
 | Choice | What happens |
 | --- | --- |
-| migrations | `supabase db push` to the prod database: shows the pending files, then applies them in file order. Then deploys the Edge Functions (`auth-password`) |
+| migrations | `supabase db push` to the prod database: shows the pending files, then applies them in file order. Then deploys the Edge Functions (`auth-password`, `apple-revoke`) |
 | store build | `eas build --profile production` for iPhone, Android or both. Runs in Expo's cloud; submit to the stores from expo.dev |
 | migrations + store build | both, migrations first |
 | update (JS only) | `eas update --channel production`: JS and asset fixes reach installed apps without a store review. Only builds with the same app version get it; any native change (new native package, permission, icon, config plugin) needs a store build |
@@ -42,7 +55,7 @@ Owner decision 2026-11-21: nothing updates by itself, no automatic dependency PR
 - **מומלץ (recommended):** patch / minor updates of runtime packages, moderate / low vulnerabilities in packages the apps run. Each with its kind (bug fixes / new features) and a link to what changed.
 - **לא דחוף (not urgent):** major versions (need planning), dev tools, vulnerabilities only in dev tools, and Expo build-tool alerts where npm's "fix" would downgrade Expo (never do that).
 
-On `dev` a "must" item is only a warning, so an upstream release never blocks work. Into `main` (push or pull request) it fails the check, so nothing reaches prod with a must-fix open. The owner picks what to update; it is done on `dev` and goes through CI. Expo, React and React Native packages move only with `npx expo install --fix` or an SDK upgrade.
+On `dev` a "must" item is only a warning, so an upstream release never blocks work. On `main` (the push after a merge, and every deploy) it fails the check, so nothing reaches prod with a must-fix open. A merge into `main` is not blocked by it; the deploy is. The owner picks what to update; it is done on `dev` and goes through CI. Expo, React and React Native packages move only with `npx expo install --fix` or an SDK upgrade.
 
 ## One-time setup (owner)
 

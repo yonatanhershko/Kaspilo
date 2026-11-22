@@ -50,8 +50,10 @@ export type NotificationCatalogItem = { kind: NotificationKind; he: Notification
 export type PushAudience = {
   users: number;
   users_with_device: number;
+  /** Devices that would get this kind. */
   devices: number;
-  renewal_off_devices: number;
+  /** Registered devices where the user switched this kind off: they get nothing. */
+  off_devices: number;
 };
 
 export type DashboardStats = {
@@ -291,7 +293,7 @@ export type Database = {
         Returns: undefined;
       };
       admin_notification_catalog: { Args: Record<never, never>; Returns: NotificationCatalogItem[] };
-      admin_push_audience: { Args: { p_user_id?: string | null }; Returns: PushAudience };
+      admin_push_audience: { Args: { p_user_id?: string | null; p_kind?: string | null }; Returns: PushAudience };
       admin_send_notification: {
         Args: { p_user_id: string | null; p_kind: string; p_title?: string | null; p_body?: string | null };
         Returns: number;

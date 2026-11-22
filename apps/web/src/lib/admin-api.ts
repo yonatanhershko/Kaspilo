@@ -95,8 +95,8 @@ export async function fetchNotificationCatalog(): Promise<NotificationCatalogIte
 }
 
 /** Who a send would reach. `userId` null = all active users. */
-export async function fetchPushAudience(userId: string | null): Promise<PushAudience> {
-  const { data, error } = await supabase.rpc("admin_push_audience", { p_user_id: userId });
+export async function fetchPushAudience(userId: string | null, kind: string): Promise<PushAudience> {
+  const { data, error } = await supabase.rpc("admin_push_audience", { p_user_id: userId, p_kind: kind });
   if (error) throw new Error(error.message);
   return data;
 }

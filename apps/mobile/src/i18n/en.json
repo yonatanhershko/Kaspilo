@@ -230,6 +230,7 @@
   },
   "more": {
     "account": "My account",
+    "appleHiddenEmail": "Email hidden by Apple",
     "currency": "Currency",
     "currencyILS": "Shekel",
     "currencyUSD": "Dollar",

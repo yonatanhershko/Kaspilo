@@ -47,9 +47,9 @@ export function NotifyDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const catalog = useAsync(fetchNotificationCatalog, "catalog");
-  const audience = useAsync(() => fetchPushAudience(userId), userId ?? "all");
-
   const [kind, setKind] = useState<NotificationKind | "custom">("expiry_30");
+  const audience = useAsync(() => fetchPushAudience(userId, kind), `${userId ?? "all"}:${kind}`);
+
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -116,6 +116,8 @@ export function NotifyDialog({
             "Checking registered devices…"
           ) : audience.error ? (
             <span className="text-danger">Couldn&apos;t check devices: {audience.error}</span>
+          ) : audience.data && devices === 0 && audience.data.off_devices > 0 ? (
+            `Switched off on ${target === "all" ? "every registered device" : "all of this user's devices"}. Nothing will be sent.`
           ) : audience.data && devices === 0 ? (
             target === "all" ? (
               "No active user has a registered device yet. Nothing can be sent."
@@ -128,12 +130,11 @@ export function NotifyDialog({
               {target === "all" &&
                 ` of ${plural(audience.data.users_with_device, "user", "users")} (${plural(audience.data.users, "active user", "active users")} in total)`}
               .
-              {audience.data.renewal_off_devices > 0 && (
+              {audience.data.off_devices > 0 && (
                 <>
                   {" "}
-                  Renewal reminders are switched off on{" "}
-                  {plural(audience.data.renewal_off_devices, "device", "devices")}; a manual send
-                  goes out anyway.
+                  Not sent to {plural(audience.data.off_devices, "device", "devices")} where the
+                  user switched this notification off.
                 </>
               )}
             </>

@@ -192,6 +192,12 @@ async function signIn(email: string, password: string, ip: string | null): Promi
     await rpc('auth_attempt_finish', { p_email_hash: hash, p_outcome: 'ok' });
     return reply(200, { session: s });
   }
+  if (authError(legacy).code !== 'invalid_credentials') {
+    // The second try was refused for another reason (IP limit, Supabase busy): the password
+    // may well be right, so it does not count as wrong (load test 2026-11-22, F1).
+    await rpc('auth_attempt_finish', { p_email_hash: hash, p_outcome: 'error' });
+    return passThrough(legacy);
+  }
 
   const locked = await rpc('auth_attempt_finish', { p_email_hash: hash, p_outcome: 'wrong' });
   if (locked > 0) return fail(429, 'locked', { retry_after: locked });

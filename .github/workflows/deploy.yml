@@ -49,15 +49,59 @@ jobs:
           if [ "$REF" != "refs/heads/main" ]; then echo "Run this from main."; exit 1; fi
           if [ "$CONFIRM" != "prod" ]; then echo 'Type "prod" to confirm.'; exit 1; fi
 
-  ci:
-    name: CI must pass on this commit
+  # The full CI is not run again here: it already ran on this exact commit when it was
+  # pushed to main. This job only checks that the run passed (and waits if it is still
+  # going), so the deploy saves about 8 minutes without skipping any check.
+  tested:
+    name: CI passed on this commit
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SHA: ${{ github.sha }}
+    steps:
+      - name: Find a passing CI run (push or by hand) on this commit
+        run: |
+          # Up to 20 minutes: a deploy started right after a merge waits for its CI.
+          for i in $(seq 1 60); do
+            runs=$(gh run list --workflow ci.yml --commit "$SHA" --limit 50 \
+              --json status,conclusion,event,url \
+              --jq '[.[] | select(.event == "push" or .event == "workflow_dispatch")]')
+            if echo "$runs" | jq -e 'any(.[]; .conclusion == "success")' > /dev/null; then
+              echo "CI passed on $SHA:"; echo "$runs" | jq -r '.[] | select(.conclusion == "success") | .url'
+              exit 0
+            fi
+            if echo "$runs" | jq -e 'any(.[]; .status != "completed")' > /dev/null; then
+              echo "CI is still running on this commit, waiting..."; sleep 20; continue
+            fi
+            # A push from a few seconds ago may not have its run listed yet.
+            if [ "$i" -le 6 ] && echo "$runs" | jq -e 'length == 0' > /dev/null; then
+              echo "No CI run listed yet, waiting..."; sleep 20; continue
+            fi
+            break
+          done
+          echo "No passing CI run on $SHA."
+          echo "$runs" | jq -r '.[] | "\(.status) \(.conclusion // "-") \(.url)"'
+          echo "Fix CI on main, or run it by hand (Actions -> CI -> Run workflow -> main), then deploy again."
+          exit 1
+
+  # The checks whose answer can change on the same code: a secret pattern added to the
+  # scanner, a vulnerability published since the merge, the state of dev's advisors.
+  fresh:
+    name: Checks that can change with time
     needs: guard
     uses: ./.github/workflows/ci.yml
+    with:
+      fresh_only: true
     secrets: inherit
 
   migrations:
     name: Prod migrations + Edge Functions
-    needs: ci
+    needs: [tested, fresh]
     if: inputs.what == 'migrations' || inputs.what == 'migrations + store build'
     runs-on: ubuntu-latest
     environment: production
@@ -80,19 +124,20 @@ jobs:
       - name: Apply, in file order
         run: supabase db push --db-url "$PROD_DB_URL" --yes
       # After the migrations: the functions call database functions they add.
-      - name: Deploy Edge Functions (public sign-in endpoint, so no JWT check)
+      - name: Deploy Edge Functions (auth-password is public, so no JWT check; apple-revoke needs a session)
         run: |
           if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$PROD_PROJECT_REF" ]; then
             echo "Missing PROD_SUPABASE_ACCESS_TOKEN (secret) or PROD_PROJECT_REF (variable): see docs/ci-cd.md"; exit 1
           fi
           supabase functions deploy auth-password --project-ref "$PROD_PROJECT_REF" --no-verify-jwt --yes
+          supabase functions deploy apple-revoke --project-ref "$PROD_PROJECT_REF" --yes
 
   store-build:
     name: EAS store build
-    needs: [ci, migrations]
+    needs: [tested, fresh, migrations]
     # Runs after migrations when both were asked for; also when migrations were skipped.
     if: >-
-      always() && needs.ci.result == 'success' &&
+      always() && needs.tested.result == 'success' && needs.fresh.result == 'success' &&
       (needs.migrations.result == 'success' || needs.migrations.result == 'skipped') &&
       (inputs.what == 'store build' || inputs.what == 'migrations + store build')
     runs-on: ubuntu-latest
@@ -117,7 +162,7 @@ jobs:
 
   update:
     name: EAS Update (production channel)
-    needs: ci
+    needs: [tested, fresh]
     if: inputs.what == 'update (JS only, no store review)'
     runs-on: ubuntu-latest
     environment: production

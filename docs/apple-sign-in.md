@@ -27,7 +27,25 @@ New native package and capability, so a new iPhone build is needed (an `eas upda
 
 On an iPhone: sign-in screen → "Continue with Apple" → Face ID → terms screen (first time only) → locked screen. In the admin web the user waits in Approvals with the name from Apple. Try once with "Hide my email": the email is an `@privaterelay.appleid.com` address.
 
-## Before the App Store submission (open)
+## 5. Revoke on account deletion (guideline 5.1.1(v))
 
-- Guideline 5.1.1(v): deleting an account must also revoke the user's Apple token. Needs an Apple key (`.p8`, Keys → Sign in with Apple) in an Edge Function secret and a call to Apple's revoke API in account deletion. Not built yet.
+Code: `supabase/functions/apple-revoke`, called from More → Delete account (`revokeApple()` in `apps/mobile/src/auth/apple.ts`). It needs an Apple key, once:
+
+1. https://developer.apple.com/account/resources/authkeys/list → **+** → name `Kaspilo Sign in with Apple` → tick **Sign in with Apple** → Configure → Primary App ID `com.kaspilo.app` → Save → Continue → Register.
+2. **Download** the `.p8` file (Apple lets you download it only once; keep it in a password manager, never in the repo). Note the **Key ID** (10 characters).
+3. Supabase → Edge Functions → Secrets, in each project:
+
+   | Secret | dev | prod |
+   | --- | --- | --- |
+   | `APPLE_TEAM_ID` | `T6VC5C33KJ` | `T6VC5C33KJ` |
+   | `APPLE_KEY_ID` | the Key ID | the Key ID |
+   | `APPLE_PRIVATE_KEY` | the whole `.p8` text, `-----BEGIN…` to `…END PRIVATE KEY-----` | same |
+   | `APPLE_CLIENT_ID` | `com.kaspilo.app.dev` | `com.kaspilo.app` |
+
+4. Deploy: prod with the deploy workflow (`migrations`), dev with `supabase functions deploy apple-revoke --project-ref fcezhasnvrdeplaklqmv`.
+
+In Expo Go the app's ID is Expo's, so the revoke fails there and the account is deleted anyway; test it on a real build (TestFlight).
+
+## Still open
+
 - Apple users have no password, so they never get the reset email. If we ever email users, the sender must be registered in Apple's "Private Email Relay" or mail to hidden addresses is dropped.

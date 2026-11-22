@@ -22,3 +22,11 @@ export const ADVISOR_WHATSAPP_NUMBER = '972523203902';
 export function advisorWhatsAppUrl(message: string): string {
   return `https://wa.me/${ADVISOR_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * True for an address from Apple's "Hide My Email" (sign in with Apple). It forwards to
+ * the user's real inbox, but means nothing to read, so screens show a label instead.
+ */
+export function isAppleHiddenEmail(email: string | null | undefined): boolean {
+  return !!email && email.trim().toLowerCase().endsWith('@privaterelay.appleid.com');
+}

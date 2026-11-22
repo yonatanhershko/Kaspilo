@@ -65,3 +65,31 @@ export async function signInWithApple(): Promise<AppleResult> {
     return 'failed';
   }
 }
+
+/** True when the signed-in user came in with Apple. */
+export async function isAppleUser(): Promise<boolean> {
+  const { data } = await supabase.auth.getUser();
+  return !!data.user?.identities?.some((i) => i.provider === 'apple');
+}
+
+/**
+ * Before deleting an Apple user's account: Apple's sheet once more for a fresh code,
+ * then the server revokes the app's access at Apple (guideline 5.1.1(v)).
+ * 'cancelled' = the user closed the sheet, so the deletion stops.
+ * 'failed' = Apple or the server refused; the account is still deleted (docs/spec.md).
+ */
+export async function revokeApple(): Promise<AppleResult> {
+  try {
+    if (!(await appleAvailable())) return 'failed';
+    const { Apple } = modules();
+    const credential = await Apple.signInAsync({ requestedScopes: [] });
+    if (!credential.authorizationCode) return 'failed';
+    const { error } = await supabase.functions.invoke('apple-revoke', {
+      body: { code: credential.authorizationCode },
+    });
+    return error ? 'failed' : 'ok';
+  } catch (e) {
+    if ((e as { code?: string }).code === 'ERR_REQUEST_CANCELED') return 'cancelled';
+    return 'failed';
+  }
+}
