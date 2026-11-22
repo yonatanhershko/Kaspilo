@@ -9,7 +9,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Dialog } from '@/components/ui/Dialog';
 import { useSettings } from '@/data/queries';
 import { useLanguage } from '@/i18n';
-import { syncPurchaseDetection } from '@/purchase';
+import { syncPurchaseDetection, usePurchasePrefs } from '@/purchase';
 
 import {
   getPermission,
@@ -46,9 +46,11 @@ export function NotificationSetup() {
   const currency = useSettings().data?.currency;
   const { profile } = useAuth();
   const accessUntil = profile?.role === 'admin' ? null : (profile?.expires_at ?? null);
+  // Also again when the switch changes or setup finishes (the native side reads the switch).
+  const purchase = usePurchasePrefs();
   useEffect(() => {
-    if (currency) void syncPurchaseDetection({ currency, accessUntil });
-  }, [currency, accessUntil, language]);
+    if (currency && purchase.loaded) void syncPurchaseDetection({ currency, accessUntil });
+  }, [currency, accessUntil, language, purchase.enabled, purchase.loaded]);
 
   // First arrival at home: explain, then let the user decide.
   useEffect(() => {

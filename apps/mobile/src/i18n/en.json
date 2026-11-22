@@ -351,7 +351,10 @@
     },
     "purchase": {
       "title": "Purchase detected",
-      "body": "After you pay with Apple Pay or Google Pay, we offer to add the expense."
+      "body": "After you pay with Apple Pay or Google Pay, we offer to add the expense.",
+      "setUp": "Set up",
+      "guide": "Setup guide",
+      "needsIos": "Needs iOS 17 or later. You can still add expenses as usual."
     },
     "off": {
       "title": "Notifications are off on this phone",
@@ -391,6 +394,96 @@
       "genericTitle": "Hey, we caught a purchase",
       "genericBody": "Let’s add it",
       "channel": "Purchases"
+    }
+  },
+  "purchaseSetup": {
+    "close": "Close",
+    "intro": {
+      "title": "Set it up once.\nThen it happens by itself.",
+      "body": "We'll set your iPhone to pass the amount and the merchant to Kaspilo after every Apple Pay payment.",
+      "quick": "Short, and you set it up only once.",
+      "private": "The amount and merchant stay on your phone. Nothing is saved until you add the expense.",
+      "guided": "The guide has screenshots that show where to tap.",
+      "quickTitle": "You have iOS 27: the quick way",
+      "quickBody": "Add one shortcut and turn on one switch. That's it.",
+      "manualBody": "This is the manual setup, about a minute. On iOS 27 it takes two taps.",
+      "howToUpdate": "How to update",
+      "start": "Let's set it up",
+      "later": "I'll do it later"
+    },
+    "update": {
+      "title": "Automatic setup needs iOS 27 or later",
+      "body": "On iOS 27 you add one shortcut and turn on a switch, that's it. Until then you can set it up by hand, or add expenses as usual.",
+      "how": "To update: Settings → General → Software Update.",
+      "howButton": "How to update to iOS 27",
+      "howNote": "Opens Apple's update guide",
+      "manual": "Set it up by hand without updating",
+      "manualNote": "A few more steps, about a minute"
+    },
+    "guide": {
+      "stepOf": "Step {{n}} of {{total}}",
+      "next": "Next",
+      "back": "Back",
+      "openShortcuts": "Open Shortcuts",
+      "steps": {
+        "automation": {
+          "title": "Open Shortcuts",
+          "body": "Go to \"Automation\" and tap \"New Automation\" (or + at the top, if you already have some)."
+        },
+        "wallet": {
+          "title": "Choose \"Wallet\"",
+          "body": "Scroll the list to \"Wallet\" and tap it."
+        },
+        "cards": {
+          "title": "Cards, and run at once",
+          "body": "On the screen that opens:",
+          "pick": "Select the cards you pay with.",
+          "runNow": "Choose \"Run Immediately\", so it runs without asking.",
+          "noNotify": "Turn off \"Notify When Run\", if it shows.",
+          "next": "Tap \"Next\"."
+        },
+        "search": {
+          "title": "Search \"Kaspilo\"",
+          "body": "Not \"New Blank Shortcut\": type Kaspilo in the search at the bottom and tap \"Kaspilo purchase\"."
+        },
+        "amount": {
+          "title": "Connect the amount",
+          "body": "Tap Amount and choose \"Shortcut Input\". Tap it again and choose \"Amount\"."
+        },
+        "merchant": {
+          "title": "Connect the merchant",
+          "body": "Tap Merchant and choose \"Shortcut Input\". Tap it again and choose \"Merchant\". Then tap ✓ at the top."
+        }
+      }
+    },
+    "quick": {
+      "add": {
+        "title": "Add the shortcut",
+        "body": "The Kaspilo shortcut opens in Shortcuts. Tap \"Add Shortcut\" and come back here.",
+        "button": "Add shortcut"
+      },
+      "turnOn": {
+        "title": "Turn on the automation",
+        "body": "Apple keeps an automation that comes in a shared shortcut off. In Shortcuts, open the Kaspilo shortcut and turn on its automation switch."
+      }
+    },
+    "android": {
+      "title": "Purchase detection with Google Pay",
+      "body": "To know you paid, Kaspilo needs access to your phone's notifications.",
+      "only": "We read only Google Wallet payment notifications: the amount and the merchant.",
+      "others": "Notifications from every other app are not read.",
+      "private": "Nothing leaves your phone or is saved until you add the expense.",
+      "stepTitle": "On the next screen",
+      "stepBody": "Turn on Kaspilo under \"Notification access\", then come back here.",
+      "notYet": "Kaspilo is not on under \"Notification access\" yet. Turn it on and come back here.",
+      "agree": "Agree, open settings",
+      "again": "Open settings again"
+    },
+    "done": {
+      "title": "All set",
+      "bodyIos": "On your next Apple Pay payment you'll get a Kaspilo notification. Tapping it opens an expense with the amount, and you only pick the category.",
+      "bodyAndroid": "On your next Google Pay payment you'll get a Kaspilo notification. Tapping it opens an expense with the amount, and you only pick the category.",
+      "finish": "Done"
     }
   },
   "renew": {
