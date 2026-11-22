@@ -178,8 +178,20 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
+      # `eas update` does not read the build profile's env from eas.json, so APP_VARIANT is set
+      # here. Without it app.config.ts falls back to the dev variant, and the update ships dev
+      # values (scheme, Google iOS client) to the prod app: native Google sign-in then crashes.
+      - name: Check the update gets the prod app config
+        working-directory: apps/mobile
+        env:
+          APP_VARIANT: production
+        run: |
+          npx expo config --type public --json > "$RUNNER_TEMP/config.json"
+          jq -e '.ios.bundleIdentifier == "com.kaspilo.app" and .scheme == "kaspilo" and .extra.appVariant == "production"' "$RUNNER_TEMP/config.json" \
+            || { echo "The update would ship a non-prod app config."; exit 1; }
       - name: Publish the update
         working-directory: apps/mobile
         env:
+          APP_VARIANT: production
           MESSAGE: ${{ inputs.message }}
         run: eas update --channel production --environment production --message "${MESSAGE:-$(git log -1 --pretty=%s)}" --non-interactive

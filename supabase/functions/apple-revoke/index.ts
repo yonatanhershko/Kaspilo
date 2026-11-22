@@ -83,6 +83,21 @@ function tokenSub(idToken: string): string | null {
   }
 }
 
+/**
+ * Why Apple refused, safe to log: Apple's error name (invalid_client, invalid_grant…),
+ * the bundle ID in use, and only the length of the Team and Key IDs (both are 10).
+ */
+async function appleError(res: Response): Promise<string> {
+  let name = 'unknown';
+  try {
+    const body = (await res.json()) as { error?: unknown };
+    if (typeof body.error === 'string') name = body.error.replace(/[^a-z_]/gi, '').slice(0, 40);
+  } catch {
+    // not JSON: keep "unknown"
+  }
+  return `${res.status} ${name} (client_id=${CLIENT_ID}, team_id_len=${TEAM_ID.length}, key_id_len=${KEY_ID.length})`;
+}
+
 const form = (values: Record<string, string>) => ({
   method: 'POST',
   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -111,7 +126,7 @@ Deno.serve(async (req) => {
       form({ grant_type: 'authorization_code', code, client_id: CLIENT_ID, client_secret: secret }),
     );
     if (!token.ok) {
-      console.warn('[apple-revoke] code refused by Apple', token.status);
+      console.warn('[apple-revoke] code refused by Apple', await appleError(token));
       return fail(400, 'code_refused');
     }
     const tokens = (await token.json()) as { refresh_token?: string; access_token?: string; id_token?: string };
@@ -126,7 +141,7 @@ Deno.serve(async (req) => {
       form({ token: value, token_type_hint: hint, client_id: CLIENT_ID, client_secret: secret }),
     );
     if (!revoke.ok) {
-      console.warn('[apple-revoke] revoke refused by Apple', revoke.status);
+      console.warn('[apple-revoke] revoke refused by Apple', await appleError(revoke));
       return fail(502, 'revoke_failed');
     }
     return reply(200, { revoked: true });
