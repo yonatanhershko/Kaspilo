@@ -20,6 +20,7 @@ import {
   loadThemePreference,
   type ThemePreference,
 } from '@/lib/preferences';
+import { disablePurchaseDetection } from '@/purchase';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 // Comes from a library touching RN's old ImageBackground export; we do not use it.
@@ -80,6 +81,11 @@ export default function RootLayout() {
 function GuardedStack() {
   const { theme, colors } = useTheme();
   const { loading, session, access, termsAccepted } = useAuth();
+
+  // Signed out or locked: purchase reminders stop at once (docs/spec.md "Purchase detected").
+  useEffect(() => {
+    if (!loading && !access) disablePurchaseDetection();
+  }, [loading, access]);
 
   if (loading) return <SplashScreenArt preference={theme} />;
 

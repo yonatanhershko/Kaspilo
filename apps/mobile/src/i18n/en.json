@@ -383,6 +383,14 @@
         "title": "Small step, big habit",
         "body": "Steady tracking is the way to a better financial future. Shall we?"
       }
+    },
+    "purchaseAlert": {
+      "title": "Purchase detected",
+      "withAmount": "{{amount}} at {{merchant}}. Add it?",
+      "merchantOnly": "Purchase at {{merchant}}. Add it?",
+      "genericTitle": "Hey, we caught a purchase",
+      "genericBody": "Let’s add it",
+      "channel": "Purchases"
     }
   },
   "renew": {

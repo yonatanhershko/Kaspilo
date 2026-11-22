@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
+import { useAuth } from '@/auth/AuthProvider';
 import { AppText } from '@/components/ui/AppText';
 import { Dialog } from '@/components/ui/Dialog';
+import { useSettings } from '@/data/queries';
 import { useLanguage } from '@/i18n';
+import { syncPurchaseDetection } from '@/purchase';
 
 import {
   getPermission,
@@ -37,6 +40,15 @@ export function NotificationSetup() {
     });
     return () => sub.remove();
   }, [language]);
+
+  // Purchase detection runs natively, without this app open: hand it the switch, the plan's
+  // end, the currency and the texts in the app language (docs/spec.md "Purchase detected").
+  const currency = useSettings().data?.currency;
+  const { profile } = useAuth();
+  const accessUntil = profile?.role === 'admin' ? null : (profile?.expires_at ?? null);
+  useEffect(() => {
+    if (currency) void syncPurchaseDetection({ currency, accessUntil });
+  }, [currency, accessUntil, language]);
 
   // First arrival at home: explain, then let the user decide.
   useEffect(() => {

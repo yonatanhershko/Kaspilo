@@ -85,6 +85,8 @@ const config: ExpoConfig = {
       ? [['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }] as [string, object]]
       : []),
     'expo-apple-authentication',
+    // Purchase detection: the "Kaspilo purchase" App Intent goes into the iOS app target.
+    './plugins/withPurchaseIntent',
     ['expo-localization', { supportedLocales: { ios: ['he', 'en'], android: ['he', 'en'] } }],
     [
       'expo-splash-screen',

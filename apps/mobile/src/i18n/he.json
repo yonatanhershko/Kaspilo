@@ -383,6 +383,14 @@
         "title": "צעד קטן, הרגל גדול",
         "body": "מעקב קבוע הוא הדרך לעתיד כלכלי טוב יותר. נמשיך?"
       }
+    },
+    "purchaseAlert": {
+      "title": "קלטנו הוצאה",
+      "withAmount": "\u200F{{amount}} ב-{{merchant}}. להוסיף?",
+      "merchantOnly": "קנייה ב-{{merchant}}. להוסיף?",
+      "genericTitle": "היי, קלטנו הוצאה",
+      "genericBody": "בוא נכניס אותה",
+      "channel": "רכישות"
     }
   },
   "renew": {

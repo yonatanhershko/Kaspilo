@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- Purchase detection (docs/spec.md): reads only Google Wallet's payment notifications,
+         after the user switches Kaspilo on under the phone's "Notification access". -->
+    <service
+      android:name="expo.modules.kaspilopurchase.PurchaseListenerService"
+      android:exported="false"
+      android:label="Kaspilo"
+      android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+      <intent-filter>
+        <action android:name="android.service.notification.NotificationListenerService" />
+      </intent-filter>
+    </service>
+  </application>
+</manifest>

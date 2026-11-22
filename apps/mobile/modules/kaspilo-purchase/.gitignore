@@ -1,0 +1,4 @@
+# Build output of the native module (made by Gradle / Xcode, never committed).
+android/build/
+android/.cxx/
+android/.gradle/
