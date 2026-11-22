@@ -46,8 +46,10 @@ const config: ExpoConfig = {
   scheme: isProd ? 'kaspilo' : 'kaspilo-dev',
   userInterfaceStyle: 'automatic',
   // EAS Update (docs/ci-cd.md): JS-only fixes reach installed apps without a store review.
-  // An update only goes to builds with the same app version (runtime), so a native change needs a new build.
-  runtimeVersion: { policy: 'appVersion' },
+  // An update only goes to builds with the same native code: the runtime is a fingerprint of it,
+  // so a native change (a new plugin, module or client ID) gets a new runtime even when the
+  // version stays the same, and an update can never reach a build it would crash.
+  runtimeVersion: { policy: 'fingerprint' },
   updates: { url: `https://u.expo.dev/${easProjectId}` },
   ios: {
     bundleIdentifier: bundleId,

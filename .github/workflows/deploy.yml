@@ -191,11 +191,10 @@ jobs:
           npx expo config --type public --json > "$RUNNER_TEMP/config.json"
           jq -e '.ios.bundleIdentifier == "com.kaspilo.app" and .scheme == "kaspilo" and .extra.appVariant == "production"' "$RUNNER_TEMP/config.json" \
             || { echo "The update would ship a non-prod app config."; exit 1; }
-          # Build 1.0.0 (2) was made without the Google iOS client, so it has no URL scheme for
-          # it. An update that turns native Google on there crashes sign-in. Updates with the
-          # client ID only go to the next store build, which has a new version (new runtime).
-          jq -e '(.extra.googleClientIds.ios // "") == "" or .version != "1.0.0"' "$RUNNER_TEMP/config.json" \
-            || { echo "This update would turn on native Google sign-in for build 1.0.0, which crashes. Ship it in a store build with a new version."; exit 1; }
+          # Updates go only to builds with the same native fingerprint (app.config.ts
+          # runtimeVersion), so one made with the Google iOS client never reaches a build without it.
+          jq -e '.runtimeVersion.policy == "fingerprint"' "$RUNNER_TEMP/config.json" \
+            || { echo "runtimeVersion must use the fingerprint policy, or an update could reach a build it crashes."; exit 1; }
       - name: Publish the update
         working-directory: apps/mobile
         env:
