@@ -62,7 +62,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:ios:dev": "npx eas-cli build -p ios --profile testflight --auto-submit",
+    "release:ios": "npx eas-cli build -p ios --profile production --auto-submit",
+    "release:android": "npx eas-cli build -p android --profile production --auto-submit"
   },
   "private": true
 }

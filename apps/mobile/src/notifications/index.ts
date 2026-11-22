@@ -13,7 +13,8 @@ import { supabase } from '@/lib/supabase';
 /**
  * Notifications. Rules: docs/spec.md "Notifications".
  *  - Renewal reminders are sent by the server (push). The phone only registers
- *    its push token, with its language and the renewal switch.
+ *    its push token, with its language and both switches (the admin's manual
+ *    send respects them).
  *  - Inactivity reminders are scheduled here, on the phone, on every app open.
  * Switches are saved per device.
  */
@@ -90,8 +91,9 @@ export async function setNotificationPref(kind: NotificationKind, value: boolean
   prefs = { ...prefs, [kind]: value };
   listeners.forEach((notify) => notify());
   await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(prefs)).catch(() => undefined);
+  // Both switches also go to the server: the admin's manual send respects them.
   if (kind === 'inactivity') await scheduleInactivityReminders();
-  else await syncPushToken();
+  await syncPushToken();
 }
 
 // ---- permission -------------------------------------------------------------
@@ -221,13 +223,14 @@ export async function syncPushToken(): Promise<void> {
   if (!projectId) return;
   try {
     if ((await getPermission()) !== 'granted') return;
-    const { subscription } = await loadPrefs();
+    const { subscription, inactivity } = await loadPrefs();
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     const { error } = await supabase.rpc('register_push_token', {
       p_token: token,
       p_platform: Platform.OS,
       p_language: currentLanguage(),
       p_subscription_reminders: subscription,
+      p_inactivity_reminders: inactivity,
     });
     if (!error) await AsyncStorage.setItem(TOKEN_KEY, token).catch(() => undefined);
   } catch {

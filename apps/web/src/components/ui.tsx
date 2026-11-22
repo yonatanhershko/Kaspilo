@@ -50,6 +50,18 @@ export function PlanBadge({ plan }: { plan: AccessPlan | null }) {
   );
 }
 
+/** The user signed in with Apple and hid their email: the address only forwards mail. */
+export function AppleHiddenTag() {
+  return (
+    <span
+      title="Apple Hide My Email address. Mail sent to it reaches the user's real inbox, but it can't be matched to a Bit payment. Match by name instead."
+      className="ml-1 inline-block rounded-md bg-surface-muted px-1.5 py-0.5 align-middle text-[11px] font-medium text-text"
+    >
+      Apple · hidden email
+    </span>
+  );
+}
+
 export function Card({
   title,
   action,

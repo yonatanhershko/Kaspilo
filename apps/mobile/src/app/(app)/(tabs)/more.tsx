@@ -1,9 +1,10 @@
-import { amountToInput, type Currency, currencySymbol, parseAmount } from '@kaspilo/shared';
+import { amountToInput, type Currency, currencySymbol, isAppleHiddenEmail, parseAmount } from '@kaspilo/shared';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { isAppleUser, revokeApple } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
 import { AmountField } from '@/components/ui/AmountField';
 import { AppText } from '@/components/ui/AppText';
@@ -29,6 +30,8 @@ export default function MoreScreen() {
   const align = useRowAlign();
   const { preference, setPreference } = useTheme();
   const { profile, signOut, refreshProfile } = useAuth();
+  // Apple's "Hide My Email" address means nothing to read, so show a label instead.
+  const shownEmail = isAppleHiddenEmail(profile?.email) ? t('more.appleHiddenEmail') : profile?.email;
   const update = useUpdateSettings();
   const { wallet } = useWallet();
   const walletName = useWalletName()(wallet);
@@ -57,8 +60,9 @@ export default function MoreScreen() {
     try {
       await action();
       close();
-    } catch {
-      setError(t('common.errorGeneric'));
+    } catch (e) {
+      // The user closed a system sheet (Apple): stay in the dialog, no error.
+      if (!(e instanceof Error && e.message === 'cancelled')) setError(t('common.errorGeneric'));
     } finally {
       setBusy(false);
     }
@@ -131,7 +135,7 @@ export default function MoreScreen() {
       </AppText>
 
       {group([
-        row('account-circle-outline', t('more.account'), profile?.full_name || profile?.email || null, () =>
+        row('account-circle-outline', t('more.account'), profile?.full_name || shownEmail || null, () =>
           show('name', profile?.full_name ?? ''),
         ),
         row('translate', t('settings.language'), t(language === 'he' ? 'settings.languageHe' : 'settings.languageEn'), () => show('language')),
@@ -202,7 +206,7 @@ export default function MoreScreen() {
         ]}>
         <TextField label={t('auth.fullName')} value={text} onChangeText={setText} error={error} maxLength={80} />
         <AppText tone="muted" className="text-[13px]">
-          {profile?.email}
+          {shownEmail}
         </AppText>
       </Dialog>
 
@@ -336,6 +340,8 @@ export default function MoreScreen() {
             disabled: text.trim() !== t('more.deleteWord'),
             onPress: () =>
               void run(async () => {
+                // Apple users: revoke at Apple first. Closing Apple's sheet stops the deletion.
+                if ((await isAppleUser()) && (await revokeApple()) === 'cancelled') throw new Error('cancelled');
                 const { error: failed } = await supabase.rpc('delete_account');
                 if (failed) throw new Error(failed.message);
                 await signOut();

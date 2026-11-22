@@ -1,6 +1,6 @@
 "use client";
 
-import type { AccessMonths, AccessPlan, Profile } from "@kaspilo/shared";
+import { type AccessMonths, type AccessPlan, isAppleHiddenEmail, type Profile } from "@kaspilo/shared";
 import { useState } from "react";
 
 import {
@@ -12,7 +12,7 @@ import {
 import { formatDate, monthsLabel, planLabel } from "@/lib/format";
 
 import { NotifyDialog } from "./NotifyDialog";
-import { Button, PlanBadge, StatusBadge } from "./ui";
+import { AppleHiddenTag, Button, PlanBadge, StatusBadge } from "./ui";
 
 const plans: AccessPlan[] = ["paid", "vip", "family"];
 
@@ -213,7 +213,10 @@ function Row({ user, onChanged }: { user: Profile; onChanged: () => void }) {
     <tr className="border-t border-border align-middle">
       <td className="py-3 pr-4">
         <p className="font-medium">{user.full_name || "(no name)"}</p>
-        <p className="text-xs text-text-muted">{user.email}</p>
+        <p className="text-xs text-text-muted">
+          {user.email}
+          {isAppleHiddenEmail(user.email) && <AppleHiddenTag />}
+        </p>
       </td>
       <td className="py-3 pr-4">
         <StatusBadge status={user.status} />
@@ -236,7 +239,10 @@ function UserCard({ user, onChanged }: { user: Profile; onChanged: () => void })
     <li className="space-y-3 rounded-xl border border-border bg-surface p-4">
       <div>
         <p className="font-medium">{user.full_name || "(no name)"}</p>
-        <p className="break-all text-xs text-text-muted">{user.email}</p>
+        <p className="break-all text-xs text-text-muted">
+          {user.email}
+          {isAppleHiddenEmail(user.email) && <AppleHiddenTag />}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={user.status} />

@@ -1,4 +1,7 @@
-# Every push and pull request to dev / main (docs/ci-cd.md).
+# Every push to dev / main, and pull requests into dev (docs/ci-cd.md).
+# A pull request from dev into main runs nothing new: its commit was already checked by the
+# push to dev, and those results are what branch protection on main reads. After the merge,
+# the push to main checks the merge commit, which is what prod gets.
 # Checks the code, scans for secrets, builds both apps, replays every migration on an
 # empty database, serves the Edge Functions and runs the DB tests there, and reads the
 # Supabase advisors of dev.
@@ -8,10 +11,16 @@ on:
   push:
     branches: [dev, main]
   pull_request:
-    branches: [dev, main]
+    branches: [dev]
   workflow_dispatch:
-  # Also run as the first step of a production deploy.
+  # Also called by a production deploy, with fresh_only: the deploy already requires a
+  # passing CI run on its commit, and only re-runs the checks whose answer can change
+  # with time on the same code (secret scan, dependency report, advisors).
   workflow_call:
+    inputs:
+      fresh_only:
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +32,7 @@ permissions:
 jobs:
   checks:
     name: Typecheck, lint, tests
+    if: ${{ !inputs.fresh_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -57,10 +67,11 @@ jobs:
           cache: npm
       - run: npm ci
       # On dev a "must" item is a warning, so work is never blocked by an upstream release.
-      # Into main (push or pull request) it fails: nothing reaches prod with a must-fix open.
+      # On main (the push after a merge, and every deploy) it fails: nothing reaches prod
+      # with a must-fix open.
       - name: Report (must / recommended / not urgent)
         env:
-          STRICT: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' }}
+          STRICT: ${{ github.ref == 'refs/heads/main' }}
         run: |
           if [ "$STRICT" = "true" ]; then node scripts/ci/deps-report.mjs --fail-on-must
           else node scripts/ci/deps-report.mjs; fi
@@ -79,6 +90,7 @@ jobs:
 
   build:
     name: Build mobile + web
+    if: ${{ !inputs.fresh_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     # Public placeholder values: this job only proves the apps build. Real values live in
@@ -108,6 +120,7 @@ jobs:
 
   database:
     name: Migrations on an empty database + DB tests
+    if: ${{ !inputs.fresh_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:

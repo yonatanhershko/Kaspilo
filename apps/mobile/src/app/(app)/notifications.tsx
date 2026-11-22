@@ -54,23 +54,29 @@ export default function NotificationsScreen() {
     <View className={`min-h-[76px] items-center gap-3 px-4 py-3 ${align.row}`}>
       <Icon name={icon} tone="primary" />
       <View className="flex-1 gap-0.5">
-        <AppText weight="medium" className="text-[16px]">
-          {t(`notifications.${key}.title`)}
-        </AppText>
+        <View className={`items-center gap-2 ${align.row}`}>
+          <AppText weight="medium" className="text-[16px]">
+            {t(`notifications.${key}.title`)}
+          </AppText>
+          {/* "Soon" sits by the title as a tag, so it never reads as part of the sentence below. */}
+          {!control.onChange && (
+            <View className="rounded-full border border-border px-2 py-0.5">
+              <AppText tone="muted" className="text-[12px]">
+                {t('notifications.soon')}
+              </AppText>
+            </View>
+          )}
+        </View>
         <AppText tone="muted" className="text-[13px] leading-[19px]">
           {t(`notifications.${key}.body`)}
         </AppText>
       </View>
-      {control.onChange ? (
+      {control.onChange && (
         <Switch
           label={t(`notifications.${key}.title`)}
           value={control.value}
           onValueChange={control.onChange}
         />
-      ) : (
-        <AppText tone="muted" className="text-[13px]">
-          {t('notifications.soon')}
-        </AppText>
       )}
     </View>
   );

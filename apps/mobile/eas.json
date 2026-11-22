@@ -49,6 +49,11 @@
   },
   "submit": {
     "testflight": {},
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }
