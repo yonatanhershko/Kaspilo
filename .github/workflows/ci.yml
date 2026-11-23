@@ -130,9 +130,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Pinned, same as the prod deploy: "latest" asks GitHub's API for the newest release and
+      # fails when that API is rate-limited (CI on main, 2026-11-23).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.2.0
       - name: Supabase project files
         run: test -f supabase/config.toml || supabase init
       - name: Start a local Supabase (applies every migration in file order)
