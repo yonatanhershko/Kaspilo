@@ -12,6 +12,20 @@ const CHUNK_SIZE = 1800;
 const countKey = (key: string) => `${key}.n`;
 const chunkKey = (key: string, index: number) => `${key}.${index}`;
 
+/**
+ * The Keychain can refuse (a build without its entitlement, a locked device during a
+ * background refresh). A refusal must never become an uncaught error or keep the app on its
+ * splash: a read gives "no session", a write is skipped and the user stays signed in for
+ * this run. Warned once in dev so the cause is visible.
+ */
+let warned = false;
+function keychainFailed(action: string, error: unknown) {
+  if (__DEV__ && !warned) {
+    warned = true;
+    console.warn(`[secure-storage] ${action} failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 async function removeNative(key: string): Promise<void> {
   const count = Number((await SecureStore.getItemAsync(countKey(key))) ?? 0);
   for (let i = 0; i < count; i += 1) {
@@ -25,15 +39,20 @@ export const secureStorage = {
     if (Platform.OS === 'web') {
       return typeof localStorage === 'undefined' ? null : localStorage.getItem(key);
     }
-    const count = Number((await SecureStore.getItemAsync(countKey(key))) ?? 0);
-    if (count === 0) return null;
-    const parts: string[] = [];
-    for (let i = 0; i < count; i += 1) {
-      const part = await SecureStore.getItemAsync(chunkKey(key, i));
-      if (part === null) return null;
-      parts.push(part);
+    try {
+      const count = Number((await SecureStore.getItemAsync(countKey(key))) ?? 0);
+      if (count === 0) return null;
+      const parts: string[] = [];
+      for (let i = 0; i < count; i += 1) {
+        const part = await SecureStore.getItemAsync(chunkKey(key, i));
+        if (part === null) return null;
+        parts.push(part);
+      }
+      return parts.join('');
+    } catch (error) {
+      keychainFailed('read', error);
+      return null;
     }
-    return parts.join('');
   },
 
   async setItem(key: string, value: string): Promise<void> {
@@ -41,15 +60,19 @@ export const secureStorage = {
       if (typeof localStorage !== 'undefined') localStorage.setItem(key, value);
       return;
     }
-    await removeNative(key);
-    const count = Math.ceil(value.length / CHUNK_SIZE);
-    for (let i = 0; i < count; i += 1) {
-      await SecureStore.setItemAsync(
-        chunkKey(key, i),
-        value.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
-      );
+    try {
+      await removeNative(key);
+      const count = Math.ceil(value.length / CHUNK_SIZE);
+      for (let i = 0; i < count; i += 1) {
+        await SecureStore.setItemAsync(
+          chunkKey(key, i),
+          value.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
+        );
+      }
+      await SecureStore.setItemAsync(countKey(key), String(count));
+    } catch (error) {
+      keychainFailed('write', error);
     }
-    await SecureStore.setItemAsync(countKey(key), String(count));
   },
 
   async removeItem(key: string): Promise<void> {
@@ -57,6 +80,10 @@ export const secureStorage = {
       if (typeof localStorage !== 'undefined') localStorage.removeItem(key);
       return;
     }
-    await removeNative(key);
+    try {
+      await removeNative(key);
+    } catch (error) {
+      keychainFailed('remove', error);
+    }
   },
 };

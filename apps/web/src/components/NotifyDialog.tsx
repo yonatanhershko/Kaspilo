@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationKind } from "@kaspilo/shared";
+import { formatMoney, type NotificationKind, parseAmount } from "@kaspilo/shared";
 import { useEffect, useId, useRef, useState } from "react";
 
 import {
@@ -8,6 +8,7 @@ import {
   fetchPushAudience,
   type NotificationChoice,
   sendNotification,
+  sendPurchaseTest,
 } from "@/lib/admin-api";
 import { useAsync } from "@/lib/use-async";
 
@@ -23,7 +24,10 @@ const kindLabel: Record<NotificationKind, string> = {
   inactive_3: "Inactivity: third reminder (day 24)",
 };
 
+type Kind = NotificationKind | "custom" | "purchase_test";
+
 const TITLE_MAX = 60;
+const MERCHANT_MAX = 100;
 const BODY_MAX = 200;
 
 const plural = (n: number, one: string, many: string) =>
@@ -47,11 +51,18 @@ export function NotifyDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const catalog = useAsync(fetchNotificationCatalog, "catalog");
-  const [kind, setKind] = useState<NotificationKind | "custom">("expiry_30");
-  const audience = useAsync(() => fetchPushAudience(userId, kind), `${userId ?? "all"}:${kind}`);
+  const [kind, setKind] = useState<Kind>("expiry_30");
+  // The purchase test reaches devices with any switch on, like a custom message.
+  const audienceKind = kind === "purchase_test" ? "custom" : kind;
+  const audience = useAsync(
+    () => fetchPushAudience(userId, audienceKind),
+    `${userId ?? "all"}:${audienceKind}`,
+  );
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [amount, setAmount] = useState("45.90");
+  const [merchant, setMerchant] = useState("Shufersal");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<number | null>(null);
@@ -64,12 +75,15 @@ export function NotifyDialog({
   const preview = catalog.data?.find((item) => item.kind === kind);
   const devices = audience.data?.devices ?? 0;
   const customReady = title.trim().length > 0 && body.trim().length > 0;
+  const amountMinor = parseAmount(amount);
+  const purchaseReady = amountMinor !== null && amountMinor > 0 && merchant.trim().length > 0;
   const canSend =
-    !busy && !!audience.data && devices > 0 && (kind === "custom" ? customReady : !!preview);
+    !busy &&
+    !!audience.data &&
+    devices > 0 &&
+    (kind === "custom" ? customReady : kind === "purchase_test" ? purchaseReady : !!preview);
 
   const send = async () => {
-    const choice: NotificationChoice =
-      kind === "custom" ? { kind, title: title.trim(), body: body.trim() } : { kind };
     if (
       target === "all" &&
       !window.confirm(`Send this to ${plural(devices, "device", "devices")} of all active users?`)
@@ -79,7 +93,13 @@ export function NotifyDialog({
     setError(null);
     setSent(null);
     try {
-      setSent(await sendNotification(userId, choice));
+      if (kind === "purchase_test") {
+        setSent(await sendPurchaseTest(userId, amountMinor ?? 0, merchant.trim()));
+      } else {
+        const choice: NotificationChoice =
+          kind === "custom" ? { kind, title: title.trim(), body: body.trim() } : { kind };
+        setSent(await sendNotification(userId, choice));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sending failed");
     } finally {
@@ -146,7 +166,7 @@ export function NotifyDialog({
           <select
             value={kind}
             onChange={(e) => {
-              setKind(e.target.value as NotificationKind | "custom");
+              setKind(e.target.value as Kind);
               setSent(null);
               setError(null);
             }}
@@ -158,10 +178,66 @@ export function NotifyDialog({
               </option>
             ))}
             <option value="custom">Custom message (one time)</option>
+            <option value="purchase_test">Purchase detected (test)</option>
           </select>
         </label>
 
-        {kind === "custom" ? (
+        {kind === "purchase_test" ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1 text-sm">
+                <span className="font-medium">Amount</span>
+                <input
+                  value={amount}
+                  inputMode="decimal"
+                  onChange={(e) => setAmount(e.target.value)}
+                  aria-invalid={amountMinor === null}
+                  className={`h-11 md:h-9 ${field}`}
+                />
+              </label>
+              <label className="block space-y-1 text-sm">
+                <span className="font-medium">Merchant</span>
+                <input
+                  value={merchant}
+                  maxLength={MERCHANT_MAX}
+                  dir="auto"
+                  onChange={(e) => setMerchant(e.target.value)}
+                  className={`h-11 md:h-9 ${field}`}
+                />
+              </label>
+            </div>
+            {amountMinor === null && (
+              <p className="text-xs text-danger">Amount like 45 or 45.90.</p>
+            )}
+            {purchaseReady && amountMinor !== null && (
+              <div className="space-y-2 text-sm">
+                {(["he", "en"] as const).map((language) => (
+                  <div
+                    key={language}
+                    dir={language === "he" ? "rtl" : "ltr"}
+                    className="rounded-lg border border-border px-3 py-2"
+                  >
+                    <p className="font-medium">
+                      {language === "he" ? "קלטנו הוצאה" : "Purchase detected"}
+                    </p>
+                    <p className="text-text-muted">
+                      <bdi dir="ltr">{formatMoney(amountMinor, "ILS")}</bdi>
+                      {language === "he"
+                        ? ` ב-${merchant.trim()}. להוסיף?`
+                        : ` at ${merchant.trim()}. Add it?`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-text-muted">
+              The same reminder the phone shows after an Apple Pay / Google Pay payment, sent as a
+              push to test it. Each device gets it in its language and the user&apos;s currency
+              (₪ shown here). Tapping it opens a new expense with the amount and the merchant.
+              Saves nothing.
+            </p>
+          </div>
+        ) : kind === "custom" ? (
           <div className="space-y-3">
             <label className="block space-y-1 text-sm">
               <span className="flex justify-between font-medium">

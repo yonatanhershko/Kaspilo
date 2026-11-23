@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { router } from 'expo-router';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, Linking, View } from 'react-native';
+import { AppState, Linking, Platform, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
+import { PressScale } from '@/components/ui/PressScale';
 import { Loading } from '@/components/ui/States';
 import { Switch } from '@/components/ui/Switch';
 import { useRowAlign } from '@/i18n';
@@ -19,6 +21,14 @@ import {
   setNotificationPref,
   useNotificationPrefs,
 } from '@/notifications';
+import {
+  isListenerEnabled,
+  lastPurchaseDetectedAt,
+  purchaseDetectionAvailable,
+  purchaseNeedsNewerIos,
+  setPurchasePref,
+  usePurchasePrefs,
+} from '@/purchase';
 
 /** One switch per kind of notification. Saved on this device. */
 export default function NotificationsScreen() {
@@ -26,11 +36,19 @@ export default function NotificationsScreen() {
   const align = useRowAlign();
   const prefs = useNotificationPrefs();
   const [permission, setPermission] = useState<PermissionState | null>(null);
+  const purchase = usePurchasePrefs();
+  // Android: set up = Kaspilo is on under "Notification access" (may change in the phone settings).
+  const [listenerOn, setListenerOn] = useState(isListenerEnabled);
+  const purchaseReady =
+    Platform.OS === 'android' ? listenerOn : purchase.setupDone || lastPurchaseDetectedAt() !== null;
 
   // The user may change the permission in the phone settings and come back.
   useEffect(() => {
     let alive = true;
-    const read = () => void getPermission().then((state) => alive && setPermission(state));
+    const read = () => {
+      void getPermission().then((state) => alive && setPermission(state));
+      setListenerOn(isListenerEnabled());
+    };
     read();
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') read();
@@ -49,7 +67,7 @@ export default function NotificationsScreen() {
   const item = (
     icon: IconName,
     key: NotificationKind | 'purchase',
-    control: { value: boolean; onChange?: (next: boolean) => void },
+    control: { value: boolean; onChange?: (next: boolean) => void; end?: ReactNode; below?: ReactNode },
   ) => (
     <View className={`min-h-[76px] items-center gap-3 px-4 py-3 ${align.row}`}>
       <Icon name={icon} tone="primary" />
@@ -59,7 +77,7 @@ export default function NotificationsScreen() {
             {t(`notifications.${key}.title`)}
           </AppText>
           {/* "Soon" sits by the title as a tag, so it never reads as part of the sentence below. */}
-          {!control.onChange && (
+          {!control.onChange && !control.end && !control.below && (
             <View className="rounded-full border border-border px-2 py-0.5">
               <AppText tone="muted" className="text-[12px]">
                 {t('notifications.soon')}
@@ -70,7 +88,9 @@ export default function NotificationsScreen() {
         <AppText tone="muted" className="text-[13px] leading-[19px]">
           {t(`notifications.${key}.body`)}
         </AppText>
+        {control.below}
       </View>
+      {control.end}
       {control.onChange && (
         <Switch
           label={t(`notifications.${key}.title`)}
@@ -80,6 +100,50 @@ export default function NotificationsScreen() {
       )}
     </View>
   );
+
+  // "Purchase detected" (docs/spec.md): "Soon" on builds without it, "Set up" until the guide is
+  // done on this phone, then a switch like the others with a way back to the guide.
+  const openSetup = () => router.push('/purchase-setup');
+  const purchaseControl = () => {
+    if (!purchaseDetectionAvailable) return { value: false };
+    if (purchaseNeedsNewerIos) {
+      return {
+        value: false,
+        below: (
+          <AppText tone="muted" className="text-[13px] leading-[19px]">
+            {t('notifications.purchase.needsIos')}
+          </AppText>
+        ),
+      };
+    }
+    if (!purchaseReady) {
+      return {
+        value: false,
+        end: (
+          <PressScale
+            accessibilityRole="button"
+            accessibilityLabel={t('notifications.purchase.setUp')}
+            onPress={openSetup}
+            className="min-h-[44px] justify-center rounded-full bg-primary px-4">
+            <AppText weight="medium" tone="onPrimary" className="text-[14px]">
+              {t('notifications.purchase.setUp')}
+            </AppText>
+          </PressScale>
+        ),
+      };
+    }
+    return {
+      value: purchase.enabled,
+      onChange: (next: boolean) => void setPurchasePref(next),
+      below: (
+        <PressScale accessibilityRole="button" accessibilityLabel={t('notifications.purchase.guide')} onPress={openSetup} className="min-h-[32px] justify-center">
+          <AppText weight="medium" tone="primary" className="text-[13px]">
+            {t('notifications.purchase.guide')}
+          </AppText>
+        </PressScale>
+      ),
+    };
+  };
 
   const notice = (title: string, body: string, action: { label: string; onPress: () => void }) => (
     <View className="gap-3 rounded-xl border border-border bg-surface p-4" accessibilityRole="alert">
@@ -135,8 +199,8 @@ export default function NotificationsScreen() {
                 onChange: (next) => void setNotificationPref('inactivity', next),
               })}
             </View>
-            <View className="border-t border-border opacity-60">
-              {item('contactless-payment', 'purchase', { value: false })}
+            <View className={`border-t border-border ${purchaseDetectionAvailable ? '' : 'opacity-60'}`}>
+              {item('contactless-payment', 'purchase', purchaseControl())}
             </View>
           </View>
         </>
