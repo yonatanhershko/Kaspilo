@@ -54,6 +54,8 @@ export function asDeposit(row: HistoryRow): GoalDeposit {
     amount: row.amount,
     date: row.date,
     created_at: row.created_at,
+    // Rows cached on the phone before this field existed are all 'new'.
+    source: row.source ?? 'new',
   };
 }
 
@@ -72,6 +74,7 @@ export function rowOf(tx: Transaction): HistoryRow {
     goal_id: null,
     wallet_id: tx.wallet_id,
     user_id: tx.user_id,
+    source: 'new',
   };
 }
 

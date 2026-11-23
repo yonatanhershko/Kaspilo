@@ -214,6 +214,10 @@
     "deposit": "Deposit",
     "depositTitle": "Deposit: {{name}}",
     "depositNote": "A deposit into a goal doesn't count as an expense.",
+    "depositNow": "Deposit now",
+    "alreadySaved": "Already saved",
+    "alreadySavedOptional": "Already saved (optional)",
+    "alreadySavedNote": "Money you saved before. Counts toward the goal, doesn't come off your balance.",
     "name": "Goal name",
     "targetAmount": "Target amount",
     "deleteTitle": "Delete {{name}}?",
@@ -222,6 +226,7 @@
     "deleteErase": "Delete goal and its deposits",
     "depositDeleteTitle": "Delete this deposit?",
     "depositDeleteBody": "The amount returns to your balance.",
+    "depositDeleteBodyExisting": "It comes off the goal. Your balance doesn't change.",
     "savings": "Savings",
     "errors": {
       "name": "Enter a goal name",

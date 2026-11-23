@@ -214,6 +214,10 @@
     "deposit": "הפקד כספים",
     "depositTitle": "הפקדה: {{name}}",
     "depositNote": "הפקדה למטרה אינה נספרת כהוצאה.",
+    "depositNow": "הפקדה עכשיו",
+    "alreadySaved": "כבר חסכתי",
+    "alreadySavedOptional": "כבר חסכתי (לא חובה)",
+    "alreadySavedNote": "כסף שחסכת קודם. נספר במטרה, לא יורד מהיתרה.",
     "name": "שם המטרה",
     "targetAmount": "סכום היעד",
     "deleteTitle": "למחוק את {{name}}\u200F?",
@@ -222,6 +226,7 @@
     "deleteErase": "מחק מטרה והפקדות",
     "depositDeleteTitle": "למחוק את ההפקדה?",
     "depositDeleteBody": "הסכום יחזור ליתרה.",
+    "depositDeleteBodyExisting": "הסכום יירד מהמטרה. היתרה לא משתנה.",
     "savings": "חיסכון",
     "errors": {
       "name": "הזן שם למטרה",

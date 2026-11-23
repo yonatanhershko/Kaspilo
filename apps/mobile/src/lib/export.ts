@@ -9,6 +9,8 @@ export type ExportLabels = {
   expense: string;
   /** Type label of a goal deposit. */
   savings: string;
+  /** Type label of money the user already had saved: not part of the balance. */
+  alreadySaved: string;
 };
 
 function cell(value: string): string {
@@ -20,7 +22,8 @@ function cell(value: string): string {
 /**
  * CSV text that Excel and Google Sheets open directly, Hebrew included.
  * Goal deposits are rows too: type "Savings", category = goal name. Same positive
- * amount as everywhere; the type says it comes off the balance.
+ * amount as everywhere; the type says it comes off the balance. Money saved before
+ * has its own type ("Already saved") and is not part of the balance.
  */
 export function buildCsv(
   transactions: Transaction[],
@@ -42,7 +45,7 @@ export function buildCsv(
     ...deposits.map((d) => ({
       date: d.date,
       at: d.created_at,
-      type: labels.savings,
+      type: d.source === 'existing' ? labels.alreadySaved : labels.savings,
       category: goalName(d.goal_id),
       description: '',
       amount: d.amount,

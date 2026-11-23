@@ -133,6 +133,14 @@ for (const [name, u] of [['pending', pending], ['expired', expired]]) {
   await active.c.from('goal_deposits').insert({ goal_id: g.data.id, amount: 999 });
   const sumAfter = ((await active.c.rpc('category_totals', { p_from: '2000-01-01', p_to: '2100-01-01' })).data ?? []).reduce((a, x) => a + x.total, 0);
   check('a goal deposit does not change expense totals', sumBefore === sumAfter);
+  const plain = await active.c.from('goal_deposits').select('source').eq('goal_id', g.data.id);
+  check("a deposit is 'new' by default", (plain.data ?? []).every((d) => d.source === 'new'));
+  const old = await active.c.from('goal_deposits').insert({ goal_id: g.data.id, amount: 30000, source: 'existing' });
+  check('money already saved can be added', !old.error, old.error?.message);
+  const withOld = (await active.c.rpc('goal_totals')).data ?? [];
+  check('money already saved counts toward the goal', withOld.find((x) => x.goal_id === g.data.id)?.saved === 120000 + 999 + 30000);
+  const bad = await active.c.from('goal_deposits').insert({ goal_id: g.data.id, amount: 1, source: 'gift' });
+  check('an unknown deposit source is refused', !!bad.error, bad.error?.code);
   const foreign = await admin.c.from('goal_deposits').insert({ goal_id: g.data.id, amount: 100 });
   check("cannot deposit into another user's goal", !!foreign.error, foreign.error?.code);
 }

@@ -1,4 +1,4 @@
-import { parseAmount, percentOf } from '@kaspilo/shared';
+import { type DepositSource, parseAmount, percentOf } from '@kaspilo/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -13,6 +13,7 @@ import { Icon } from '@/components/ui/Icon';
 import { PressScale } from '@/components/ui/PressScale';
 import { ProgressFill } from '@/components/ui/ProgressFill';
 import { Screen } from '@/components/ui/Screen';
+import { Segmented } from '@/components/ui/Segmented';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { TextField } from '@/components/ui/TextField';
 import { useMoney } from '@/data/hooks';
@@ -155,6 +156,7 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
   const save = useSaveGoal();
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
+  const [already, setAlready] = useState('');
   const [icon, setIcon] = useState('flag');
   const [error, setError] = useState<string | null>(null);
 
@@ -162,8 +164,11 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
     const amount = parseAmount(target);
     if (name.trim().length === 0) return setError(t('goals.errors.name'));
     if (amount === null) return setError(t('goals.errors.target'));
+    // Optional: money already saved before the goal existed. Empty = none.
+    const alreadySaved = already.trim() === '' ? 0 : parseAmount(already);
+    if (alreadySaved === null) return setError(t('add.errors.amount'));
     try {
-      await save.mutateAsync({ name, target_amount: amount, icon });
+      await save.mutateAsync({ name, target_amount: amount, icon, alreadySaved });
       onClose();
     } catch (e) {
       setError(t(saveErrorKey(e)));
@@ -185,6 +190,15 @@ function GoalDialog({ onClose }: { onClose: () => void }) {
           {t('goals.targetAmount')}
         </AppText>
         <AmountField value={target} onChangeText={setTarget} label={t('goals.targetAmount')} size="normal" />
+      </View>
+      <View>
+        <AppText tone="muted" className="mb-1 text-[13px]">
+          {t('goals.alreadySavedOptional')}
+        </AppText>
+        <AmountField value={already} onChangeText={setAlready} label={t('goals.alreadySavedOptional')} size="normal" />
+        <AppText tone="muted" className="mt-1 text-[13px]">
+          {t('goals.alreadySavedNote')}
+        </AppText>
       </View>
       <View className="flex-row flex-wrap gap-1">
         {GOAL_ICONS.map((item) => (
@@ -215,13 +229,14 @@ function DepositDialog({ goal, onClose }: { goal: GoalWithSaved; onClose: () => 
   const deposit = useDeposit();
   const userId = useAuth().session?.user.id;
   const [amount, setAmount] = useState('');
+  const [source, setSource] = useState<DepositSource>('new');
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
     const minor = parseAmount(amount);
     if (minor === null) return setError(t('add.errors.amount'));
     try {
-      await deposit.mutateAsync({ goal_id: goal.id, amount: minor });
+      await deposit.mutateAsync({ goal_id: goal.id, amount: minor, source });
       const reached = goal.saved < goal.target_amount && goal.saved + minor >= goal.target_amount;
       if (reached && userId) void noteGoalReached(userId);
       onClose();
@@ -239,9 +254,17 @@ function DepositDialog({ goal, onClose }: { goal: GoalWithSaved; onClose: () => 
         { label: t('goals.deposit'), onPress: submit, loading: deposit.isPending },
         { label: t('common.cancel'), variant: 'outline', onPress: onClose },
       ]}>
+      <Segmented
+        options={[
+          { value: 'new', label: t('goals.depositNow') },
+          { value: 'existing', label: t('goals.alreadySaved') },
+        ]}
+        value={source}
+        onChange={setSource}
+      />
       <AmountField value={amount} onChangeText={setAmount} label={t('add.amount')} autoFocus />
       <AppText tone="muted" className="text-[13px]">
-        {t('goals.depositNote')}
+        {t(source === 'existing' ? 'goals.alreadySavedNote' : 'goals.depositNote')}
       </AppText>
       {error && (
         <AppText tone="danger" className="text-[14px]">
