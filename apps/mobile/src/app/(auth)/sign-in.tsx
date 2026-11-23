@@ -142,7 +142,7 @@ export default function SignInScreen() {
         </View>
         <PressScale
           accessibilityRole="link"
-          onPress={() => router.replace('/sign-up')}
+          onPress={() => router.replace('/welcome')}
           className="mt-5 min-h-[44px] justify-center">
           <AppText tone="primary" weight="medium" className="text-[15px]">
             {t('auth.noAccount')}

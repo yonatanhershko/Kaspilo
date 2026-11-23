@@ -139,3 +139,14 @@ export const walletPalette = {
   cardGreen: '#7DB892',
   cardPeach: '#F6B88A',
 } as const;
+
+/** The onboarding sprout (docs/spec.md "Onboarding"): soil, leaf vein and blossoms. Same in both themes. */
+export const plantPalette = {
+  soil: '#E4D9C3',
+  soilDark: '#CDBE9F',
+  stem: '#3A8A66',
+  vein: '#D5EADD',
+  petal: '#E8A87C',
+  petalLight: '#F6B88A',
+  heart: '#F2C14E',
+} as const;

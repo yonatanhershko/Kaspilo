@@ -574,5 +574,61 @@
     "opensMail": "Opens a new email",
     "noMailApp": "No mail app on this phone. Write to us at {{email}}. Press and hold the address to copy it.",
     "version": "Version {{version}}"
+  },
+  "onboarding": {
+    "progress": "Step {{step}} of {{total}}",
+    "continue": "Continue",
+    "later": "Set it later",
+    "value": {
+      "eyebrow": "Welcome to Kaspilo",
+      "title": "Plant good habits for a flourishing future",
+      "body": "Track income and expenses, set goals and see where your money goes",
+      "feature1": "Income and expenses in a second",
+      "feature2": "Savings goals that fill up",
+      "feature3": "A clear picture of every month",
+      "start": "Let's start",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "name": {
+      "title": "What should we call you?",
+      "body": "That's how the app will greet you.",
+      "label": "Your name"
+    },
+    "budget": {
+      "title": "{{name}}, how much for expenses each month?",
+      "titleNoName": "How much for expenses each month?",
+      "label": "Monthly budget",
+      "note": "Just a start. You can change it any time."
+    },
+    "purchase": {
+      "titleApple": "Paid with Apple Pay? Kaspilo already knows",
+      "titleGoogle": "Paid with Google Pay? Kaspilo already knows",
+      "chipAuto": "Automatic setup · 3 steps",
+      "chipManual": "iOS {{version}} · manual setup · 6 steps",
+      "chipAndroid": "30-second setup",
+      "noteAuto": "Add one shortcut and turn it on. The amount and the store stay on your phone until you save.",
+      "noteManual": "On iOS 27 and later the setup is automatic. You can update your iPhone, or set it up by hand now with a picture guide.",
+      "noteAndroid": "Kaspilo reads only Google Wallet payment notifications, nothing else. The amount and the store stay on your phone until you save.",
+      "how1": "Pay as usual with your phone",
+      "how2": "A reminder comes with the amount",
+      "how3": "One tap, and the expense is saved",
+      "setupAuto": "Set it up (1 min)",
+      "setupManual": "Set it up (1 min)",
+      "setupAndroid": "Set it up (30 sec)",
+      "later": "Later",
+      "permissionNote": "We ask for notifications only now, so this can work.",
+      "demoMerchant": "the corner store",
+      "now": "now"
+    },
+    "ready": {
+      "title": "Your space is ready, {{name}}!",
+      "titleNoName": "Your space is ready!",
+      "body": "Open your account and get going.",
+      "name": "Name",
+      "budget": "Monthly budget",
+      "email": "Sign up with email",
+      "privacy": "Your data is private and secure"
+    }
   }
 }
