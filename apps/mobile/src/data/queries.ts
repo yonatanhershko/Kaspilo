@@ -3,6 +3,7 @@ import type {
   CategoryTotal,
   Goal,
   GoalDeposit,
+  DepositSource,
   GoalTotal,
   HistoryRow,
   Period,
@@ -618,7 +619,7 @@ export function useGoals() {
   });
 }
 
-/** Money deposited per goal inside one budget period. Never part of expense totals. */
+/** Money set aside per goal inside one budget period ('new' deposits only). Never part of expense totals. */
 export function useGoalDepositsInPeriod(period: Period) {
   const wallet = useWalletId();
   return useQuery({
@@ -632,6 +633,8 @@ export function useGoalDepositsInPeriod(period: Period) {
           .from('goal_deposits')
           .select('goal_id, amount')
           .eq('wallet_id', wallet)
+          // Money saved before never comes off the balance (docs/spec.md "Goals").
+          .eq('source', 'new')
           .gte('date', period.start)
           .lte('date', period.end)
           .limit(2000),
@@ -647,13 +650,31 @@ export function useSaveGoal() {
   const client = useQueryClient();
   const wallet = useWalletId();
   return useMutation({
-    mutationFn: async (input: { id?: string; name: string; target_amount: number; icon?: string }) => {
-      const { id, ...fields } = input;
+    mutationFn: async (input: {
+      id?: string;
+      name: string;
+      target_amount: number;
+      icon?: string;
+      /** New goal only: money the user already saved, in minor units. Becomes one 'existing' deposit. */
+      alreadySaved?: number;
+    }) => {
+      const { id, alreadySaved, ...fields } = input;
       const name = fields.name.trim();
       if (id) {
         unwrap(await supabase.from('goals').update({ ...fields, name }).eq('id', id).select());
       } else {
-        unwrap(await supabase.from('goals').insert({ ...fields, name, wallet_id: wallet }).select());
+        const [goal] = unwrap<Goal[]>(await supabase.from('goals').insert({ ...fields, name, wallet_id: wallet }).select());
+        if (alreadySaved && goal) {
+          const saved = await supabase
+            .from('goal_deposits')
+            .insert({ goal_id: goal.id, amount: alreadySaved, source: 'existing' })
+            .select();
+          if (saved.error) {
+            // Take back the goal just made, so saving again does not leave a twin.
+            await supabase.from('goals').delete().eq('id', goal.id);
+            unwrap(saved);
+          }
+        }
       }
     },
     onSuccess: () =>
@@ -686,7 +707,7 @@ export function useDeleteGoal() {
   });
 }
 
-/** Delete one deposit. The money returns to the balance. */
+/** Delete one deposit. A 'new' one's money returns to the balance. */
 export function useDeleteDeposit() {
   const client = useQueryClient();
   return useMutation({
@@ -704,7 +725,7 @@ export function useDeleteDeposit() {
 export function useDeposit() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { goal_id: string; amount: number }) => {
+    mutationFn: async (input: { goal_id: string; amount: number; source: DepositSource }) => {
       unwrap(await supabase.from('goal_deposits').insert(input).select());
     },
     onSuccess: () =>

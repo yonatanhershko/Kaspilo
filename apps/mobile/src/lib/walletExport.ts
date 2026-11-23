@@ -49,6 +49,7 @@ export function useExportWallet() {
         income: t('common.income'),
         expense: t('common.expense'),
         savings: t('goals.savings'),
+        alreadySaved: t('goals.alreadySaved'),
       },
     );
     const safe = walletName(wallet).replace(/[\\/:*?"<>|\s]+/g, '-');

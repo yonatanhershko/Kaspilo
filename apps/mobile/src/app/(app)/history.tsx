@@ -108,6 +108,7 @@ export default function HistoryScreen() {
           income: t('common.income'),
           expense: t('common.expense'),
           savings: t('goals.savings'),
+          alreadySaved: t('goals.alreadySaved'),
         },
       );
       const shared = await shareCsv(csv, 'kaspilo-transactions.csv');
@@ -221,7 +222,9 @@ export default function HistoryScreen() {
           },
           { label: t('common.cancel'), variant: 'outline', onPress: () => setDeletingDeposit(null) },
         ]}>
-        <AppText className="text-[15px]">{t('goals.depositDeleteBody')}</AppText>
+        <AppText className="text-[15px]">
+          {t(deletingDeposit?.source === 'existing' ? 'goals.depositDeleteBodyExisting' : 'goals.depositDeleteBody')}
+        </AppText>
       </Dialog>
     </Screen>
   );

@@ -17,6 +17,7 @@ import { nativeApplicationVersion } from '@/lib/nativeApp';
 import { allowCache, cacheKey, cacheStorage } from '@/lib/offlineCache';
 import { markFirstOpen } from '@/lib/review';
 import { NotificationSetup } from '@/notifications/NotificationSetup';
+import { applyPendingSetup } from '@/onboarding/store';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -55,6 +56,7 @@ export default function AppLayout() {
       }}>
       <WalletProvider>
         <OutboxSync userId={userId} />
+        <OnboardingSetup userId={userId} />
         <AnalyticsTracker userId={userId} />
         <OfflineBar>
           <AppStack />
@@ -62,6 +64,26 @@ export default function AppLayout() {
       </WalletProvider>
     </PersistQueryClientProvider>
   );
+}
+
+/**
+ * The account made from onboarding on this phone gets its budget and currency on its first
+ * entry with access (docs/spec.md "Onboarding"). Tried again on reconnect if offline.
+ */
+function OnboardingSetup({ userId }: { userId: string }) {
+  const client = useQueryClient();
+  useEffect(() => {
+    if (userId === 'none') return;
+    const run = () =>
+      void applyPendingSetup(userId).then((changed) => {
+        if (!changed) return;
+        void client.invalidateQueries({ queryKey: ['settings'] });
+        void client.invalidateQueries({ queryKey: ['wallets'] });
+      });
+    run();
+    return onReconnect(run);
+  }, [client, userId]);
+  return null;
 }
 
 /** Sends transactions added offline: on start, when the internet is back, and on return to the app. */

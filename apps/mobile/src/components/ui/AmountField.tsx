@@ -1,4 +1,4 @@
-import { currencySymbol } from '@kaspilo/shared';
+import { type Currency, currencySymbol } from '@kaspilo/shared';
 import { type ComponentRef, useRef } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -16,22 +16,30 @@ export function cleanAmountInput(raw: string): string {
   return rest.length === 0 ? trimmedWhole : `${trimmedWhole}.${rest.join('').slice(0, 2)}`;
 }
 
-/** Big numeric amount input with the currency sign. Value is the typed string. */
-export function AmountField({
-  value,
-  onChangeText,
-  label,
-  autoFocus,
-  size = 'large',
-}: {
+type AmountFieldProps = {
   value: string;
   onChangeText: (value: string) => void;
   label: string;
   autoFocus?: boolean;
   size?: 'large' | 'normal';
-}) {
-  const { colors } = useTheme();
+};
+
+/** Big numeric amount input with the user's currency sign. Value is the typed string. */
+export function AmountField(props: AmountFieldProps) {
   const { currency } = useMoney();
+  return <AmountInput {...props} currency={currency} />;
+}
+
+/** The same input with a given currency, for screens before sign-in (onboarding). */
+export function AmountInput({
+  value,
+  onChangeText,
+  label,
+  autoFocus,
+  size = 'large',
+  currency,
+}: AmountFieldProps & { currency: Currency }) {
+  const { colors } = useTheme();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const { he } = useRowAlign();
   const large = size === 'large';

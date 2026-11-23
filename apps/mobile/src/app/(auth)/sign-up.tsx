@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import { authErrorText, useAuth } from '@/auth/AuthProvider';
-import { resetTermsRead, useTermsRead } from '@/auth/terms';
+import { useTermsRead } from '@/auth/terms';
 import { checkEmail, checkName, checkPassword, MIN_PASSWORD_LENGTH } from '@/auth/validation';
 import { WalletHero } from '@/components/nature/WalletHero';
 import { AppText } from '@/components/ui/AppText';
@@ -14,24 +14,27 @@ import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
 import { useRowAlign } from '@/i18n';
-import { trackSignupStarted } from '@/lib/analytics';
+import { useOnboarding } from '@/onboarding/store';
 import { useTheme } from '@/theme/ThemeProvider';
 import { PressScale } from '@/components/ui/PressScale';
 
-const STEPS = ['name', 'email', 'password'] as const;
+const ALL_STEPS = ['name', 'email', 'password'] as const;
+type Step = (typeof ALL_STEPS)[number];
 
 /**
- * Register in three short steps. The email step also holds the terms tab. The wallet and its leaves stay on screen
- * the whole way; only the field under them changes.
+ * Email sign-up, opened from onboarding's last screen (docs/spec.md "Sign-in"): email, then
+ * password. A name step comes first only when the name was skipped in onboarding; the pencil
+ * on the name row brings it back. The terms were accepted in onboarding; the tab shows here
+ * only if they were not. The wallet and its leaves stay on screen the whole way.
  */
 export default function SignUpScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { signUp } = useAuth();
+  const onboardingName = useOnboarding().answers.name;
+  const [steps, setSteps] = useState<readonly Step[]>(onboardingName ? ['email', 'password'] : ALL_STEPS);
   const [stepIndex, setStepIndex] = useState(0);
-  // Analytics: "sign-up started" once per visit (docs/spec.md "Analytics").
-  const startedSent = useRef(false);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(onboardingName);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +42,8 @@ export default function SignUpScreen() {
   const termsRead = useTermsRead();
   const align = useRowAlign();
 
-  // Every new sign-up reads the terms again.
-  useEffect(() => resetTermsRead(), []);
-
-  const step = STEPS[stepIndex];
+  const step = steps[stepIndex];
+  const hasNameStep = steps[0] === 'name';
 
   const next = async () => {
     const problem =
@@ -56,10 +57,6 @@ export default function SignUpScreen() {
       return;
     }
     setError(null);
-    if (step === 'name' && !startedSent.current) {
-      startedSent.current = true;
-      trackSignupStarted();
-    }
     if (step !== 'password') {
       setStepIndex(stepIndex + 1);
       return;
@@ -70,7 +67,7 @@ export default function SignUpScreen() {
     // On success the guard moves the new user to the locked (pending) screen.
     if (failure) {
       setError(authErrorText(t, failure));
-      if (failure === 'emailTaken' || failure === 'emailInvalid') setStepIndex(1);
+      if (failure === 'emailTaken' || failure === 'emailInvalid') setStepIndex(steps.indexOf('email'));
     }
   };
 
@@ -94,30 +91,32 @@ export default function SignUpScreen() {
         <View
           className="my-4 flex-row gap-2"
           accessibilityRole="progressbar"
-          accessibilityLabel={t('auth.stepOf', { step: stepIndex + 1, total: STEPS.length })}
-          accessibilityValue={{ min: 1, max: STEPS.length, now: stepIndex + 1 }}>
+          accessibilityLabel={t('auth.stepOf', { step: stepIndex + 1, total: steps.length })}
+          accessibilityValue={{ min: 1, max: steps.length, now: stepIndex + 1 }}>
           {/* Fills from the right in Hebrew, from the left in English (owner 2026-11-20). */}
-          {STEPS.map((s, i) => {
-            const done = (align.he ? STEPS.length - 1 - i : i) <= stepIndex;
+          {steps.map((s, i) => {
+            const done = (align.he ? steps.length - 1 - i : i) <= stepIndex;
             return <View key={s} className={`h-[6px] w-10 rounded-full ${done ? 'bg-primary' : 'bg-border'}`} />;
           })}
         </View>
 
         <View className="w-full gap-4">
-          {stepIndex > 0 && (
+          {step !== 'name' && (
             <View className="overflow-hidden rounded-lg border border-border bg-surface">
               {[
-                { index: 0, icon: 'account-outline', value: name.trim() },
-                ...(stepIndex > 1 ? [{ index: 1, icon: 'email-outline', value: email.trim() }] : []),
+                { target: 'name' as const, icon: 'account-outline', value: name.trim() },
+                ...(step === 'password' ? [{ target: 'email' as const, icon: 'email-outline', value: email.trim() }] : []),
               ].map((row) => (
                 <PressScale
-                  key={row.index}
+                  key={row.target}
                   accessibilityRole="button"
                   accessibilityLabel={`${t('common.edit')}: ${row.value}`}
                   disabled={busy}
                   onPress={() => {
                     setError(null);
-                    setStepIndex(row.index);
+                    // The onboarding name has no step of its own until it is edited.
+                    if (row.target === 'name' && !hasNameStep) setSteps(ALL_STEPS);
+                    setStepIndex(row.target === 'name' ? 0 : ALL_STEPS.indexOf('email') - (hasNameStep ? 0 : 1));
                   }}
                   className={`min-h-[44px] items-center gap-3 px-4 ${align.row}`}>
                   <Icon name={row.icon} tone="muted" size={20} />
@@ -176,7 +175,7 @@ export default function SignUpScreen() {
               onSubmitEditing={next}
             />
           )}
-          {step === 'email' && (
+          {step === 'email' && !termsRead && (
             <PressScale
               accessibilityRole="button"
               accessibilityLabel={t('terms.openLink')}

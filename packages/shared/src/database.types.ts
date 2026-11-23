@@ -217,7 +217,11 @@ export type GoalDeposit = {
   amount: number;
   date: string;
   created_at: string;
+  /** 'new' = set aside now, comes off the balance. 'existing' = saved before, counts toward the goal only. */
+  source: DepositSource;
 };
+
+export type DepositSource = 'new' | 'existing';
 
 /** One row of `wallet_history`: a transaction (`kind` 'tx') or a goal deposit (`kind` 'deposit'). */
 export type HistoryRow = {
@@ -236,6 +240,8 @@ export type HistoryRow = {
   goal_id: string | null;
   wallet_id: string;
   user_id: string;
+  /** A deposit's source; 'new' for a transaction. */
+  source: DepositSource;
 };
 
 export type CategoryTotal = { category_id: string; type: TransactionType; total: number; count: number };

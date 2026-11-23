@@ -12,11 +12,14 @@ export function Screen({
   children,
   leaves = 'medium',
   scroll = false,
+  backdrop = true,
   className = '',
 }: {
   children: ReactNode;
   leaves?: LeafDensity | 'none';
   scroll?: boolean;
+  /** false = the plain theme background, no green blur (onboarding, owner 2026-11-23). */
+  backdrop?: boolean;
   className?: string;
 }) {
   const { theme } = useTheme();
@@ -26,7 +29,7 @@ export function Screen({
   const insets = useSafeAreaInsets();
   return (
     <View className="flex-1 bg-background">
-      <Backdrop theme={theme} />
+      {backdrop && <Backdrop theme={theme} />}
       {leaves !== 'none' && <LeafBackground density={leaves} />}
       <View
         style={{

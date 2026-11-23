@@ -1,7 +1,7 @@
 {
   "name": "@kaspilo/mobile",
   "version": "1.0.0",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "dependencies": {
     "@expo-google-fonts/rubik": "^0.4.2",
     "@expo/vector-icons": "^15.0.2",

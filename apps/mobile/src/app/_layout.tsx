@@ -9,12 +9,12 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { LogBox } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { SplashScreenArt } from '@/components/nature/SplashScreenArt';
 import { initI18n } from '@/i18n';
 import { trackFirstOpen } from '@/lib/analytics';
+import { loadOnboarding, settleSignIn, useOnboarding } from '@/onboarding/store';
 import {
   loadLanguagePreference,
   loadThemePreference,
@@ -22,9 +22,6 @@ import {
 } from '@/lib/preferences';
 import { disablePurchaseDetection } from '@/purchase';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
-
-// Comes from a library touching RN's old ImageBackground export; we do not use it.
-LogBox.ignoreLogs(['ImageBackground is deprecated']);
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -47,7 +44,11 @@ export default function RootLayout() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [theme, language] = await Promise.all([loadThemePreference(), loadLanguagePreference()]);
+      const [theme, language] = await Promise.all([
+        loadThemePreference(),
+        loadLanguagePreference(),
+        loadOnboarding(),
+      ]);
       await initI18n(language);
       if (alive) setThemePreference(theme);
     })();
@@ -81,13 +82,24 @@ export default function RootLayout() {
 function GuardedStack() {
   const { theme, colors } = useTheme();
   const { loading, session, access, termsAccepted } = useAuth();
+  const { intent } = useOnboarding();
+  const user = session?.user ?? null;
 
   // Signed out or locked: purchase reminders stop at once (docs/spec.md "Purchase detected").
   useEffect(() => {
     if (!loading && !access) disablePurchaseDetection();
   }, [loading, access]);
 
-  if (loading) return <SplashScreenArt preference={theme} />;
+  // Someone signed in on this phone: onboarding is over here, and a new account made from it
+  // keeps the answers (docs/spec.md "Onboarding").
+  useEffect(() => {
+    if (user) void settleSignIn(user);
+  }, [user]);
+
+  // A new Google / Apple account from onboarding already accepted the terms there: wait the
+  // moment it takes to save that, instead of showing the terms screen.
+  const savingTerms = !!user && !termsAccepted && !!intent?.termsAccepted;
+  if (loading || savingTerms) return <SplashScreenArt preference={theme} />;
 
   const signedIn = session !== null;
   // A first Google sign-in must accept the terms before anything else.

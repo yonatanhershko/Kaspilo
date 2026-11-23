@@ -113,7 +113,7 @@ export async function trackFirstOpen() {
   else void flushAnalytics();
 }
 
-/** "Continue" on the name step of sign-up. */
+/** A sign-up button on onboarding's last screen, or a new account from the sign-in screen's Google / Apple. */
 export function trackSignupStarted() {
   void add('signup_started', null);
 }
