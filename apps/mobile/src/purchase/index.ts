@@ -166,7 +166,8 @@ export const purchaseNeedsNewerIos = Platform.OS === 'ios' && iosMajor < 17;
 /**
  * iOS 27 and later: the shared Kaspilo shortcut (an iCloud link) already holds the Wallet
  * automation, so setup is "add shortcut" + its switches (docs/spec.md). It must be made on an
- * iOS 27 iPhone. Empty until then: iOS 27 gets the manual guide.
+ * iOS 27 iPhone, named "Kaspilo". Empty until then: iOS 27 gets the manual guide. Setting it is JS
+ * only, so it can reach installed apps by an EAS Update.
  */
 export const IOS27_SHORTCUT_URL = '';
 

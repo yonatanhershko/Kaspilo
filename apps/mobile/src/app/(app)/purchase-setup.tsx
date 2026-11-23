@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Sway } from '@/components/nature/Sway';
+import { Wallet } from '@/components/nature/Wallet';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -23,6 +24,7 @@ import { useRowAlign } from '@/i18n';
 import {
   adviseIosUpdate,
   IOS27_SHORTCUT_URL,
+  iosMajor,
   isListenerEnabled,
   markPurchaseSetupDone,
   openListenerSettings,
@@ -88,12 +90,14 @@ type Stage =
   | { name: 'update' }
   | { name: 'intro' }
   | { name: 'guide'; step: number }
+  | { name: 'quickIntro' }
   | { name: 'quick'; step: number }
   | { name: 'android'; tried: boolean }
   | { name: 'done' };
 
 function firstStage(): Stage {
   if (Platform.OS === 'android') return { name: 'android', tried: false };
+  if (quickSetupHere) return { name: 'quickIntro' };
   return adviseIosUpdate ? { name: 'update' } : { name: 'intro' };
 }
 
@@ -122,7 +126,7 @@ export default function PurchaseSetupScreen() {
       return (
         <Intro
           onClose={close}
-          onStart={() => setStage(quickSetupHere ? { name: 'quick', step: 0 } : { name: 'guide', step: 0 })}
+          onStart={() => setStage({ name: 'guide', step: 0 })}
         />
       );
     case 'guide':
@@ -136,13 +140,23 @@ export default function PurchaseSetupScreen() {
           }
         />
       );
+    case 'quickIntro':
+      return (
+        <QuickIntro
+          onClose={close}
+          onStart={() => setStage({ name: 'quick', step: 0 })}
+          onManual={() => setStage({ name: 'intro' })}
+        />
+      );
     case 'quick':
       return (
-        <Quick
+        <QuickStep
           step={stage.step}
           onClose={close}
-          onBack={() => setStage(stage.step === 0 ? { name: 'intro' } : { name: 'quick', step: 0 })}
-          onNext={() => setStage(stage.step === 0 ? { name: 'quick', step: 1 } : { name: 'done' })}
+          onBack={() => setStage(stage.step === 0 ? { name: 'quickIntro' } : { name: 'quick', step: stage.step - 1 })}
+          onNext={() =>
+            setStage(stage.step === QUICK_STEPS.length - 1 ? { name: 'done' } : { name: 'quick', step: stage.step + 1 })
+          }
         />
       );
     case 'android':
@@ -347,12 +361,8 @@ function Intro({ onClose, onStart }: { onClose: () => void; onStart: () => void 
         <Point icon="shield-lock-outline" text={t('purchaseSetup.intro.private')} />
         <Point icon="gesture-tap" text={t('purchaseSetup.intro.guided')} />
       </View>
-      {quickSetupHere && (
-        <Note
-          icon="lightning-bolt-outline"
-          title={t('purchaseSetup.intro.quickTitle')}
-          body={t('purchaseSetup.intro.quickBody')}
-        />
+      {iosMajor >= 27 && !quickSetupHere && (
+        <Note icon="information-outline" title={t('purchaseSetup.intro.ios27Title')} body={t('purchaseSetup.intro.ios27Body')} />
       )}
       {adviseIosUpdate && (
         <Note
@@ -505,8 +515,78 @@ function TapMark({ mark }: { mark: Mark }) {
   );
 }
 
-/** iOS 27 and later with the shared shortcut: add it, then turn its automation on. */
-function Quick({
+// ---- iOS 27 and later: the shared shortcut (owner 2026-11-23, from the reference) ----------
+
+/** The shared shortcut's name, so the app can open it in Shortcuts. */
+const SHORTCUT_NAME = 'Kaspilo';
+const openShortcut = () =>
+  void Linking.openURL(`shortcuts://open-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`).catch(() =>
+    Linking.openURL('shortcuts://').catch(() => undefined),
+  );
+const addShortcut = () => void Linking.openURL(IOS27_SHORTCUT_URL).catch(() => undefined);
+
+const QUICK_STEPS = [
+  { key: 'add', icon: 'tray-arrow-down' },
+  { key: 'turnOn', icon: 'lightning-bolt' },
+  { key: 'run', icon: 'play' },
+] as const;
+
+function StepNumber({ n }: { n: number }) {
+  return (
+    <View className="h-11 w-11 items-center justify-center rounded-full bg-primary">
+      <AppText weight="bold" tone="onPrimary" className="text-center text-[18px]">
+        {String(n)}
+      </AppText>
+    </View>
+  );
+}
+
+/** A small round letter that names a tap spot in a drawing ("A", "B"). */
+function Badge({ label }: { label: string }) {
+  return (
+    <View className="h-6 w-6 items-center justify-center rounded-full bg-accent">
+      <AppText weight="bold" tone="onAccent" className="text-center text-[12px]">
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
+/** Overview: what the three steps are, then start, or the manual guide. */
+function QuickIntro({ onClose, onStart, onManual }: { onClose: () => void; onStart: () => void; onManual: () => void }) {
+  const { t } = useTranslation();
+  const align = useRowAlign();
+  return (
+    <Shell
+      onClose={onClose}
+      footer={
+        <>
+          <Button label={t('purchaseSetup.quick.intro.start')} onPress={onStart} />
+          <TextLink label={t('purchaseSetup.quick.intro.manual')} onPress={onManual} />
+        </>
+      }>
+      <Title title={t('purchaseSetup.quick.intro.title')} body={t('purchaseSetup.quick.intro.body')} />
+      <View className="gap-3">
+        {QUICK_STEPS.map((step, index) => (
+          <View key={step.key} className={`items-center gap-3 rounded-xl border border-border bg-surface p-4 ${align.row}`}>
+            <StepNumber n={index + 1} />
+            <View className="flex-1 gap-0.5">
+              <AppText weight="bold" className="text-[16px]">
+                {t(`purchaseSetup.quick.${step.key}.title`)}
+              </AppText>
+              <AppText tone="muted" className="text-[14px] leading-[20px]">
+                {t(`purchaseSetup.quick.${step.key}.short`)}
+              </AppText>
+            </View>
+            <Icon name={step.icon} tone="primary" size={24} />
+          </View>
+        ))}
+      </View>
+    </Shell>
+  );
+}
+
+function QuickStep({
   step,
   onClose,
   onBack,
@@ -518,40 +598,158 @@ function Quick({
   onNext: () => void;
 }) {
   const { t } = useTranslation();
-  const key = step === 0 ? 'add' : 'turnOn';
+  const key = QUICK_STEPS[step].key;
+  const base = `purchaseSetup.quick.${key}`;
+  const back = <TextLink label={t('purchaseSetup.guide.back')} onPress={onBack} />;
+  const footer =
+    key === 'add' ? (
+      <>
+        <Button label={t(`${base}.open`)} onPress={addShortcut} />
+        <TextLink label={t(`${base}.already`)} onPress={onNext} />
+        {back}
+      </>
+    ) : key === 'turnOn' ? (
+      <>
+        <Button
+          label={t(`${base}.open`)}
+          onPress={() => {
+            openShortcut();
+            onNext();
+          }}
+        />
+        {back}
+      </>
+    ) : (
+      <>
+        <Button label={t(`${base}.yes`)} onPress={onNext} />
+        <Button variant="outline" label={t(`${base}.again`)} onPress={openShortcut} />
+        {back}
+      </>
+    );
   return (
-    <Shell
-      progress={(step + 1) / 3}
-      onClose={onClose}
-      footer={
-        <>
-          {step === 0 ? (
-            <Button
-              variant="outline"
-              label={t('purchaseSetup.quick.add.button')}
-              icon={<Icon name="plus-circle-outline" size={20} />}
-              onPress={() => void Linking.openURL(IOS27_SHORTCUT_URL).catch(() => undefined)}
-            />
-          ) : (
-            <OpenShortcuts />
-          )}
-          <BackNext onBack={onBack} onNext={onNext} />
-        </>
-      }>
+    <Shell progress={(step + 1) / QUICK_STEPS.length} onClose={onClose} footer={footer}>
       <View className="gap-2">
         <AppText tone="muted" className="text-[13px]">
-          {t('purchaseSetup.guide.stepOf', { n: step + 1, total: 2 })}
+          {t('purchaseSetup.guide.stepOf', { n: step + 1, total: QUICK_STEPS.length })}
         </AppText>
-        <Title title={t(`purchaseSetup.quick.${key}.title`)} body={t(`purchaseSetup.quick.${key}.body`)} />
+        <Title title={t(`${base}.${key === 'run' ? 'question' : 'title'}`)} body={t(`${base}.body`)} />
       </View>
-      {step === 1 && (
-        <View className="gap-4 rounded-xl border border-border bg-surface p-4">
-          <Point icon="toggle-switch-outline" text={t('purchaseSetup.quick.turnOn.automation')} />
-          <Point icon="hand-back-left-off-outline" text={t('purchaseSetup.quick.turnOn.confirm')} />
-          <Point icon="lock-open-outline" text={t('purchaseSetup.quick.turnOn.locked')} />
-        </View>
-      )}
+      {key === 'add' && <AddShortcutArt />}
+      {key === 'turnOn' && <TurnOnArt />}
+      {key === 'run' && <RunArt />}
     </Shell>
+  );
+}
+
+/** Step 1 drawing: the shared shortcut sheet, with its "Add Shortcut" button ringed. */
+function AddShortcutArt() {
+  const { t } = useTranslation();
+  const align = useRowAlign();
+  return (
+    <View className="gap-4 rounded-2xl border border-border bg-surface p-5" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View className={`items-center gap-4 ${align.row}`}>
+        <View className="h-16 w-16 items-center justify-center rounded-2xl bg-background">
+          <Wallet size={46} shadow={false} />
+        </View>
+        <AppText weight="bold" className="flex-1 text-[18px]">
+          {t('purchaseSetup.quick.add.card')}
+        </AppText>
+      </View>
+      <View className="items-center">
+        <Icon name="arrow-down" tone="primary" size={30} />
+      </View>
+      <View className="rounded-full border-[3px] border-accent p-1">
+        <View className="h-12 items-center justify-center rounded-full bg-primary">
+          <AppText weight="bold" tone="onPrimary" className="text-center text-[18px]">
+            {t('purchaseSetup.quick.add.button')}
+          </AppText>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** Step 2 drawing: tap the shortcut, then in the "When…" card the ‹ arrow (A) and the switch (B). */
+function TurnOnArt() {
+  const { t } = useTranslation();
+  const align = useRowAlign();
+  return (
+    <View className="gap-3">
+      <View className={`items-center gap-3 rounded-xl border border-border bg-surface p-4 ${align.row}`}>
+        <StepNumber n={1} />
+        <AppText weight="bold" className="flex-1 text-[16px]">
+          {t('purchaseSetup.quick.turnOn.tap')}
+        </AppText>
+        <Icon name="gesture-tap" tone="primary" size={26} />
+      </View>
+      <View className="gap-3 rounded-xl border border-border bg-surface p-4">
+        <View className={`items-center gap-3 ${align.row}`}>
+          <StepNumber n={2} />
+          <AppText weight="bold" className="flex-1 text-[16px]">
+            {t('purchaseSetup.quick.turnOn.card')}
+          </AppText>
+        </View>
+        <View
+          className="gap-2 rounded-xl bg-background p-3"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
+          <View className={`items-center gap-2 self-stretch rounded-full bg-surface px-3 py-1.5 ${align.row}`}>
+            <Icon name="clock-remove-outline" tone="muted" size={18} />
+            <AppText tone="muted" weight="medium" className="text-[13px]">
+              {t('purchaseSetup.quick.turnOn.mockOff')}
+            </AppText>
+          </View>
+          <View className={`items-center gap-2 px-1 ${align.row}`}>
+            <Icon name="bell-outline" size={20} />
+            <AppText weight="medium" className="flex-1 text-[14px]">
+              {t('purchaseSetup.quick.turnOn.mockWhen')}
+            </AppText>
+            <Badge label="A" />
+            <View className="h-9 w-9 items-center justify-center rounded-full border-[3px] border-accent">
+              <Icon name="chevron-left" tone="primary" size={20} />
+            </View>
+          </View>
+          <View className="items-center">
+            <Icon name="arrow-down" tone="primary" size={20} />
+          </View>
+          <View className={`items-center gap-2 rounded-xl bg-surface px-3 py-2 ${align.row}`}>
+            <AppText weight="medium" className="flex-1 text-[14px]">
+              {t('purchaseSetup.quick.turnOn.mockSwitch')}
+            </AppText>
+            <Badge label="B" />
+            <View className="rounded-full border-[3px] border-accent p-0.5">
+              <View className="h-6 w-11 justify-center rounded-full bg-primary px-0.5">
+                <View className="h-5 w-5 self-end rounded-full bg-surface" />
+              </View>
+            </View>
+          </View>
+        </View>
+        <AppText tone="muted" className="text-[13px] leading-[19px]">
+          {t('purchaseSetup.quick.turnOn.note')}
+        </AppText>
+      </View>
+    </View>
+  );
+}
+
+/** Step 3 drawing: the ▶ at the bottom of the shortcut, ringed. */
+function RunArt() {
+  const { t } = useTranslation();
+  return (
+    <View
+      className="items-center gap-3 rounded-2xl border border-border bg-surface px-5 py-6"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants">
+      <AppText weight="bold" className="text-center text-[18px]">
+        {t('purchaseSetup.quick.run.mock')}
+      </AppText>
+      <Icon name="arrow-down" size={28} color={palette.light.accent} />
+      <View className="rounded-full border-[3px] border-accent p-1.5">
+        <View className="h-20 w-20 items-center justify-center rounded-full bg-primary">
+          <Icon name="play" tone="onPrimary" size={44} />
+        </View>
+      </View>
+    </View>
   );
 }
 

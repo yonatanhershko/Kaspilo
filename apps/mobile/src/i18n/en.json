@@ -404,11 +404,11 @@
       "quick": "Short, and you set it up only once.",
       "private": "The amount and merchant stay on your phone. Nothing is saved until you add the expense.",
       "guided": "The guide has screenshots that show where to tap.",
-      "quickTitle": "You have iOS 27: the quick way",
-      "quickBody": "Add one shortcut and turn on one switch. That's it.",
       "manualBody": "This is the manual setup for iOS {{version}}, about a minute.",
       "start": "Let's set it up",
-      "later": "I'll do it later"
+      "later": "I'll do it later",
+      "ios27Title": "Your screens may look a bit different",
+      "ios27Body": "The guide's screenshots are from iOS 26. On iOS 27 the steps are alike, but some buttons moved."
     },
     "update": {
       "title": "Automatic setup needs iOS 27 or later",
@@ -452,17 +452,41 @@
       }
     },
     "quick": {
+      "intro": {
+        "title": "Automatic capture",
+        "body": "Needs iOS 27 or later. One automation on Wallet's notifications, in 3 short steps.",
+        "start": "Let's start",
+        "manual": "Manual setup"
+      },
       "add": {
         "title": "Add the shortcut",
-        "body": "The Kaspilo shortcut opens in Shortcuts. Tap \"Add Shortcut\" and come back here.",
-        "button": "Add shortcut"
+        "short": "A shortcut opens. Tap \"Add Shortcut\".",
+        "body": "We'll open the Shortcuts app. Tap the big \"Add Shortcut\" button at the bottom, then come back to Kaspilo.",
+        "card": "Kaspilo · Purchase detection",
+        "button": "Add Shortcut",
+        "open": "Open the shortcut",
+        "already": "Already added, continue"
       },
       "turnOn": {
         "title": "Turn on the automation",
-        "body": "Apple adds a shared shortcut with its automation off. In Shortcuts, open the Kaspilo shortcut, and in the automation at its top:",
-        "automation": "Leave Automation on.",
-        "confirm": "Turn off Confirm Before Run.",
-        "locked": "Allow running when the phone is locked."
+        "short": "Tap ‹ in the \"When…\" card and turn on \"Automation\".",
+        "body": "We'll open the Kaspilo shortcut. Turn on its notification automation, which includes Wallet:",
+        "tap": "Tap the Kaspilo shortcut",
+        "card": "In the \"When…\" card: the ‹ arrow, then the switch",
+        "mockOff": "Automation is off",
+        "mockWhen": "When I get a notification from…",
+        "mockSwitch": "Automation",
+        "note": "Make sure Wallet is selected in the app list and it runs immediately. No separate card trigger is needed.",
+        "open": "Open the shortcut"
+      },
+      "run": {
+        "title": "Tap ▶\uFE0E and allow",
+        "short": "One tap on ▶\uFE0E at the bottom, then allow.",
+        "question": "Did you tap ▶\uFE0E and allow?",
+        "body": "If yes, you're done: a test notification from Kaspilo arrives. If not, go back to the shortcut and tap ▶\uFE0E now.",
+        "mock": "Tap ▶\uFE0E at the bottom",
+        "yes": "Yes, I did it",
+        "again": "Try again"
       }
     },
     "android": {

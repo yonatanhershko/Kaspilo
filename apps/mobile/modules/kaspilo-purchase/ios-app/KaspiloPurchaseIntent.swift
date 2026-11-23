@@ -5,9 +5,12 @@ import UserNotifications
 // Copied into the app target by plugins/withPurchaseIntent.js (App Intents must live in the
 // app itself, not in a pod). Rules: docs/spec.md "Purchase detected".
 
-/// "Kaspilo purchase": the Shortcuts action the Apple Pay (Wallet "Transaction") automation
-/// runs. Shows a reminder notification. Never adds anything, never opens the app, and the
-/// amount and merchant stay on the phone.
+/// "Kaspilo purchase": the Shortcuts action the Apple Pay automation runs. Two setups feed it:
+///  - iOS 17-26, Wallet "Transaction" trigger: Amount = the transaction amount, Merchant = the merchant.
+///  - iOS 27 shared shortcut, "When I get a notification from Wallet": Amount = the notification's
+///    body (a sentence like "₪45.90 with Visa •••• 1234"), Merchant = its title.
+/// Shows a reminder notification. Never adds anything, never opens the app, and the amount and
+/// merchant stay on the phone.
 @available(iOS 16.0, *)
 struct KaspiloPurchaseIntent: AppIntent {
   static var title: LocalizedStringResource = "Kaspilo purchase"
@@ -57,6 +60,10 @@ enum KaspiloPurchaseReminder {
   }
 
   static func request(amount: String?, merchant: String?, now: Date = Date()) -> UNNotificationRequest? {
+    let reading = read(amount: amount, merchant: merchant)
+    // A Wallet notification with no amount in it (card added, pass, offer) is not a purchase.
+    if case .notAPurchase = reading { return nil }
+
     let defaults = UserDefaults.standard
     let nowMs = now.timeIntervalSince1970 * 1000
     defaults.set(nowMs, forKey: lastKey)
@@ -69,10 +76,9 @@ enum KaspiloPurchaseReminder {
     // Access ended since the last open: the app is locked, so no reminder.
     if let until = state.accessUntil, until <= nowMs { return nil }
 
-    let parsed = amount.flatMap(parseAmount)
+    guard case let .purchase(parsed, name) = reading else { return nil }
     // A refund is not a purchase.
     if parsed?.refund == true { return nil }
-    let name = merchant.map(cleanMerchant).flatMap { $0.isEmpty ? nil : $0 }
 
     let content = UNMutableNotificationContent()
     content.sound = .default
@@ -96,6 +102,59 @@ enum KaspiloPurchaseReminder {
     return UNNotificationRequest(identifier: "kaspilo.purchase.\(UUID().uuidString)", content: content, trigger: nil)
   }
 
+  enum Reading {
+    case purchase(Amount?, String?)
+    case notAPurchase
+  }
+
+  /// What the shortcut handed over. Same rules as Android (PurchaseReminder.kt).
+  static func read(amount: String?, merchant: String?) -> Reading {
+    let amountText = amount?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let titleText = merchant?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let name = merchant.map(cleanMerchant).flatMap { $0.isEmpty ? nil : $0 }
+
+    // Nothing at all (the shortcut run by hand with ▶): the generic reminder, so the user sees it works.
+    if amountText.isEmpty { return .purchase(nil, name) }
+    // A bare number from the Transaction trigger ("45.90"): read it whole.
+    if isBareNumber(amountText) { return .purchase(parseAmount(amountText), name) }
+    // A sentence (a notification body): only an amount with a currency sign counts, so card digits never do.
+    if let found = findAmount(amountText) { return .purchase(found, name) }
+    // The amount sits in the title instead: no merchant to name, so the generic reminder.
+    if findAmount(titleText) != nil { return .purchase(nil, nil) }
+    return .notAPurchase
+  }
+
+  private static let marks: Set<Character> = ["\u{200E}", "\u{200F}", "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}", "\u{00A0}", "\u{202F}"]
+
+  static func isBareNumber(_ text: String) -> Bool {
+    let s = text.filter { !marks.contains($0) && !$0.isWhitespace }
+    return !s.isEmpty && s.allSatisfy { ("0"..."9").contains($0) || $0 == "," || $0 == "." || $0 == "-" || $0 == "\u{2212}" }
+      && s.contains(where: { ("0"..."9").contains($0) })
+  }
+
+  private static let signs = "₪|\\$|€|£|ILS|NIS|USD|EUR|GBP|ש\"ח|ש״ח"
+  private static let amountPattern = try! NSRegularExpression(
+    // A minus only counts when it touches the amount ("-₪20"), not a dash in the sentence.
+    pattern: "(?:[-−]?(?:\(signs))\\s?[-−]?\\d[\\d.,]*)|(?:[-−]?\\d[\\d.,]*\\s?(?:\(signs)))",
+    options: [.caseInsensitive]
+  )
+
+  /// The first amount with a currency sign in a sentence.
+  static func findAmount(_ sentence: String) -> Amount? {
+    let clean = String(sentence.map { marks.contains($0) ? " " : $0 })
+    let ns = clean as NSString
+    guard let match = amountPattern.firstMatch(in: clean, range: NSRange(location: 0, length: ns.length)) else { return nil }
+    guard let parsed = parseAmount(ns.substring(with: match.range)) else { return nil }
+    // Letters stuck to the sign belong to it: "CA$12" is not US dollars.
+    var start = match.range.location
+    while start > 0, match.range.location - start < 3,
+          let scalar = UnicodeScalar(ns.character(at: start - 1)), CharacterSet.letters.contains(scalar) {
+      start -= 1
+    }
+    let withPrefix = ns.substring(with: NSRange(location: start, length: match.range.location + match.range.length - start))
+    return Amount(minor: parsed.minor, currency: currency(in: withPrefix), refund: parsed.refund)
+  }
+
   // ---- amount ----------------------------------------------------------------
 
   struct Amount {
@@ -106,7 +165,6 @@ enum KaspiloPurchaseReminder {
 
   /// "₪45.90", "45,90 ₪", "$1,234.56", "ILS 12" -> minor units, without floating point.
   static func parseAmount(_ text: String) -> Amount? {
-    let marks: Set<Character> = ["\u{200E}", "\u{200F}", "\u{202A}", "\u{202B}", "\u{202C}", "\u{00A0}", "\u{202F}"]
     let s = String(text.filter { !marks.contains($0) })
     let refund = s.contains("-") || s.contains("\u{2212}")
     var kept = s.filter { ("0"..."9").contains($0) || $0 == "," || $0 == "." }
