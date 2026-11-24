@@ -343,8 +343,8 @@
     "intro": "Elige qué notificaciones recibes. Puedes cambiarlo cuando quieras.",
     "soon": "Pronto",
     "subscription": {
-      "title": "Renovación de la suscripción",
-      "body": "Un mes, una semana y un día antes de que termine tu suscripción, y el mismo día."
+      "title": "Suscripción",
+      "body": "Antes de que termine tu acceso, antes de que termine la prueba gratis y cuando falla un pago en la tienda."
     },
     "inactivity": {
       "title": "Recordatorio de registro",

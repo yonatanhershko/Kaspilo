@@ -343,8 +343,8 @@
     "intro": "Pick which notifications you get. You can change this any time.",
     "soon": "Soon",
     "subscription": {
-      "title": "Subscription renewal",
-      "body": "A month, a week and a day before your subscription ends, and on the day itself."
+      "title": "Subscription",
+      "body": "Before your access ends, before your free trial ends, and when a store payment fails."
     },
     "inactivity": {
       "title": "Tracking reminder",
