@@ -18,23 +18,88 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 
 ## Subscription and access
 
-- Yearly subscription paid by Bit, outside the app. No payment proof upload. Admin matches the payer by name.
-- Store rules (owner 2026-11-21): the app never names the payment method and never asks the user to pay. Locked and renew screens speak of the Kaspilo team's approval only (the app never says "advisor": the owner is not a financial advisor); the terms of use say payment is made directly to the operator, outside the app. No price or Bit in the store listing either. Google Play's outside-payment programs do not cover Israel.
+In-app purchase decided by the owner 2026-11-24. It replaces the old "Bit + admin approval for everyone" model: paying users get in by themselves, and the admin only grants access by hand.
+
+### Two ways to get access
+
+1. **Store subscription** (Apple App Store / Google Play), bought in the app. No admin step: the user is in as soon as the server confirms it.
+2. **Admin grant** from the admin web: a gift, a manual payment (bank transfer, Bit, cash — always arranged outside the app), or family. Nothing to pay in the app.
+
+- Access end = the later of the store date and the admin date. The server keeps it in one field (`profiles.expires_at`); `has_access()` reads only that. A client never writes it: only the store webhook / sync function and admin RPCs do (see "Security" in `.claude/rules/security.md`).
+- Existing users who paid by Bit keep their current `expires_at` until it ends.
+- The admin no longer approves sign-ups. A new user without access sees the paywall; the admin may grant access to a user who has already signed up (owner 2026-11-24: "he reaches the page, then I approve him"). No pre-grant by email, no referral or promo codes of our own (Apple 3.1.1). Apple Offer Codes / Google promo codes may be added later from the store consoles, no code change.
 - Phone number is not required at sign-up.
-- Locked screen button "Contact the Kaspilo team" opens WhatsApp to 052-320-3902. A bot may replace this later.
-- `profiles.status`: `pending_approval` | `active` | `expired` | `rejected`.
-- `profiles.role`: `client` | `admin`.
-- `profiles.plan`: `paid` (1 year), `vip` (1 year, granted by admin without payment), `family` (never expires, granted by admin). Confirmed by the owner 2026-11-14.
-- Access length: the admin picks it on approve, renew and extend: **1 year** (365 days, default) or **2 months** (calendar months). `family` ignores it. (owner 2026-11-15)
-- Approve: status → `active`, `approved_at` = now, `expires_at` = now + chosen length (`family`: no expiry).
-- Renew / extend: new expiry = old `expires_at` + chosen length if still active, otherwise now + chosen length.
-- Rejected users can submit again (status back to `pending_approval`).
-- Expired users keep all data; the app is locked until an admin approves again.
-- Refund (owner 2026-11-15): cancel within 14 days of payment (Consumer Protection Law), refund minus the lower of 5% or ₪100, sent by Bit within 14 days. No refund after 14 days. If Kaspilo shuts down, the unused part is refunded pro rata. Done by hand by the admin, no app flow.
 - No age limit. Under 18 needs a parent's consent to pay (stated in the terms).
-- A blocked user can get their data export by emailing the owner; the in-app export needs access.
-- Daily job: past expiry → status `expired`. Renewal reminders: see "Notifications".
-- Locked users cannot read or write financial data through the API either (RLS), not only in the UI.
+- Locked users cannot read or write financial data through the API either (RLS), not only in the UI. The one exception is the data export from the locked screen (below).
+
+### Store rules
+
+- The app never mentions any payment outside the stores: no Bit, no bank, no WhatsApp, no phone number, no "contact us to pay", no "waiting for approval" text. Not on the paywall, the locked screen, the renew screen, the terms of use or the store listing. (Apple 3.1.1 / 3.1.3, Google Play payments policy; Israel is in no outside-payment program.)
+- Manual payments are arranged by the owner outside the app (WhatsApp, phone). Allowed because the same access is sold in the app too (Apple 3.1.3(b) multiplatform).
+- The app never says "advisor" (the owner is not a financial advisor).
+
+### Prices and trial (owner 2026-11-24)
+
+| | Monthly | Yearly | Saving shown |
+|---|---|---|---|
+| Israel | ₪12.90 | ₪112.90 | 27% |
+| Other countries | $3.49 | $30.49 | 27% |
+
+- Other countries get the store's automatic local price from the US price. Sold in every country the app is in.
+- The saving badge is computed from the two real store prices of the user's country: `1 − yearly / (12 × monthly)`, **rounded down to a whole percent** (owner 2026-11-24 wants "27%"; this badge is the one exception to the 1-decimal percent rule in `.claude/rules/money.md`, and rounding down never overstates). Hidden when the result is 0 or less.
+- **Free trial: 14 days** (Apple allows 1 week or 2 weeks, not 10 days). Set on both products as the store's introductory offer. The user confirms with Face ID / fingerprint and a payment method on their store account; nothing is charged for 14 days, then the chosen plan renews by itself unless cancelled.
+- One trial per store account (Apple ID / Google account), enforced by the store. No device tracking of our own (Apple forbids fingerprinting). A user whose store account already used the trial sees the plans without the trial wording.
+- Store fee: 15% (Apple Small Business Program, Google's 15% for subscriptions). VAT is collected and paid by the stores.
+- Products (Claude's choice): Apple subscription group "Kaspilo" with `kaspilo_monthly` and `kaspilo_yearly`; Google subscription `kaspilo_access` with base plans `monthly` and `yearly`, each with a 14-day free-trial offer. Moving between monthly and yearly is the store's own upgrade / downgrade.
+- Family Sharing: off.
+- No device limit: one Kaspilo account may be signed in on any number of phones (owner 2026-11-24, "keep as now"). A couple shares one account by signing in with the same email and password; signing in with two different Apple / Google accounts makes two Kaspilo accounts.
+
+### Paywall
+
+- When: after onboarding and sign-up, the first time the user has no access. Also from the locked screen ("Choose a plan") and from the renew screen. Users with access never see it.
+- Same background, leaves and moving wallet (`WalletHero`) as the sign-in screen. Top: X (closes to the locked screen). Then the wallet, the title "All your money in one place", a one-line subtitle (income, expenses, budget and savings), two plan cards — **Yearly** (selected first, badge "27% saving", price per year and per month; per month = yearly ÷ 12 in minor units, rounded half-up, from the store's own price: ₪112.90 → ₪9.41) and **Monthly** — then the trial button: small, white with the primary-color border (like "Export to Excel"), "Start 14 days free". Under it one small line: price after the trial, renews by itself, cancel any time. Bottom: "Restore purchases · Terms and privacy". No "no ads" line, no gift icon, no reminder line. (owner 2026-11-24)
+- Tapping the button opens the store's own payment sheet (Apple / Google). Card details never pass through Kaspilo.
+- After the store confirms, the app asks the server to sync (it never trusts the phone's purchase result) and enters as soon as the server grants access. Loading, cancelled, failed and offline states each show a short message on the same screen.
+- **Restore purchases:** asks the store for this store account's subscriptions and syncs them with the server. Found → access, the paywall closes. None → "No purchases found". No other screen. If the subscription was bought while signed in to another Kaspilo account, it moves to the current one (one store subscription gives access to one Kaspilo account at a time). (Claude's choice)
+- **Terms and privacy:** opens the existing in-app terms screen; the privacy policy is its section 9.
+
+### Locked screen
+
+- Existing design (lock art, leaves, text, buttons). The text changes by state; never "waiting for approval":
+  - New (never had access): welcome + "Choose a plan to start. 14 days free."
+  - Trial ended / subscription ended / refunded / admin access ended: "Your subscription has ended. Your data is saved."
+  - Could not load: as today, with Retry.
+- Buttons: "Choose a plan" (filled, opens the paywall); "Export data to Excel" (no fill, primary border and text, download icon), shown only when the user has data; "Sign out" (text link).
+- The "Contact the Kaspilo team" (WhatsApp), "Check again" and "Ask again" buttons are removed. Access granted while the screen is open is picked up on return to the app and by a live update, so it opens by itself.
+- **Export while locked (owner 2026-11-24, was "email the owner"):** one CSV of every wallet with a wallet column (Claude's choice), through a server function that lets a signed-in user read only their own rows, works without access, and is rate-limited.
+
+### Billing problems, cancel, refund
+
+- **Billing grace period:** Apple 16 days, Google 14 days. Access continues while the store retries. Push on the first day ("Payment failed, update your payment method", tap opens the store's subscription page), after 7 days, and 1 day before the grace ends; a small bar on home the whole time. After the grace, access ends; if the store later charges, it comes back by itself.
+- **Trial reminder:** push 2 days before the trial ends: the price and the date the charge starts.
+- **Cancel:** only in the store's settings. Access stays until the paid period ends.
+- **Refund by the store:** access ends at once; data is kept.
+- **Manual payment refunds** (owner 2026-11-15, unchanged): cancel within 14 days of payment (Consumer Protection Law), refund minus the lower of 5% or ₪100, sent within 14 days. No refund after 14 days. If Kaspilo shuts down, the unused part is refunded pro rata. Done by hand by the admin, no app flow.
+- **Delete account with a renewing store subscription:** the delete screen first says "You have an active subscription. Cancel it in the store or you will keep being charged", with a button that opens the store's subscription page. Then the usual delete. The server also deletes the user from RevenueCat.
+
+### Admin grants
+
+- `profiles.role`: `client` | `admin`.
+- Admin grant types: **manual payment** (`paid`), **gift** (`vip`), **family** (never expires). A note field ("Bank transfer ₪100").
+- Length: 1 month, 2 months, 3 months, 1 year, or a chosen date. Months are calendar months; 1 year = 365 days. `family` has none. **(assumed: the 1 / 3 months and chosen date were proposed by Claude)**
+- Grant / extend: new admin date = old admin date + length if still in the future, otherwise now + length.
+- Starts when the admin grants it (owner 2026-11-24).
+- Revoke: only admin-granted access; the user returns to the locked screen and keeps all data. Store subscriptions are cancelled or refunded only in the stores.
+- Every admin action is logged (who, when, what).
+- Daily job: past expiry → `expired`. Renewal reminders: see "Notifications".
+
+### How it is built (Claude's choice, owner approved RevenueCat 2026-11-24)
+
+- **RevenueCat** (`react-native-purchases`) handles both stores, receipt checks and store notifications (App Store Server Notifications, Google RTDN). Free under $2,500 monthly revenue.
+- RevenueCat customer id = the Supabase user id. Set after sign-in, cleared on sign-out.
+- A RevenueCat **webhook** calls a Supabase Edge Function (secret header). On every event the function reads the customer from the RevenueCat API (the truth, so events can come twice or out of order) and recomputes access. The app calls a second function (`sync`) right after a purchase or restore, which does the same for the signed-in user.
+- RevenueCat public SDK keys go in app config; the RevenueCat secret key and the webhook secret live only in Supabase function secrets.
+- Store purchases need a development or store build; they never work in Expo Go.
 
 ## Sign-in
 
@@ -43,9 +108,9 @@ Init → Phase 1 infra → Phase 5 tokens / theme / i18n / leaf art → Phase 2 
 - Sign-up with email starts from onboarding's last screen (owner 2026-11-23): email, then password. A name step comes first only when the name was skipped in onboarding. Earlier steps and the onboarding name show as rows with a pencil, so the user can jump back and change the name or email. The terms are accepted on onboarding's last screen (the "Terms of use" tab: tap it, press "I agree", pinned at the bottom, no need to scroll to the end; the tab turns green; no checkbox), so the email step has no terms tab. The accepted version and time are saved on the auth user (`terms_version`, `terms_accepted_at`). (owner 2026-11-14, no-scroll 2026-11-15)
 - Sign-up step bar (owner 2026-11-20): one short bar per step (two, or three with the name step); done steps are green. In Hebrew the first bar is at the right and they fill leftward; in English they fill from the left.
 - Loading screen (owner 2026-11-20): background follows the user's saved light/dark choice, or the phone's setting when it is "system" or not read yet. The native splash before it can only follow the phone's setting (light and dark versions).
-- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-20` (name Kaspilo and contact email changed 2026-11-20; usage-data line added 2026-11-18; earlier text approved by the owner 2026-11-15). Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription length is not fixed in the terms: price and length are given to the user before payment (WhatsApp / phone / email, not shown in the app); the operator may grant free or non-expiring access (vip / family).
-- Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (the admin approval is the gate; clients are personal, a few per month). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14) The admin web sign-in has the same "Forgot password?" flow (email → code → code + new password, through `auth-password`), English only; after the reset the admin is signed in, and a non-admin account still sees "not an admin". (owner 2026-11-21)
-- Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Kaspilo", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user who did not accept the terms in onboarding (signed up from the sign-in screen's Google button) gets the terms screen on the first sign-in: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the usual locked screen until an admin approves. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
+- Terms of use: Hebrew + English text in the app i18n files, version `2026-11-20` (name Kaspilo and contact email changed 2026-11-20; usage-data line added 2026-11-18; earlier text approved by the owner 2026-11-15). Bump `TERMS_VERSION` when the text changes. Operator shown as the owner's private name until a business is registered. Contact: email only. Subscription terms (rewrite with the in-app purchase, 2026-11-24, bump `TERMS_VERSION`): subscriptions are bought through the App Store / Google Play, renew by themselves until cancelled in the store, the 14-day free trial, refunds through the store; the operator may grant free or non-expiring access. No mention of paying outside the app (store rules).
+- Forgot password: from sign-in. Email → 6-digit code sent by email → code + new password. No OTP at sign-up (access needs a store subscription or an admin grant, so a fake email gets nothing). Needs custom SMTP and a code template, see `docs/prod-setup.md`. (owner 2026-11-14) The admin web sign-in has the same "Forgot password?" flow (email → code → code + new password, through `auth-password`), English only; after the reset the admin is signed in, and a non-admin account still sees "not an admin". (owner 2026-11-21)
+- Google sign-in (owner 2026-11-16): one "Continue with Google" button on the sign-in screen, under the password form; it signs in an existing user or creates a new one. On the phone it uses Google's native sign-in sheet (shows "Kaspilo", not the Supabase address) and Supabase checks the ID token; web and Expo Go fall back to Supabase hosted Google OAuth in the browser, back to `<scheme>://auth-callback`. One Google OAuth web client serves dev and prod (owner 2026-11-17). Name comes from Google. A new Google user who did not accept the terms in onboarding (signed up from the sign-in screen's Google button) gets the terms screen on the first sign-in: "I agree" saves `terms_version` / `terms_accepted_at`, the other choice signs out. Then the paywall if the account has no access. (terms gate and button placement chosen by Claude) Setup steps: `docs/google-sign-in.md`.
 - Facebook sign-in: later, when the owner has the developer account.
 - Password protection (owner 2026-11-21). On the free Supabase plan, since the built-in hook for this needs the Team plan:
   - Every password action (sign-in in the app and on the admin web, sign-up, reset with the code) goes through the Edge Function `auth-password`. It mixes the password with a server secret (`AUTH_PASSWORD_PEPPER`, only in Supabase function secrets) and gives Supabase only the result. So a password sent straight to Supabase never works, even a correct one, and the limits below cannot be skipped.
@@ -76,8 +141,8 @@ Design: the "Kaspilo onboarding samples" canvas, direction A (growing sprout), r
   - Name → the profile name at once. It wins over the name from Google or Apple. Skipped → Google / Apple's name, or the email sign-up's name step.
   - Budget → the overall monthly budget of the "Personal" wallet (only if it has none). Skipped → no overall budget (as today).
   - Currency → by the app language at that moment: Hebrew → ILS, English → USD, Spanish → EUR (owner 2026-11-23, Spanish 2026-11-24; before this every new user got ILS). Changeable in More as today.
-  - Budget and currency are written on the account's first entry with access on this phone, not at creation: until an admin approves, the database lets the account change only its name. Approved but first opened on another phone: they stay at the defaults. Offline at that moment: tried again when the internet is back. (Claude's choice)
-  - Terms version and time are saved as today, so the Google / Apple terms screen does not show again. Then the usual locked screen until an admin approves.
+  - Budget and currency are written on the account's first entry with access on this phone, not at creation: until the account has access (trial, subscription or admin grant), the database lets it change only its name. Given access but first opened on another phone: they stay at the defaults. Offline at that moment: tried again when the internet is back. (Claude's choice)
+  - Terms version and time are saved as today, so the Google / Apple terms screen does not show again. Then the paywall (see "Subscription and access").
 - **Existing account:** signing in through "Sign in", or Google / Apple on screen 5 for an account that already exists, drops the onboarding answers; that account's data does not change (Claude's choice).
 - **Offline:** screens 1–4 work offline. Creating the account needs the network: the usual error, the answers are kept.
 
@@ -198,7 +263,7 @@ Decided by the owner 2026-11-18.
 Decided by the owner 2026-11-15. No effect on any amount, budget or stat.
 
 - Three kinds, each with its own switch (small animation) on a Notifications screen under More. The home bell opens the same screen. All default on.
-- **Renewal** — sent by the server (push), so it always follows the real `expires_at`, also when the admin extended access and the app was not opened. Sent 30 days, 7 days and 1 day before expiry, and on the expiry day. `family` (no expiry) gets none. Tap opens a Renew screen: expiry date + "Contact the Kaspilo team" on WhatsApp. Sent once per kind per expiry date.
+- **Renewal** — sent by the server (push), so it always follows the real `expires_at`, also when the admin extended access and the app was not opened. Sent 30 days, 7 days and 1 day before expiry, and on the expiry day. Only to users whose access will really end: admin grants (`paid`, `vip`) and store subscriptions the user cancelled. A renewing store subscription gets none (the store renews it), `family` (no expiry) gets none. Tap opens a Renew screen: expiry date + "Choose a plan" (the paywall); for a store subscription "Manage subscription" opens the store's page. No WhatsApp or contact button (store rules, 2026-11-24). Sent once per kind per expiry date. Trial and billing-problem pushes: see "Subscription and access".
   - Sent by the daily job at 08:00 UTC (10:00 Israel in winter, 11:00 in summer). Days are counted in Israel time. **(assumed)**
   - Needs a development / store build and push credentials (Firebase for Android, Apple Developer account for iPhone). Does not work in Expo Go. iPhone starts working when the owner adds the Apple account; see `docs/notifications-setup.md`.
 - **Inactivity** — scheduled by the phone itself (local, no server). "Use" = opening the app. Reminders at 19:00 on day 4, day 14 and day 24 after the last open, then silence until the next open. Light tone, three different texts.
@@ -248,15 +313,18 @@ Product analytics: growth, use and engagement. Never the users' money: no amount
   - `first_open`: first launch on a device. Carries a random device id made on the phone (no user yet).
   - `signup_started`: a sign-up button pressed on onboarding's last screen (Apple, Google or email), or Google / Apple pressed on the sign-in screen by someone with no account yet. (moved with onboarding 2026-11-23, Claude's choice)
   - `signup_completed`: account created; method `email` | `google` | `apple`.
-  - `first_app_entry`: first time the user reaches home with access (after admin approval).
+  - `first_app_entry`: first time the user reaches home with access (store or admin).
+  - `paywall_viewed`: the paywall was shown (added 2026-11-24).
+  - Made by the server, not the phone (added 2026-11-24, Claude's choice): `trial_started`, `subscribed` (first paid period, after a trial or directly), `renewed`, `cancelled` (auto-renew turned off), `refunded`, `billing_issue`, `access_granted` (admin). Each also keeps the plan (monthly / yearly / paid / vip / family). Never a price or amount.
   - `app_open`: the app comes to the front while signed in, at most once per 30 minutes.
-  - "Approved" is read from `profiles.approved_at`, no event.
+  - "Got access" is the first `trial_started`, `subscribed` or `access_granted` event; users approved before 2026-11-24 use `profiles.approved_at`.
 - Each event keeps: name, time, user id or device id, platform, app version. Nothing else: no IP, device model, location.
-- Funnel: first open → sign-up started → sign-up completed → approved → first app entry.
-- Active user on a day: has an `app_open` that day and has access. Locked users (pending, expired, rejected) are not active. DAU / WAU / MAU = distinct active users in the day / last 7 / last 30 days.
+- Funnel (changed 2026-11-24): first open → sign-up started → sign-up completed → paywall viewed → got access (trial started or admin grant) → first app entry → paid (subscribed).
+- Subscriptions (added 2026-11-24): cards for paying monthly, paying yearly, in trial, admin access (manual / gift / family), billing problem, signed up without access. Trial → paid: of the trials that ended in the range, the share that became `subscribed`, shown with the count. Cancellations and refunds per month. Revenue is not shown in Kaspilo: it lives in the RevenueCat and store dashboards, so no money is stored here. (Claude's choice)
+- Active user on a day: has an `app_open` that day and has access. Locked users (no access yet, ended) are not active. DAU / WAU / MAU = distinct active users in the day / last 7 / last 30 days.
 - New vs returning on a day: new = first app entry that day; returning = active that day with first entry on an earlier day.
 - Platform (owner 2026-11-18): active users and first opens are split iPhone / Android. A user seen on both in the range counts once, by the device of their last app open. The CSV has `dau_ios` and `dau_android` per day.
-- "Signed up but did not start": approved, and no transaction added in the 7 days after first app entry (only "any transaction exists", never amounts).
+- "Signed up but did not start": got access, and no transaction added in the 7 days after first app entry (only "any transaction exists", never amounts).
 - Retention D1 / D7 / D30: cohort = day of first app entry; Dn = share of the cohort with an `app_open` exactly n days later. Always shown with the count ("3 of 8").
 - Days are Israel time (Asia/Jerusalem).
 - Admins and dev test users are not counted anywhere.
@@ -279,14 +347,14 @@ Product analytics: growth, use and engagement. Never the users' money: no amount
 ## Admin web
 
 - English, admins only, layout as in the owner's mockup. Works on phone and desktop (owner 2026-11-18): the menu folds into a top button, tables turn into cards on narrow screens, Analytics cards go 2×2 with full-width charts and a sideways-scrolling retention table.
-- KPIs: total users, active subscribers, pending approvals, expiring soon.
-- Pending approvals: approve (pick plan: paid / vip / family, and length: 1 year / 2 months) or reject.
-- Users: extend access (1 year / 2 months), change plan, see status and expiry.
+- KPIs: total users, paying (store), in trial, admin access, without access, expiring soon.
+- "Pending approvals" becomes **Without access** (2026-11-24): users who signed up and have no access, with "Give access". No reject (a user without access simply stays locked).
+- Users: each row shows status (in trial / monthly / yearly / manual payment / gift / family / ended), store (iPhone / Android / none), access end, renews yes / no, billing problem. Actions: give access, extend, revoke admin access, change admin plan, history of admin actions. Filters: without access, ending within 7 days, in trial, paying, admin access. See "Subscription and access" for the rules.
 
 ## Future (not built now, keep room)
 
 - Purchase detection: see "Notifications".
-- WhatsApp bot for approvals.
+- Apple Offer Codes / Google promo codes (no code change needed).
 
 ## Dev test users
 

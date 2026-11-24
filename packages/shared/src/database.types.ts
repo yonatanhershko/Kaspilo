@@ -6,8 +6,10 @@
 export type UserRole = 'client' | 'admin';
 export type AccountStatus = 'pending_approval' | 'active' | 'expired' | 'rejected';
 export type AccessPlan = 'paid' | 'vip' | 'family';
-/** How long the admin opens access for: 12 = one year (365 days), 2 = two calendar months. */
-export type AccessMonths = 12 | 2;
+/** How long the admin opens access for: 12 = one year (365 days), else calendar months. */
+export type AccessMonths = 1 | 2 | 3 | 12;
+/** Which source gives the current (or last) access: a store subscription or an admin grant. */
+export type AccessVia = 'store' | 'grant';
 
 export type Profile = {
   id: string;
@@ -15,9 +17,15 @@ export type Profile = {
   full_name: string;
   role: UserRole;
   status: AccountStatus;
+  /** Admin grant plan; null for a store-only user. */
   plan: AccessPlan | null;
+  /** First time the user got access (store or admin). */
   approved_at: string | null;
+  /** Effective access end: the later of the store end and the admin end (null = family). */
   expires_at: string | null;
+  /** End of the admin grant alone. */
+  grant_expires_at: string | null;
+  access_via: AccessVia | null;
   created_at: string;
   updated_at: string;
   /** Never counted in analytics (the owner's test accounts). Set by hand. */
@@ -28,11 +36,47 @@ export type SubscriptionEvent = {
   id: number;
   user_id: string;
   actor_id: string | null;
-  action: 'approve' | 'reject' | 'extend' | 'set_plan' | 'resubmit' | 'expire';
+  action: 'approve' | 'reject' | 'extend' | 'set_plan' | 'resubmit' | 'expire' | 'grant' | 'revoke' | 'store';
   plan: AccessPlan | null;
   old_expires_at: string | null;
   new_expires_at: string | null;
+  note: string | null;
+  /** RevenueCat event type for action 'store' ('sync' when the app asked). */
+  store_event: string | null;
   created_at: string;
+};
+
+/** A store subscription as RevenueCat reports it. Written only by the server. */
+export type StoreSubscription = {
+  user_id: string;
+  store: 'app_store' | 'play_store' | 'test_store' | 'promotional' | 'other';
+  product_id: string;
+  plan: 'monthly' | 'yearly' | null;
+  period_type: 'trial' | 'intro' | 'normal';
+  /** End of store access, grace period included. */
+  expires_at: string;
+  will_renew: boolean;
+  billing_issue_at: string | null;
+  refunded_at: string | null;
+  is_sandbox: boolean;
+  updated_at: string;
+};
+
+/** One row of the locked-screen export (export_my_rows). */
+export type ExportRow = {
+  id: string;
+  kind: 'tx' | 'deposit';
+  wallet_name: string | null;
+  wallet_default_key: string | null;
+  date: string;
+  created_at: string;
+  tx_type: TransactionType | null;
+  deposit_source: 'new' | 'existing' | null;
+  category_name: string | null;
+  category_default_key: string | null;
+  goal_name: string | null;
+  description: string;
+  amount: number;
 };
 
 /** A ready-made notification, as the admin dropdown shows it. */
@@ -64,7 +108,7 @@ export type DashboardStats = {
 };
 
 /** Events the app sends. sign-up completed is recorded by the database itself. */
-export type AnalyticsEventName = 'first_open' | 'signup_started' | 'first_app_entry' | 'app_open';
+export type AnalyticsEventName = 'first_open' | 'signup_started' | 'first_app_entry' | 'app_open' | 'paywall_viewed';
 
 /** One Israel-time day of product analytics (docs/spec.md "Analytics"). */
 export type AnalyticsDay = {
@@ -269,6 +313,7 @@ export type Database = {
         Update: Partial<SubscriptionEvent>;
         Relationships: [];
       };
+      store_subscriptions: Table<StoreSubscription, 'user_id'>;
       user_settings: Table<UserSettings, 'user_id'>;
       wallets: Table<Wallet, 'user_id'>;
       categories: Table<Category, 'type'>;
@@ -286,6 +331,21 @@ export type Database = {
       admin_reject_user: { Args: { p_user_id: string }; Returns: Profile };
       admin_extend_user: { Args: { p_user_id: string; p_months?: AccessMonths }; Returns: Profile };
       admin_set_plan: { Args: { p_user_id: string; p_plan: AccessPlan }; Returns: Profile };
+      admin_grant_access: {
+        Args: {
+          p_user_id: string;
+          p_plan: AccessPlan;
+          p_months?: AccessMonths | null;
+          p_until?: string | null;
+          p_note?: string | null;
+        };
+        Returns: Profile;
+      };
+      admin_revoke_access: { Args: { p_user_id: string; p_note?: string | null }; Returns: Profile };
+      export_my_rows: {
+        Args: { p_after_at?: string | null; p_after_id?: string | null; p_limit?: number };
+        Returns: ExportRow[];
+      };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
       admin_analytics: { Args: { p_from: string; p_to: string }; Returns: AnalyticsReport };
       track_event: {

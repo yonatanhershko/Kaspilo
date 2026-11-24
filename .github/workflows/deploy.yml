@@ -127,13 +127,15 @@ jobs:
       - name: Apply, in file order
         run: supabase db push --db-url "$PROD_DB_URL" --yes
       # After the migrations: the functions call database functions they add.
-      - name: Deploy Edge Functions (auth-password is public, so no JWT check; apple-revoke needs a session)
+      - name: Deploy Edge Functions (auth-password and revenuecat-webhook are public, so no JWT check; the others need a session)
         run: |
           if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$PROD_PROJECT_REF" ]; then
             echo "Missing PROD_SUPABASE_ACCESS_TOKEN (secret) or PROD_PROJECT_REF (variable): see docs/ci-cd.md"; exit 1
           fi
           supabase functions deploy auth-password --project-ref "$PROD_PROJECT_REF" --no-verify-jwt --yes
           supabase functions deploy apple-revoke --project-ref "$PROD_PROJECT_REF" --yes
+          supabase functions deploy revenuecat-webhook --project-ref "$PROD_PROJECT_REF" --no-verify-jwt --yes
+          supabase functions deploy revenuecat-sync --project-ref "$PROD_PROJECT_REF" --yes
 
   store-build:
     name: EAS store build

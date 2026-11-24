@@ -25,7 +25,9 @@ export const planLabel: Record<AccessPlan, string> = {
 
 export const monthsLabel: Record<AccessMonths, string> = {
   12: "1 year",
+  1: "1 month",
   2: "2 months",
+  3: "3 months",
 };
 
 export const planShort: Record<AccessPlan, string> = {
