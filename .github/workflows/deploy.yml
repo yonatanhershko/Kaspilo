@@ -164,10 +164,12 @@ jobs:
         # iPhone builds go on to TestFlight by themselves. Android is only built until the
         # Play Console app exists (docs/ci-cd.md), so it is not submitted.
         run: |
-          if [ "$PLATFORM" = "ios" ]; then
+          # "all" builds both: iOS goes to TestFlight on its own, Android stays a download.
+          if [ "$PLATFORM" != "android" ]; then
             eas build --platform ios --profile production --non-interactive --no-wait --auto-submit
-          else
-            eas build --platform "$PLATFORM" --profile production --non-interactive --no-wait
+          fi
+          if [ "$PLATFORM" != "ios" ]; then
+            eas build --platform android --profile production --non-interactive --no-wait
           fi
 
   update:

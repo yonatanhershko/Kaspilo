@@ -4,3 +4,4 @@ export * from './money';
 export * from './period';
 export * from './passwordAuth';
 export * from './purchase';
+export * from './quick';
