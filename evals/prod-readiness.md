@@ -64,7 +64,7 @@ Fill in a copy per run: `evals/runs/YYYY-MM-DD.md`.
 
 - [ ] In-app account deletion works and removes all data (Apple and Google require it).
 - [ ] If any social login is offered on iOS, the Apple sign-in requirement is resolved.
-- [ ] Payment outside the app (Bit) is reviewed against current App Store and Play rules for digital subscriptions; decision recorded.
+- [x] Subscriptions are sold only through App Store / Google Play billing (RevenueCat); the app never mentions paying outside the stores.
 - [ ] Privacy policy URL and data-safety forms are filled.
 - [ ] Terms of use: final wording from the owner replaces the draft in `i18n/he.json` and `en.json`; `TERMS_VERSION` in `src/auth/terms.ts` bumped.
 - [ ] Store listing gives a way to test: a reviewer account (active, with sample data) and its login in the review notes.

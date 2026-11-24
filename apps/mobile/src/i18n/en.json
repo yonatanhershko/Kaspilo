@@ -408,7 +408,7 @@
       "manualBody": "This is the manual setup for iOS {{version}}, about a minute.",
       "start": "Let's set it up",
       "later": "I'll do it later",
-      "ios27Title": "Your screens may look a bit different",
+      "ios27Title": "Your screens may look slightly different",
       "ios27Body": "The guide's screenshots are from iOS 26. On iOS 27 the steps are alike, but some buttons moved."
     },
     "update": {

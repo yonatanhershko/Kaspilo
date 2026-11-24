@@ -50,7 +50,7 @@ function Layer({ size, children }: { size: number; children: ReactNode }) {
 /**
  * Loading animation: the logo wallet is squeezed and its cards pop out and back.
  * Slow loop (2.8 s). With "reduce motion" the wallet stays still.
- * `width` is the wallet's own width; the drawing is a bit wider for the cards and bursts.
+ * `width` is the wallet's own width; the drawing is slightly wider for the cards and bursts.
  */
 export function WalletLoader({ width = 160, burstColor }: { width?: number; burstColor: string }) {
   const reduceMotion = useReducedMotion();
