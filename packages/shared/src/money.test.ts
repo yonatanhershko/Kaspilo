@@ -45,6 +45,7 @@ describe('formatting', () => {
   it('adds the currency sign without converting', () => {
     expect(formatMoney(185000, 'ILS')).toBe('₪ 1,850');
     expect(formatMoney(185000, 'USD')).toBe('$ 1,850');
+    expect(formatMoney(900, 'EUR')).toBe('€ 9');
   });
   it('round-trips through input', () => {
     for (const minor of [1, 99, 100, 1250, 25000, 123456789]) {

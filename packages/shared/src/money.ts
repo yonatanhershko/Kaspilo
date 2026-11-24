@@ -2,9 +2,9 @@
  * Money helpers. Every amount is an integer in minor units (agorot / cents).
  * No floating-point math touches an amount. Rules: .claude/rules/money.md
  */
-export type Currency = 'ILS' | 'USD';
+export type Currency = 'ILS' | 'USD' | 'EUR';
 
-export const currencySymbol: Record<Currency, string> = { ILS: '₪', USD: '$' };
+export const currencySymbol: Record<Currency, string> = { ILS: '₪', USD: '$', EUR: '€' };
 
 /** Largest amount accepted from input: 999,999,999.99 */
 export const MAX_AMOUNT_MINOR = 99_999_999_999;

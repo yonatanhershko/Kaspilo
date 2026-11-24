@@ -72,6 +72,7 @@
     "language": "Language",
     "languageHe": "עברית",
     "languageEn": "English",
+    "languageEs": "Español",
     "theme": "Theme",
     "themeSystem": "Match phone",
     "themeLight": "Light",
@@ -239,6 +240,7 @@
     "currency": "Currency",
     "currencyILS": "Shekel",
     "currencyUSD": "Dollar",
+    "currencyEUR": "Euro",
     "currencyNote": "Only the sign changes. Amounts are not converted.",
     "monthStart": "Budget month starts",
     "monthStartLabel": "Day of month (1–31)",
@@ -440,7 +442,7 @@
         },
         "cards": {
           "title": "Choose cards and tap \"Next\"",
-          "body": "Keep the cards you pay with and all the categories selected. If \"Run Immediately\" shows up later, choose it."
+          "body": "Keep the cards you pay with and all the categories selected."
         },
         "search": {
           "title": "Search \"Kaspilo\"",
@@ -452,7 +454,15 @@
         },
         "merchant": {
           "title": "Connect the merchant",
-          "body": "Tap Merchant and choose \"Shortcut Input\". Tap it again and choose \"Merchant\". Then tap ✓ at the top."
+          "body": "Tap Merchant and choose \"Shortcut Input\". Tap it again and choose \"Merchant\"."
+        },
+        "test": {
+          "title": "Check that it works",
+          "body": "(1) Tap ▶\uFE0E at the bottom: a test notification from Kaspilo arrives within a few seconds.\n(2) Then tap ✓ at the top to save."
+        },
+        "runNow": {
+          "title": "Choose \"Run Immediately\"",
+          "body": "Tap the new automation, choose \"Run Immediately\", leave \"Notify When Run\" off and tap \"Done\"."
         }
       }
     },
@@ -610,7 +620,7 @@
       "titleApple": "Paid with Apple Pay? Kaspilo already knows",
       "titleGoogle": "Paid with Google Pay? Kaspilo already knows",
       "chipAuto": "Automatic setup · 3 steps",
-      "chipManual": "iOS {{version}} · manual setup · 6 steps",
+      "chipManual": "iOS {{version}} · manual setup · 8 steps",
       "chipAndroid": "30-second setup",
       "noteAuto": "Add one shortcut and turn it on. The amount and the store stay on your phone until you save.",
       "noteManual": "On iOS 27 and later the setup is automatic. You can update your iPhone, or set it up by hand now with a picture guide.",

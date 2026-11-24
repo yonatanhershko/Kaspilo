@@ -6,7 +6,7 @@ import * as Device from 'expo-device';
 import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 
-import i18n, { currentLanguage } from '@/i18n';
+import i18n, { currentLanguage, pushLanguage } from '@/i18n';
 import { hasApplicationModule } from '@/lib/nativeApp';
 import { disablePurchaseDetection } from '@/purchase';
 import { supabase } from '@/lib/supabase';
@@ -229,7 +229,7 @@ export async function syncPushToken(): Promise<void> {
     const { error } = await supabase.rpc('register_push_token', {
       p_token: token,
       p_platform: Platform.OS,
-      p_language: currentLanguage(),
+      p_language: pushLanguage(currentLanguage()),
       p_subscription_reminders: subscription,
       p_inactivity_reminders: inactivity,
     });

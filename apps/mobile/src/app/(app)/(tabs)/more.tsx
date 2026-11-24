@@ -16,7 +16,7 @@ import { useMoney, useWalletName } from '@/data/hooks';
 import { useUpdateSettings, useUpdateWallet } from '@/data/queries';
 import { useOutbox } from '@/data/outbox';
 import { useWallet } from '@/data/walletContext';
-import { changeLanguage, useLanguage, useRowAlign } from '@/i18n';
+import { changeLanguage, LANGUAGE_NAMES, languages, useLanguage, useRowAlign } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -24,6 +24,8 @@ import { PressScale } from '@/components/ui/PressScale';
 
 type Open = null | 'name' | 'language' | 'theme' | 'currency' | 'startDay' | 'budget' | 'delete' | 'signOut';
 
+
+const CURRENCY_ICON = { ILS: 'currency-ils', USD: 'currency-usd', EUR: 'currency-eur' } as const;
 export default function MoreScreen() {
   const { t } = useTranslation();
   const language = useLanguage();
@@ -140,13 +142,13 @@ export default function MoreScreen() {
         row('account-circle-outline', t('more.account'), profile?.full_name || shownEmail || null, () =>
           show('name', profile?.full_name ?? ''),
         ),
-        row('translate', t('settings.language'), t(language === 'he' ? 'settings.languageHe' : 'settings.languageEn'), () => show('language')),
+        row('translate', t('settings.language'), LANGUAGE_NAMES[language], () => show('language')),
         row('theme-light-dark', t('settings.theme'), themeLabel[preference], () => show('theme')),
       ])}
 
       {group([
         row(
-          money.currency === 'ILS' ? 'currency-ils' : 'currency-usd',
+          CURRENCY_ICON[money.currency],
           t('more.currency'),
           currencySymbol[money.currency],
           () => show('currency'),
@@ -218,10 +220,7 @@ export default function MoreScreen() {
         onClose={close}
         actions={[{ label: t('common.close'), variant: 'outline', onPress: close }]}>
         {choices<Language>(
-          [
-            { value: 'he', label: t('settings.languageHe') },
-            { value: 'en', label: t('settings.languageEn') },
-          ],
+          languages.map((value) => ({ value, label: LANGUAGE_NAMES[value] })),
           language,
           (value) => {
             close();
@@ -251,6 +250,7 @@ export default function MoreScreen() {
           [
             { value: 'ILS', label: `₪  ${t('more.currencyILS')}` },
             { value: 'USD', label: `$  ${t('more.currencyUSD')}` },
+            { value: 'EUR', label: `€  ${t('more.currencyEUR')}` },
           ],
           money.currency,
           (value) => void run(() => update.mutateAsync({ currency: value })),

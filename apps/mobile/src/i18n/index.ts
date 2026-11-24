@@ -7,23 +7,42 @@ import { I18nManager, Platform } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import type { Currency } from '@kaspilo/shared';
+
 import { type Language, saveLanguagePreference } from '@/lib/preferences';
 
 import en from './en.json';
+import es from './es.json';
 import he from './he.json';
 
 const i18n = createInstance();
 
-export const languages: Language[] = ['he', 'en'];
+export const languages: Language[] = ['he', 'en', 'es'];
 const RELOAD_MARK_KEY = 'kaspilo.dirReload';
 
-/** Hebrew phone -> Hebrew. Any other phone language -> English. */
+/** Hebrew phone -> Hebrew, Spanish phone -> Spanish. Any other phone language -> English. */
 export function deviceLanguage(): Language {
   const code = getLocales()[0]?.languageCode;
   // Older Android reports Hebrew as "iw".
   if (code === 'he' || code === 'iw') return 'he';
+  if (code === 'es') return 'es';
   return 'en';
 }
+
+/** Locale for `Intl` dates and numbers in each app language. */
+export const LOCALES: Record<Language, string> = { he: 'he-IL', en: 'en-GB', es: 'es-ES' };
+
+/** Before sign-up the currency follows the app language (docs/spec.md "Onboarding"). */
+export const LANGUAGE_CURRENCY: Record<Language, Currency> = { he: 'ILS', en: 'USD', es: 'EUR' };
+
+/** Each language's name in itself, for pickers (the same in every app language). */
+export const LANGUAGE_NAMES: Record<Language, string> = { he: 'עברית', en: 'English', es: 'Español' };
+
+/**
+ * The server sends push texts in Hebrew or English only, so Spanish devices get English
+ * pushes for now (docs/spec.md "Languages").
+ */
+export const pushLanguage = (language: Language): 'he' | 'en' => (language === 'he' ? 'he' : 'en');
 
 /**
  * The layout never mirrors: same on iPhone, Android and web (owner decision).
@@ -70,7 +89,7 @@ export function useRowAlign() {
 export async function initI18n(saved: Language | null): Promise<void> {
   const language = saved ?? deviceLanguage();
   await i18n.use(initReactI18next).init({
-    resources: { he: { translation: he }, en: { translation: en } },
+    resources: { he: { translation: he }, en: { translation: en }, es: { translation: es } },
     lng: language,
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
@@ -85,7 +104,8 @@ export async function changeLanguage(language: Language): Promise<void> {
   await applyDirection(language);
 }
 
-export const currentLanguage = (): Language => (i18n.language === 'en' ? 'en' : 'he');
+export const currentLanguage = (): Language =>
+  i18n.language === 'en' || i18n.language === 'es' ? i18n.language : 'he';
 
 function subscribeToLanguage(onChange: () => void) {
   i18n.on('languageChanged', onChange);

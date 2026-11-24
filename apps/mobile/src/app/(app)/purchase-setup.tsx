@@ -2,6 +2,7 @@ import { colors as palette } from '@kaspilo/tokens';
 import { router } from 'expo-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { AppState, Image, type ImageSourcePropType, Linking, Platform, ScrollView, View } from 'react-native';
 import Animated, {
   Easing,
@@ -35,7 +36,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 /**
  * "Purchase detected" setup, once per phone (docs/spec.md "Purchase detected").
  * iPhone below iOS 27: first the advice to update (automatic setup needs iOS 27), with the
- * manual path under it → intro → 7-step guide with screenshots → done.
+ * manual path under it → intro → 8-step guide with screenshots and short recordings → done.
  * iOS 27 and later: intro → the two-step quick path with the shared shortcut (the manual guide
  * while that link is not set) → done.
  * Android: the notification-access explanation Google Play requires → settings → done.
@@ -47,42 +48,60 @@ const IOS_UPDATE_HELP_URL = 'https://support.apple.com/HT204204';
 /** "Manual setup for iOS 26": always 26, as in the owner's reference (owner 2026-11-23). */
 const manualVersion = 26;
 
-type Mark = { x: number; y: number };
+/** Tap point in percent. `n` numbers the taps when a screenshot has more than one. */
+type Mark = { x: number; y: number; n?: number };
 type Shot = { source: ImageSourcePropType; ratio: number };
-type GuideStep = { key: string; image: Shot; mark: Mark };
+/** A short looping screen recording. `still`: the second shown, paused, with "reduce motion". */
+type Clip = { source: number; ratio: number; still: number };
+type GuideStep = { key: string } & ({ image: Shot; marks: Mark[] } | { clip: Clip });
+
+// Screen recordings from the owner's iPhone (Hebrew, light), status bar cropped off, 384 × 800,
+// no sound, the last frame held 1.5 s (owner 2026-11-24: a moving picture is clearer here).
+// The search clip has the owner's other apps blurred for its first 1.5 s.
+const CLIP_RATIO = 384 / 800;
 
 // Screenshots from the owner's iOS 26 iPhone (Hebrew), status bar cropped off and the cards
-// blurred, 600 px wide (`ratio` is width / height). `mark` is the tap point in percent.
+// blurred, 600 px wide (`ratio` is width / height).
 const GUIDE: GuideStep[] = [
   {
     key: 'automation',
     image: { source: require('../../../assets/images/purchase-setup/1-new-automation.jpg'), ratio: 600 / 1209 },
-    mark: { x: 50, y: 60.5 },
+    marks: [{ x: 50, y: 60.5 }],
   },
   {
     key: 'wallet',
     image: { source: require('../../../assets/images/purchase-setup/2-wallet.jpg'), ratio: 600 / 1209 },
-    mark: { x: 76, y: 49 },
+    marks: [{ x: 76, y: 49 }],
   },
   {
     key: 'cards',
     image: { source: require('../../../assets/images/purchase-setup/3-cards.jpg'), ratio: 600 / 722 },
-    mark: { x: 12.2, y: 8 },
+    marks: [{ x: 12.2, y: 8 }],
   },
   {
     key: 'search',
-    image: { source: require('../../../assets/images/purchase-setup/4-search.jpg'), ratio: 600 / 553 },
-    mark: { x: 62, y: 88.5 },
+    clip: { source: require('../../../assets/images/purchase-setup/4-search.mp4'), ratio: CLIP_RATIO, still: 8.5 },
   },
   {
     key: 'amount',
-    image: { source: require('../../../assets/images/purchase-setup/5-amount.jpg'), ratio: 600 / 1220 },
-    mark: { x: 82, y: 93 },
+    clip: { source: require('../../../assets/images/purchase-setup/5-amount.mp4'), ratio: CLIP_RATIO, still: 9.5 },
   },
   {
     key: 'merchant',
-    image: { source: require('../../../assets/images/purchase-setup/6-merchant.jpg'), ratio: 600 / 1211 },
-    mark: { x: 82, y: 76.8 },
+    clip: { source: require('../../../assets/images/purchase-setup/6-merchant.mp4'), ratio: CLIP_RATIO, still: 9 },
+  },
+  {
+    // ▶ at the bottom runs a test, then ✓ at the top saves (owner 2026-11-24).
+    key: 'test',
+    image: { source: require('../../../assets/images/purchase-setup/7-test.jpg'), ratio: 600 / 1212 },
+    marks: [
+      { x: 16.5, y: 93.1, n: 1 },
+      { x: 9.7, y: 4.8, n: 2 },
+    ],
+  },
+  {
+    key: 'runNow',
+    clip: { source: require('../../../assets/images/purchase-setup/8-run-immediately.mp4'), ratio: CLIP_RATIO, still: 8.5 },
   },
 ];
 
@@ -430,13 +449,17 @@ function Guide({
         </AppText>
         <Title title={t(`${base}.title`)} body={t(`${base}.body`)} />
       </View>
-      <Screenshot key={current.key} image={current.image} mark={current.mark} label={t(`${base}.title`)} />
+      {'clip' in current ? (
+        <ClipView key={current.key} clip={current.clip} label={t(`${base}.title`)} />
+      ) : (
+        <Screenshot key={current.key} image={current.image} marks={current.marks} label={t(`${base}.title`)} />
+      )}
     </Shell>
   );
 }
 
 /** A screenshot in a phone-like frame, with a soft pulsing mark on the place to tap. */
-function Screenshot({ image, mark, label }: { image: Shot; mark: Mark; label: string }) {
+function Screenshot({ image, marks, label }: { image: Shot; marks: Mark[]; label: string }) {
   const { source, ratio } = image;
   return (
     <View
@@ -446,7 +469,38 @@ function Screenshot({ image, mark, label }: { image: Shot; mark: Mark; label: st
       accessibilityRole="image"
       accessibilityLabel={label}>
       <Image source={source} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-      <TapMark mark={mark} />
+      {marks.map((mark) => (
+        <TapMark key={`${mark.x}:${mark.y}`} mark={mark} />
+      ))}
+    </View>
+  );
+}
+
+/** A screen recording that loops silently in the same phone-like frame. Still with "reduce motion". */
+function ClipView({ clip, label }: { clip: Clip; label: string }) {
+  const reduceMotion = useReducedMotion();
+  // Each step mounts its own clip (keyed), so the setting at that moment decides.
+  const player = useVideoPlayer(clip.source, (p) => {
+    p.muted = true;
+    p.loop = true;
+    if (reduceMotion) p.currentTime = clip.still;
+    else p.play();
+  });
+  return (
+    <View
+      className="self-center overflow-hidden rounded-[28px] border-4 border-border bg-black"
+      style={{ width: '54%', aspectRatio: clip.ratio }}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={label}>
+      <VideoView
+        player={player}
+        style={{ width: '100%', height: '100%' }}
+        contentFit="cover"
+        nativeControls={false}
+        allowsPictureInPicture={false}
+        surfaceType="textureView"
+      />
     </View>
   );
 }
@@ -511,6 +565,25 @@ function TapMark({ mark }: { mark: Mark }) {
       <View
         style={{ position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: MARK, opacity: 0.65 }}
       />
+      {mark.n != null && (
+        <View
+          style={{
+            position: 'absolute',
+            // Near the top edge the number goes under the ring, or the frame would cut it.
+            ...(mark.y < 15 ? { bottom: -7 } : { top: -7 }),
+            right: -7,
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: MARK,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <AppText weight="bold" className="text-center text-[12px]" style={{ color: palette.light.onPrimary }}>
+            {mark.n}
+          </AppText>
+        </View>
+      )}
     </View>
   );
 }

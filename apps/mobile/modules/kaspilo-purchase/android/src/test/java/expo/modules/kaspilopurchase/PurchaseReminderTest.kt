@@ -30,6 +30,7 @@ class PurchaseReminderTest {
   fun formatsLikeTheApp() {
     assertEquals("₪ 1,850", PurchaseReminder.display(185000, "ILS").replace("‎", ""))
     assertEquals("$ 12.50", PurchaseReminder.display(1250, "USD").replace("‎", ""))
+    assertEquals("€ 9", PurchaseReminder.display(900, "EUR").replace("‎", ""))
   }
 
   @Test

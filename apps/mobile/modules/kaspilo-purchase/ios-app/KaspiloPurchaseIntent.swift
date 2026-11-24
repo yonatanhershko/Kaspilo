@@ -210,9 +210,9 @@ enum KaspiloPurchaseReminder {
     return nil
   }
 
-  /// Same as the app's formatMoney: "₪ 1,850" or "$ 12.50", kept left-to-right in Hebrew text.
+  /// Same as the app's formatMoney: "₪ 1,850", "$ 12.50" or "€ 9", kept left-to-right in Hebrew text.
   static func display(_ minor: Int, currency: String?) -> String {
-    let symbol = currency == "USD" ? "$" : "₪"
+    let symbol = currency == "USD" ? "$" : currency == "EUR" ? "€" : "₪"
     let digits = String(minor / 100)
     var grouped = ""
     for (index, char) in digits.enumerated() {

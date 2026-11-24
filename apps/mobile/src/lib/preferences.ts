@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /** Small device-local preferences. Not sensitive, so plain storage is fine. */
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type Language = 'he' | 'en';
+export type Language = 'he' | 'en' | 'es';
 
 const THEME_KEY = 'kaspilo.theme';
 const LANGUAGE_KEY = 'kaspilo.language';
@@ -19,7 +19,7 @@ export async function saveThemePreference(value: ThemePreference): Promise<void>
 /** null means the user never chose, so the phone language decides. */
 export async function loadLanguagePreference(): Promise<Language | null> {
   const value = await AsyncStorage.getItem(LANGUAGE_KEY).catch(() => null);
-  return value === 'he' || value === 'en' ? value : null;
+  return value === 'he' || value === 'en' || value === 'es' ? value : null;
 }
 
 export async function saveLanguagePreference(value: Language): Promise<void> {

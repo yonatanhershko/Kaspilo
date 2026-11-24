@@ -20,6 +20,7 @@ import { resetTermsRead, useTermsRead } from '@/auth/terms';
 import { checkName } from '@/auth/validation';
 import { AppleLogo } from '@/components/AppleLogo';
 import { GoogleLogo } from '@/components/GoogleLogo';
+import { LanguageMenu } from '@/components/LanguageMenu';
 import { Sprout } from '@/components/nature/Sprout';
 import { Wallet } from '@/components/nature/Wallet';
 import { AmountInput } from '@/components/ui/AmountField';
@@ -30,7 +31,7 @@ import { Icon } from '@/components/ui/Icon';
 import { PressScale } from '@/components/ui/PressScale';
 import { Screen } from '@/components/ui/Screen';
 import { TextField } from '@/components/ui/TextField';
-import { useLanguage, useRowAlign } from '@/i18n';
+import { LANGUAGE_CURRENCY, useLanguage, useRowAlign } from '@/i18n';
 import { getPermission, requestPermission } from '@/notifications';
 import { clearOnboardingIntent, saveAnswers, startFromOnboarding, useOnboarding } from '@/onboarding/store';
 import { purchaseDetectionAvailable, purchaseNeedsNewerIos, quickSetupHere } from '@/purchase';
@@ -155,7 +156,13 @@ function Header({ index, step, onBack }: { index: number; step: StepKey; onBack:
           <BarPart key={i} fill={i < part ? 1 : i === part ? fill : 0} fromRight={align.he} />
         ))}
       </View>
-      <View className="h-[44px] w-[44px]" />
+      {step === 'value' ? (
+        <View className="h-[44px] min-w-[44px] items-end justify-center">
+          <LanguageMenu />
+        </View>
+      ) : (
+        <View className="h-[44px] w-[44px]" />
+      )}
     </View>
   );
 }
@@ -353,7 +360,7 @@ function NameStep({ initial, onDone }: { initial: string; onDone: () => void }) 
 
 /** Before sign-up the currency follows the app language (owner 2026-11-23). */
 function useOnboardingCurrency(): Currency {
-  return useLanguage() === 'he' ? 'ILS' : 'USD';
+  return LANGUAGE_CURRENCY[useLanguage()];
 }
 
 function BudgetStep({ name, initial, onDone }: { name: string; initial: number | null; onDone: () => void }) {

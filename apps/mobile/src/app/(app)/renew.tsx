@@ -9,7 +9,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
-import { useLanguage } from '@/i18n';
+import { LOCALES, useLanguage } from '@/i18n';
 
 /** Opened from a renewal notification: when access ends, and how to renew. */
 export default function RenewScreen() {
@@ -21,7 +21,7 @@ export default function RenewScreen() {
   const expiresAt = profile?.expires_at ?? null;
   const days = profile ? daysUntilExpiry(profile) : null;
   const date = expiresAt
-    ? new Intl.DateTimeFormat(language === 'he' ? 'he-IL' : 'en-GB', {
+    ? new Intl.DateTimeFormat(LOCALES[language], {
         day: 'numeric',
         month: 'long',
         year: 'numeric',

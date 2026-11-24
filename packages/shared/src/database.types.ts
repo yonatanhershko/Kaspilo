@@ -118,7 +118,7 @@ export type RepeatFrequency = 'weekly' | 'monthly' | 'yearly';
 
 export type UserSettings = {
   user_id: string;
-  currency: 'ILS' | 'USD';
+  currency: 'ILS' | 'USD' | 'EUR';
   /** Unused since wallets: read Wallet.month_start_day. */
   month_start_day: number;
   /** Unused since wallets: read Wallet.overall_budget. */
