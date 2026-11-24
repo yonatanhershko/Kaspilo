@@ -155,6 +155,18 @@ if (!SERVICE) {
   const goal = await active.c.from('goals').insert({ name: 'zz-rate-' + stamp, target_amount: 1000, wallet_id: wallet }).select('id');
   check('31st new goal in a minute is refused (429)', goal.status === 429, `${goal.status} ${goal.error?.code}`);
 
+  // Changes and deletions: one request counts once; over 120 a minute is refused.
+  await clearCounters();
+  const target = (await active.c.from('transactions').insert(row()).select('id').single()).data.id;
+  await admin.from('rate_counters').delete().eq('user_id', active.id);
+  const edit = await active.c.from('transactions').update({ description: 'zz-rate-' + stamp }).eq('description', 'zz-rate-' + stamp).select('id');
+  check('an edit of many rows counts once', !edit.error && (await counter('changes', 60)) === 1, `${edit.error?.message} hits=${await counter('changes', 60)}`);
+  await admin.from('rate_counters').update({ hits: 120 }).eq('user_id', active.id).eq('action', 'changes').eq('window_seconds', 60);
+  const del = await active.c.from('transactions').delete().eq('id', target).select('id');
+  const still = (await active.c.from('transactions').select('id').eq('id', target)).data?.length;
+  check('121st change in a minute is refused (429) and deletes nothing', del.status === 429 && still === 1, `${del.status} ${del.error?.code} left=${still}`);
+  await clearCounters();
+
   // Push tokens: the same token again is free; a new one over 10 an hour is refused.
   await clearCounters();
   const tokenA = `ExponentPushToken[zzrate${stamp}a]`;

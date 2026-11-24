@@ -72,6 +72,9 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // No ads and no advertising ID. A library (Firebase / Play services) may add this
+    // permission to the merged manifest; remove it so Play's "Advertising ID: No" holds.
+    blockedPermissions: ['com.google.android.gms.permission.AD_ID'],
   },
   web: {
     output: 'single',

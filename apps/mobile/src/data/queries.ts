@@ -498,6 +498,8 @@ export type TransactionInput = {
   date: string;
   category_id: string;
   repeat: Repeat;
+  /** Only for a plain one: the row's id, made by the caller so it can undo it. */
+  id?: string;
 };
 
 export function useAddTransaction() {
@@ -533,7 +535,7 @@ export function useAddTransaction() {
       } else {
         // The id is made here, so a send that is repeated later never makes a second row.
         const row = {
-          id: randomUUID(),
+          id: input.id ?? randomUUID(),
           wallet_id: wallet,
           type: input.type,
           amount: input.amount,
@@ -588,6 +590,22 @@ export function useDeleteTransaction() {
       // Still on the phone: the server never had it.
       if (tx.sync) return removeQueued(tx.id);
       unwrap(await supabase.from('transactions').delete().eq('id', tx.id).select());
+      await invalidate();
+    },
+  });
+}
+
+/**
+ * Undo a quick add (docs/spec.md "Quick expenses"). Takes it off the phone if it is
+ * still waiting there, and off the server in case it was already sent.
+ */
+export function useUndoAdd() {
+  const invalidate = useInvalidateMoney();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      removeQueued(id);
+      if (!(await isOnline())) return;
+      unwrap(await supabase.from('transactions').delete().eq('id', id).select());
       await invalidate();
     },
   });

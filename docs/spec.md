@@ -90,10 +90,11 @@ Each signed-in user, enforced in the database (not in the app), so a changed cli
 | Saving transactions (a single one, a recurring one, installments, the catch-up of recurring ones) | 60 saves a minute and 2,000 a day. One save counts once, however many rows it makes (installments up to 120) |
 | Transaction rows | 5,000 a day (stops one huge save) |
 | New wallets, categories, goals, goal deposits, recurring rules | 30 a minute and 500 a day, each kind on its own |
+| Changing or deleting money data (transactions, wallets, categories, goals, goal deposits, recurring rules) (owner 2026-11-23) | 120 a minute and 5,000 a day, all kinds together. One request counts once, however many rows it changes (deleting a wallet is one). Deleting the account is never limited |
 | Registering a new phone for notifications | 10 new device tokens an hour (the app updates its own token on every open; that is not counted) |
 | Reading (lists, history, export) | No extra limit: RLS already shows a user only their own rows, and lists load in pages |
 
-- Minutes and days are fixed windows (a minute on the clock, a UTC day). Changes and deletions are not limited. Server jobs (daily cron, sign-up defaults) are not counted.
+- Minutes and days are fixed windows (a minute on the clock, a UTC day). Server jobs (daily cron, sign-up defaults) are not counted.
 - Over the limit the server answers 429 and nothing is saved. The app shows "Too many actions. Wait a minute and try again." A transaction added offline stays on the phone and is sent again later, so nothing is lost.
 - Analytics events keep their own limits ("Analytics").
 
@@ -152,6 +153,7 @@ Decided by the owner 2026-11-17. Layout and details chosen by Claude from the ap
 
 - Tabs: Today (home), Stats, Goals, More.
 - Home: no wallet logo in the header after login (owner 2026-11-14); wallet chip (see "Wallets"), bell, date, period expense total, overall left, Income and Expense buttons, category cards. Tap a card → that period's transactions with edit / delete.
+- Quick expenses (owner 2026-11-23): under the Income and Expense buttons on home, one row of small pills, scrolled sideways, no title. Each pill is an expense category + amount (icon, name, amount on one line). Built from the current wallet's expenses dated in the last 60 days up to today, without rows made by a recurring or installment rule, and only in categories that are not archived. A pair (category, amount) needs at least 2 rows; most rows first, a tie goes to the one used last. At most 6 pills. Expenses only, no income. Tap a pill: saves that expense at once, dated today, no description, then a note rises from the bottom (no bounce) for 5 s with "Undo" (owner 2026-11-23, was 3 s) (undo deletes it). No pair yet: no row.
 - Add transaction: bottom sheet; category is an icon grid with a "+" tile at the end.
 - Export is a CSV file (opens in Excel and Google Sheets, Hebrew included).
 - Stats: monthly / yearly, expense / income, previous / next period, donut with total in the center, legend with percent and sum, change versus the previous period.

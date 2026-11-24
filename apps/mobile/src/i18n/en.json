@@ -635,5 +635,11 @@
       "email": "Sign up with email",
       "privacy": "Your data is private and secure"
     }
+  },
+  "quick": {
+    "saved": "Saved: {{item}}",
+    "undo": "Undo",
+    "undone": "Undone",
+    "add": "Add expense: {{item}}"
   }
 }

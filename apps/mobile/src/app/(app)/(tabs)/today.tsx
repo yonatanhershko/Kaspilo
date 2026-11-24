@@ -18,6 +18,7 @@ import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals } f
 import { useOutbox } from '@/data/outbox';
 import { useWallet } from '@/data/walletContext';
 import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
+import { type QuickNote, QuickExpenses, QuickNoteToast } from '@/components/QuickExpenses';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useCountUp } from '@/lib/useCountUp';
@@ -42,6 +43,8 @@ export default function TodayScreen() {
   const deposits = useGoalDepositsInPeriod(period);
   // Added offline and refused by the server: the user must retry or delete them (History).
   const rejected = useOutbox().filter((x) => x.wallet_id === wallet.id && x.state === 'rejected').length;
+
+  const [note, setNote] = useState<QuickNote | null>(null);
 
   const loading = categories.isLoading || totals.isLoading;
   const failed = categories.isError || totals.isError;
@@ -195,6 +198,8 @@ export default function TodayScreen() {
             </PressScale>
           </View>
 
+          <QuickExpenses categories={categories.data} onNote={setNote} />
+
           <AppText weight="medium" className="mb-2 mt-6 text-[17px]">
             {t('today.categoriesThisPeriod')}
           </AppText>
@@ -258,6 +263,7 @@ export default function TodayScreen() {
           )}
         </ScrollView>
       </View>
+      {note && <QuickNoteToast note={note} bottom={tabBarHeight + 12} onDone={() => setNote(null)} />}
     </View>
   );
 }
