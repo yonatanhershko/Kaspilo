@@ -115,6 +115,17 @@ for (const [fn, args] of [['admin_grant_access', { p_user_id: pending.id, p_plan
   const bad = await expired.c.rpc('export_my_rows', { p_limit: 5000 });
   check('export page size is capped', bad.error?.code === '22023', bad.error?.code);
 }
+// Admin web (phase C): KPIs, subscriptions report, users with their store row.
+{
+  const st = await admin.c.rpc('admin_dashboard_stats');
+  check('admin stats have the store KPIs', !st.error && ['paying', 'in_trial', 'admin_access', 'without_access'].every((k) => typeof st.data?.[k] === 'number'), st.error?.message);
+  const rep = await admin.c.rpc('admin_subscription_report', { p_from: '2026-11-01', p_to: '2026-11-30' });
+  check('admin gets the subscriptions report', !rep.error && typeof rep.data?.now?.paying_yearly === 'number', rep.error?.message);
+  const no = await active.c.rpc('admin_subscription_report', { p_from: '2026-11-01', p_to: '2026-11-30' });
+  check('non-admin cannot read the subscriptions report', no.error?.code === '42501', no.error?.code);
+  const users = await admin.c.from('profiles').select('id, store_subscriptions(*)').eq('role', 'client').limit(5);
+  check('admin lists users with their store row', !users.error && Array.isArray(users.data), users.error?.message);
+}
 // lifecycle on the pending user, then put it back
 {
   const rej = await admin.c.rpc('admin_reject_user', { p_user_id: pending.id });

@@ -102,9 +102,32 @@ export type PushAudience = {
 
 export type DashboardStats = {
   total_users: number;
-  active_subscribers: number;
-  pending_approvals: number;
+  /** Store subscription past its trial, not ended. */
+  paying: number;
+  in_trial: number;
+  /** Access from an admin grant (manual payment, gift, family). */
+  admin_access: number;
+  without_access: number;
+  /** Access really ends within 7 days (not a store subscription that renews). */
   expiring_soon: number;
+  billing_issue: number;
+};
+
+/** admin_subscription_report: the subscriptions block of the analytics page. Counts only. */
+export type SubscriptionReport = {
+  now: {
+    paying_monthly: number;
+    paying_yearly: number;
+    in_trial: number;
+    admin_paid: number;
+    admin_vip: number;
+    admin_family: number;
+    billing_issue: number;
+    without_access: number;
+  };
+  /** Trials whose 14 days ended in the range, and how many became paid. */
+  trials: { ended: number; converted: number };
+  months: { month: string; cancelled: number; refunded: number }[];
 };
 
 /** Events the app sends. sign-up completed is recorded by the database itself. */
@@ -121,11 +144,16 @@ export type AnalyticsDay = {
   first_opens: number;
   signups_started: number;
   signups_completed: number;
+  /** First time getting access: trial, subscription or admin grant (legacy: approval). */
   approved: number;
   first_entries: number;
   /** Active users that day by the device of their last app open. */
   dau_ios: number;
   dau_android: number;
+  /** Users who saw the paywall that day. */
+  paywall_views: number;
+  /** First paid store subscription (after a trial or directly). */
+  paid: number;
 };
 
 /** A user seen on both counts once, by the device of their last app open in the range. */
@@ -348,6 +376,7 @@ export type Database = {
       };
       admin_dashboard_stats: { Args: Record<never, never>; Returns: DashboardStats };
       admin_analytics: { Args: { p_from: string; p_to: string }; Returns: AnalyticsReport };
+      admin_subscription_report: { Args: { p_from: string; p_to: string }; Returns: SubscriptionReport };
       track_event: {
         Args: {
           p_name: AnalyticsEventName;

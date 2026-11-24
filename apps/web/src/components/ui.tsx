@@ -1,7 +1,4 @@
-import type { AccessPlan, AccountStatus } from "@kaspilo/shared";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-
-import { planShort, statusLabel } from "@/lib/format";
 
 const buttonStyles = {
   primary: "bg-primary text-on-primary hover:opacity-90",
@@ -25,36 +22,11 @@ export function Button({
   );
 }
 
-const statusStyles: Record<AccountStatus, string> = {
-  active: "bg-success",
-  pending_approval: "bg-accent",
-  expired: "bg-text-muted",
-  rejected: "bg-danger",
-};
-
-export function StatusBadge({ status }: { status: AccountStatus }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-sm">
-      <span className={`h-2 w-2 rounded-full ${statusStyles[status]}`} />
-      {statusLabel[status]}
-    </span>
-  );
-}
-
-export function PlanBadge({ plan }: { plan: AccessPlan | null }) {
-  if (!plan) return <span className="text-sm text-text-muted">—</span>;
-  return (
-    <span className="rounded-md bg-surface-muted px-2 py-0.5 text-xs font-medium">
-      {planShort[plan]}
-    </span>
-  );
-}
-
 /** The user signed in with Apple and hid their email: the address only forwards mail. */
 export function AppleHiddenTag() {
   return (
     <span
-      title="Apple Hide My Email address. Mail sent to it reaches the user's real inbox, but it can't be matched to a Bit payment. Match by name instead."
+      title="Apple Hide My Email address. Mail sent to it reaches the user's real inbox, but it may not match the name on a manual payment. Match by name instead."
       className="ml-1 inline-block rounded-md bg-surface-muted px-1.5 py-0.5 align-middle text-[11px] font-medium text-text"
     >
       Apple · hidden email

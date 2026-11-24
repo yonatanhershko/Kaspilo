@@ -9,7 +9,7 @@ import { env } from "@/lib/env";
 
 const nav = [
   { href: "/", label: "Dashboard" },
-  { href: "/approvals", label: "Pending approvals" },
+  { href: "/without-access", label: "Without access" },
   { href: "/users", label: "Users" },
   { href: "/analytics", label: "Analytics" },
 ] as const;
@@ -28,10 +28,10 @@ function Logo() {
 }
 
 export function AdminShell({
-  pendingCount,
+  withoutAccessCount,
   children,
 }: {
-  pendingCount: number | null;
+  withoutAccessCount: number | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -82,9 +82,9 @@ export function AdminShell({
                   }`}
                 >
                   {item.label}
-                  {item.href === "/approvals" && !!pendingCount && (
+                  {item.href === "/without-access" && !!withoutAccessCount && (
                     <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-on-accent">
-                      {pendingCount}
+                      {withoutAccessCount}
                     </span>
                   )}
                 </Link>

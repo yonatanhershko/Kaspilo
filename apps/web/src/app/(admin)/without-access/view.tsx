@@ -1,12 +1,13 @@
 import { UserListPage } from "@/components/UserListPage";
 
-export function ApprovalsPage() {
+/** Signed up, no access now (never had it, or it ended). The admin may give access. */
+export function WithoutAccessPage() {
   return (
     <UserListPage
-      title="Pending approvals"
-      subtitle="New sign-ups waiting for their payment to be checked. Match the payer by name."
-      fixedStatus="pending_approval"
-      emptyText="No one is waiting for approval."
+      title="Without access"
+      subtitle="Signed up and locked: never had access, or it ended. Give access for a gift or a payment made outside the app."
+      fixedFilter="without_access"
+      emptyText="Everyone has access."
     />
   );
 }

@@ -1,43 +1,48 @@
 "use client";
 
-import type { AccountStatus } from "@kaspilo/shared";
 import { useState } from "react";
 
-import { fetchProfiles, PAGE_SIZE } from "@/lib/admin-api";
-import { statusLabel } from "@/lib/format";
+import { fetchUsers, PAGE_SIZE, type UserFilter } from "@/lib/admin-api";
 import { useAsync } from "@/lib/use-async";
 
 import { NotifyDialog } from "./NotifyDialog";
 import { UserTable } from "./UserTable";
 import { Button, Card, DataState } from "./ui";
 
-const allStatuses: AccountStatus[] = ["pending_approval", "active", "expired", "rejected"];
+const filters: { value: UserFilter; label: string }[] = [
+  { value: "all", label: "All users" },
+  { value: "without_access", label: "Without access" },
+  { value: "ending", label: "Ending within 7 days" },
+  { value: "trial", label: "In trial" },
+  { value: "paying", label: "Paying (store)" },
+  { value: "admin", label: "Admin access" },
+];
 
-/** Searchable, paged user list. `fixedStatus` locks it to one status. */
+/** Searchable, paged user list. `fixedFilter` locks it to one filter. */
 export function UserListPage({
   title,
   subtitle,
-  fixedStatus,
+  fixedFilter,
   emptyText,
 }: {
   title: string;
   subtitle: string;
-  fixedStatus?: AccountStatus;
+  fixedFilter?: UserFilter;
   emptyText: string;
 }) {
-  const [status, setStatus] = useState<AccountStatus | "all">(fixedStatus ?? "all");
+  const [filter, setFilter] = useState<UserFilter>(fixedFilter ?? "all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [notifyAll, setNotifyAll] = useState(false);
 
   const users = useAsync(
     () =>
-      fetchProfiles({
-        statuses: status === "all" ? undefined : [status],
+      fetchUsers({
+        filter,
         search,
         page,
       }),
-    `${status}|${search}|${page}`,
+    `${filter}|${search}|${page}`,
   );
 
   const total = users.data?.total ?? 0;
@@ -50,7 +55,7 @@ export function UserListPage({
           <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>
           <p className="text-text-muted">{subtitle}</p>
         </div>
-        {!fixedStatus && (
+        {!fixedFilter && (
           <Button variant="ghost" onClick={() => setNotifyAll(true)}>
             Notify all active users
           </Button>
@@ -71,20 +76,19 @@ export function UserListPage({
             }}
             className="h-11 w-full rounded-lg sm:w-64 md:h-9 border border-border bg-surface px-3 text-sm outline-none focus:border-primary"
           />
-          {!fixedStatus && (
+          {!fixedFilter && (
             <select
-              aria-label="Filter by status"
-              value={status}
+              aria-label="Filter users"
+              value={filter}
               onChange={(e) => {
-                setStatus(e.target.value as AccountStatus | "all");
+                setFilter(e.target.value as UserFilter);
                 setPage(0);
               }}
               className="h-11 rounded-lg border border-border bg-surface px-2 text-sm md:h-9"
             >
-              <option value="all">All statuses</option>
-              {allStatuses.map((s) => (
-                <option key={s} value={s}>
-                  {statusLabel[s]}
+              {filters.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
                 </option>
               ))}
             </select>

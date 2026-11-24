@@ -1,6 +1,6 @@
 "use client";
 
-import type { AnalyticsDay, PlatformSplit, RetentionCohort } from "@kaspilo/shared";
+import type { AnalyticsDay, PlatformSplit, RetentionCohort, SubscriptionReport } from "@kaspilo/shared";
 import { useEffect, useState } from "react";
 import {
   Area,
@@ -24,8 +24,10 @@ import {
   israelToday,
   percent,
   type Range,
+  rangeDates,
   rangeKey,
 } from "@/lib/analytics";
+import { fetchSubscriptionReport } from "@/lib/admin-api";
 import { formatDate } from "@/lib/format";
 import { useAsync } from "@/lib/use-async";
 
@@ -80,6 +82,10 @@ const tooltip = {
 export function AnalyticsPage() {
   const [range, setRange] = useState<Range>({ kind: "last", days: 30 });
   const report = useAsync(() => fetchAnalytics(range), rangeKey(range));
+  const subs = useAsync(() => {
+    const { from, to } = rangeDates(range);
+    return fetchSubscriptionReport(from, to);
+  }, `subs-${rangeKey(range)}`);
   const data = report.data;
   const last = data?.days.at(-1);
 
@@ -131,7 +137,7 @@ export function AnalyticsPage() {
               {range.kind === "year" && <YearNote />}
               <NewReturningChart days={data.days} range={range} />
             </Card>
-            <Card title="Sign-up funnel">
+            <Card title="Funnel">
               <Funnel days={data.days} />
             </Card>
             <Card title="Platform">
@@ -140,11 +146,22 @@ export function AnalyticsPage() {
             <Card title="Signed up, never started">
               <p className="text-4xl font-bold">{data.not_started}</p>
               <p className="mt-2 text-sm text-text-muted">
-                Approved users who added no transaction in the 7 days after their first entry. All
+                Users with access who added no transaction in the 7 days after their first entry. All
                 time, not only this range.
               </p>
             </Card>
           </div>
+
+          <Card title="Subscriptions">
+            <DataState
+              loading={subs.loading && !subs.data}
+              error={subs.error}
+              empty={false}
+              emptyText=""
+              onRetry={subs.reload}
+            />
+            {subs.data && <Subscriptions report={subs.data} />}
+          </Card>
 
           <Card title="Retention by weekly cohort">
             <Retention cohorts={data.retention} />
@@ -402,6 +419,72 @@ function Retention({ cohorts }: { cohorts: RetentionCohort[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * docs/spec.md "Analytics" → Subscriptions: who pays now, trial → paid in the range,
+ * cancellations and refunds per month. Counts only; revenue lives in RevenueCat.
+ */
+function Subscriptions({ report }: { report: SubscriptionReport }) {
+  const n = report.now;
+  const cards: [string, number][] = [
+    ["Paying monthly", n.paying_monthly],
+    ["Paying yearly", n.paying_yearly],
+    ["In trial", n.in_trial],
+    ["Billing problem", n.billing_issue],
+    ["Admin: manual payment", n.admin_paid],
+    ["Admin: gift", n.admin_vip],
+    ["Admin: family", n.admin_family],
+    ["Signed up, no access", n.without_access],
+  ];
+  const rate = percent(report.trials.converted, report.trials.ended);
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {cards.map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-border p-3">
+            <p className="text-xs text-text-muted">{label}</p>
+            <p className="mt-1 text-2xl font-bold">{value.toLocaleString("en")}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-text-muted">Right now, not only this range.</p>
+      <div>
+        <p className="text-sm font-medium">Trial → paid</p>
+        <p className="text-sm">
+          {report.trials.ended === 0
+            ? "No trial ended in this range."
+            : `${rate}% (${report.trials.converted} of ${report.trials.ended} trials that ended in this range)`}
+        </p>
+      </div>
+      <div>
+        <p className="text-sm font-medium">Cancellations and refunds</p>
+        {report.months.length === 0 ? (
+          <p className="text-sm text-text-muted">None in this range.</p>
+        ) : (
+          <table className="mt-1 text-sm">
+            <thead>
+              <tr className="text-xs text-text-muted">
+                <th className="pr-6 text-left font-medium">Month</th>
+                <th className="pr-6 text-right font-medium">Cancelled</th>
+                <th className="text-right font-medium">Refunded</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.months.map((m) => (
+                <tr key={m.month}>
+                  <td className="pr-6">{m.month}</td>
+                  <td className="pr-6 text-right">{m.cancelled}</td>
+                  <td className="text-right">{m.refunded}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <p className="text-xs text-text-muted">Revenue is in the RevenueCat and store dashboards.</p>
     </div>
   );
 }
