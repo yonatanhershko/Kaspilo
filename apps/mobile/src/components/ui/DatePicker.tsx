@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
 import { useDateFormat } from '@/data/hooks';
-import { useLanguage } from '@/i18n';
+import { LOCALES, useLanguage } from '@/i18n';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -41,7 +41,7 @@ export function DatePicker({
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const weekdayFormat = new Intl.DateTimeFormat(language === 'he' ? 'he-IL' : 'en-GB', {
+  const weekdayFormat = new Intl.DateTimeFormat(LOCALES[language], {
     weekday: 'narrow',
     timeZone: 'UTC',
   });

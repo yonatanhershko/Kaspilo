@@ -74,7 +74,7 @@ export default function RootLayout() {
  * The global navigation guard. Exactly one group is reachable at a time:
  *   signed out            -> (auth)
  *   signed in, no terms   -> accept-terms (first Google sign-in)
- *   signed in, no access  -> locked   (pending / rejected / expired)
+ *   signed in, no access  -> paywall (never had access) or locked (it ended)
  *   signed in, access     -> (app)
  * The root index screen redirects to the right one. The database enforces the
  * same rule with RLS; this only decides what is shown.
@@ -120,6 +120,11 @@ function GuardedStack() {
         </Stack.Protected>
         <Stack.Protected guard={ready && !access}>
           <Stack.Screen name="locked" />
+        </Stack.Protected>
+        {/* Also from the renew screen of a user who still has access (docs/spec.md "Paywall"). */}
+        <Stack.Protected guard={ready}>
+          <Stack.Screen name="paywall" />
+          <Stack.Screen name="legal" />
         </Stack.Protected>
         <Stack.Protected guard={ready && access}>
           <Stack.Screen name="(app)" />

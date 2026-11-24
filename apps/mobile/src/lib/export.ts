@@ -1,4 +1,4 @@
-import { formatAmount, type GoalDeposit, type Transaction } from '@kaspilo/shared';
+import { type ExportRow, formatAmount, type GoalDeposit, type Transaction } from '@kaspilo/shared';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
@@ -66,6 +66,47 @@ export function buildCsv(
     );
   }
   // The byte-order mark makes Excel read the file as UTF-8.
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
+}
+
+/**
+ * The locked-screen export (docs/spec.md "Locked screen"): every wallet in one file, with a
+ * wallet column first. Rows come from `export_my_rows`, newest first like the wallet export.
+ */
+export function buildAllWalletsCsv(
+  rows: ExportRow[],
+  names: {
+    wallet: (row: ExportRow) => string;
+    category: (row: ExportRow) => string;
+    goal: (row: ExportRow) => string;
+  },
+  labels: ExportLabels & { walletHeader: string },
+): string {
+  const h = labels.headers;
+  const sorted = [...rows].sort((a, b) =>
+    a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date),
+  );
+  const lines = [[labels.walletHeader, h.date, h.type, h.category, h.description, h.amount].map(cell).join(',')];
+  for (const row of sorted) {
+    const type =
+      row.kind === 'tx'
+        ? row.tx_type === 'income'
+          ? labels.income
+          : labels.expense
+        : row.deposit_source === 'existing'
+          ? labels.alreadySaved
+          : labels.savings;
+    lines.push(
+      [
+        cell(names.wallet(row)),
+        cell(row.date),
+        cell(type),
+        cell(row.kind === 'tx' ? names.category(row) : names.goal(row)),
+        cell(row.description ?? ''),
+        formatAmount(row.amount).replace(/,/g, ''),
+      ].join(','),
+    );
+  }
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 

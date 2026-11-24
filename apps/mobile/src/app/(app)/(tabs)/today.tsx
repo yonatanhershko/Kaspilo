@@ -18,6 +18,7 @@ import { useCategories, useCategoryTotals, useGoalDepositsInPeriod, useGoals } f
 import { useOutbox } from '@/data/outbox';
 import { useWallet } from '@/data/walletContext';
 import { WalletSwitcher } from '@/components/wallet/WalletSwitcher';
+import { BillingIssueBar } from '@/components/BillingIssueBar';
 import { type QuickNote, QuickExpenses, QuickNoteToast } from '@/components/QuickExpenses';
 import { useRowAlign } from '@/i18n';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -174,6 +175,8 @@ export default function TodayScreen() {
               <Icon name={align.he ? 'chevron-left' : 'chevron-right'} size={20} tone="muted" />
             </PressScale>
           )}
+
+          <BillingIssueBar />
 
           <View className="mt-4 flex-row gap-3">
             <PressScale

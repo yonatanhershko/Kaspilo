@@ -113,7 +113,7 @@ for (const [name, u] of [['pending', pending], ['expired', expired]]) {
   check('start day 31 is accepted', ok.data?.month_start_day === 31, ok.error?.message);
   const bad = await active.c.from('user_settings').update({ month_start_day: 32 }).eq('user_id', active.id);
   check('start day 32 is rejected', !!bad.error, bad.error?.code);
-  const cur = await active.c.from('user_settings').update({ currency: 'EUR' }).eq('user_id', active.id);
+  const cur = await active.c.from('user_settings').update({ currency: 'GBP' }).eq('user_id', active.id);
   check('unknown currency is rejected', !!cur.error, cur.error?.code);
   const other = await active.c.from('user_settings').update({ currency: 'USD' }).eq('user_id', admin.id).select();
   check("cannot change another user's settings", (other.data ?? []).length === 0);

@@ -4,7 +4,7 @@ export function UsersPage() {
   return (
     <UserListPage
       title="Users"
-      subtitle="Extend access, change plans, renew expired accounts."
+      subtitle="Store subscriptions, admin access, history."
       emptyText="No users match."
     />
   );

@@ -60,10 +60,10 @@
   <text x="62" y="575" class="groupsub">Next.js · React · Tailwind · Vercel</text>
 
   <rect x="58" y="600" width="170" height="104" rx="12" class="card"/>
-  <text x="74" y="624" class="title">Approvals</text>
-  <text x="74" y="645" class="body">Confirm Bit payment,</text>
-  <text x="74" y="663" class="body">open access for</text>
-  <text x="74" y="681" class="body">one year</text>
+  <text x="74" y="624" class="title">Access</text>
+  <text x="74" y="645" class="body">Store subscriptions,</text>
+  <text x="74" y="663" class="body">admin grants and</text>
+  <text x="74" y="681" class="body">history</text>
 
   <rect x="242" y="600" width="170" height="104" rx="12" class="card"/>
   <text x="258" y="624" class="title">Users</text>

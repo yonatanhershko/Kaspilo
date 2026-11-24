@@ -167,9 +167,13 @@ object PurchaseReminder {
     }
   }
 
-  /** Same as the app's formatMoney: "₪ 1,850" or "$ 12.50", kept left-to-right in Hebrew text. */
+  /** Same as the app's formatMoney: "₪ 1,850", "$ 12.50" or "€ 9", kept left-to-right in Hebrew text. */
   fun display(minor: Long, currency: String): String {
-    val symbol = if (currency == "USD") "$" else "₪"
+    val symbol = when (currency) {
+      "USD" -> "$"
+      "EUR" -> "€"
+      else -> "₪"
+    }
     val digits = (minor / 100).toString()
     val grouped = StringBuilder()
     digits.forEachIndexed { index, char ->

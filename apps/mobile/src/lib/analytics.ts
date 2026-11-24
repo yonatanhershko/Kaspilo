@@ -134,3 +134,12 @@ export function trackAppOpen(userId: string) {
   lastAppOpen = { userId, at: Date.now() };
   void add('app_open', userId);
 }
+
+let lastPaywall = { userId: '', at: 0 };
+
+/** The paywall was shown. At most once per 30 minutes per user (the server checks too). */
+export function trackPaywallViewed(userId: string) {
+  if (lastPaywall.userId === userId && Date.now() - lastPaywall.at < APP_OPEN_GAP_MS) return;
+  lastPaywall = { userId, at: Date.now() };
+  void add('paywall_viewed', userId);
+}

@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import { useSyncExternalStore } from 'react';
 
 import { TERMS_VERSION } from '@/auth/terms';
-import { currentLanguage } from '@/i18n';
+import { currentLanguage, LANGUAGE_CURRENCY } from '@/i18n';
 import { trackSignupStarted } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 
@@ -132,7 +132,7 @@ export async function settleSignIn(user: User): Promise<void> {
       // The onboarding name wins over the one from Google or Apple.
       await supabase.from('profiles').update({ full_name: name.trim() }).eq('id', user.id);
     }
-    pending = { userId: user.id, budget, currency: currentLanguage() === 'he' ? 'ILS' : 'USD' };
+    pending = { userId: user.id, budget, currency: LANGUAGE_CURRENCY[currentLanguage()] };
     // The terms were accepted on the last screen; Google / Apple accounts save that here.
     if (intent.termsAccepted && typeof user.user_metadata?.terms_version !== 'string') {
       await supabase.auth.updateUser({

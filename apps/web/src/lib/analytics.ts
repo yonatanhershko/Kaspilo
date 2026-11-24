@@ -81,8 +81,10 @@ export const funnelSteps = [
   { key: "first_opens", label: "First open" },
   { key: "signups_started", label: "Sign-up started" },
   { key: "signups_completed", label: "Sign-up completed" },
-  { key: "approved", label: "Approved" },
+  { key: "paywall_views", label: "Paywall viewed" },
+  { key: "approved", label: "Got access" },
   { key: "first_entries", label: "First app entry" },
+  { key: "paid", label: "Paid" },
 ] as const;
 
 export function funnel(days: AnalyticsDay[]) {
@@ -109,8 +111,10 @@ const csvColumns: (keyof AnalyticsDay)[] = [
   "first_opens",
   "signups_started",
   "signups_completed",
+  "paywall_views",
   "approved",
   "first_entries",
+  "paid",
 ];
 
 /** The daily numbers as CSV. Counts only, no user ids. */

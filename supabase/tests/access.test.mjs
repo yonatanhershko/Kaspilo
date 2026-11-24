@@ -6,7 +6,7 @@
  *
  * Side effect: the lifecycle section approves the "pending" dev user. Put it back with:
  *   update public.profiles set status='pending_approval', plan=null, approved_at=null,
- *     expires_at=null where email='dev-pending@finny.test';
+ *     expires_at=null, grant_expires_at=null, access_via=null where email='dev-pending@finny.test';
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -88,6 +88,44 @@ for (const [fn, args] of [['admin_approve_user', { p_user_id: pending.id }], ['a
   const { data, error } = await admin.c.rpc('admin_dashboard_stats');
   check('admin gets dashboard stats', !error && typeof data?.total_users === 'number', JSON.stringify(data));
 }
+// In-app purchase (2026-11-24): store state is server-only, admin grants are admin-only,
+// and a locked user can still export their own rows.
+for (const [fn, args] of [['admin_grant_access', { p_user_id: pending.id, p_plan: 'family' }], ['admin_revoke_access', { p_user_id: active.id }]]) {
+  const { error } = await pending.c.rpc(fn, args);
+  check(`non-admin cannot call ${fn}`, error?.code === '42501', error?.code);
+}
+{
+  const r = await active.c.rpc('store_apply', { p_user_id: active.id, p_state: { store: 'app_store', product_id: 'x', period_type: 'normal', expires_at: '2099-01-01' } });
+  check('client cannot call store_apply', !!r.error, r.error?.code);
+  const ins = await active.c.from('store_subscriptions').insert({ user_id: active.id, store: 'app_store', product_id: 'x', period_type: 'normal', expires_at: '2099-01-01' });
+  check('client cannot write store_subscriptions', !!ins.error, ins.error?.code);
+  const all = await admin.c.from('store_subscriptions').select('user_id');
+  const own = await active.c.from('store_subscriptions').select('user_id');
+  check('client reads only own store row', (own.data ?? []).every((r) => r.user_id === active.id), `rows=${own.data?.length} of ${all.data?.length}`);
+  const g = await pending.c.from('profiles').update({ grant_expires_at: '2099-01-01' }).eq('id', pending.id);
+  check('client cannot update own grant_expires_at', !!g.error, g.error?.code);
+}
+{
+  const ex = await expired.c.rpc('export_my_rows', { p_limit: 10 });
+  check('locked (expired) user can export own rows', !ex.error && Array.isArray(ex.data), ex.error?.message);
+  const tx = await expired.c.from('transactions').select('id').limit(1);
+  check('locked user still cannot read transactions directly', (tx.data ?? []).length === 0, `rows=${tx.data?.length}`);
+  const an = await anon.rpc('export_my_rows', {});
+  check('anon cannot export', !!an.error, an.error?.code);
+  const bad = await expired.c.rpc('export_my_rows', { p_limit: 5000 });
+  check('export page size is capped', bad.error?.code === '22023', bad.error?.code);
+}
+// Admin web (phase C): KPIs, subscriptions report, users with their store row.
+{
+  const st = await admin.c.rpc('admin_dashboard_stats');
+  check('admin stats have the store KPIs', !st.error && ['paying', 'in_trial', 'admin_access', 'without_access'].every((k) => typeof st.data?.[k] === 'number'), st.error?.message);
+  const rep = await admin.c.rpc('admin_subscription_report', { p_from: '2026-11-01', p_to: '2026-11-30' });
+  check('admin gets the subscriptions report', !rep.error && typeof rep.data?.now?.paying_yearly === 'number', rep.error?.message);
+  const no = await active.c.rpc('admin_subscription_report', { p_from: '2026-11-01', p_to: '2026-11-30' });
+  check('non-admin cannot read the subscriptions report', no.error?.code === '42501', no.error?.code);
+  const users = await admin.c.from('profiles').select('id, store_subscriptions(*)').eq('role', 'client').limit(5);
+  check('admin lists users with their store row', !users.error && Array.isArray(users.data), users.error?.message);
+}
 // lifecycle on the pending user, then put it back
 {
   const rej = await admin.c.rpc('admin_reject_user', { p_user_id: pending.id });
@@ -106,6 +144,14 @@ for (const [fn, args] of [['admin_approve_user', { p_user_id: pending.id }], ['a
   check('family plan has no expiry', fam.data?.plan === 'family' && fam.data?.expires_at === null);
   const acc = await pending.c.rpc('has_access');
   check('approved user now has access', acc.data === true);
+  const rv = await admin.c.rpc('admin_revoke_access', { p_user_id: pending.id, p_note: 'test' });
+  const after = await pending.c.rpc('has_access');
+  check('revoke admin access -> expired, no access', rv.data?.status === 'expired' && rv.data?.plan === null && after.data === false, rv.error?.message ?? rv.data?.status);
+  const gr = await admin.c.rpc('admin_grant_access', { p_user_id: pending.id, p_plan: 'vip', p_months: 1, p_note: 'test gift' });
+  const grDays = (new Date(gr.data?.expires_at) - Date.now()) / 86400000;
+  check('grant 1 month -> active via grant, about 28-31 days', gr.data?.status === 'active' && gr.data?.access_via === 'grant' && grDays > 27 && grDays < 32, gr.error?.message ?? `days=${grDays}`);
+  const both = await admin.c.rpc('admin_grant_access', { p_user_id: pending.id, p_plan: 'paid', p_months: 1, p_until: '2099-01-01' });
+  check('grant with months and a date is refused', both.error?.code === '22023', both.error?.code);
 }
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

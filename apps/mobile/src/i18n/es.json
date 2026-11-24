@@ -1,0 +1,682 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "retry": "Reintentar",
+    "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+    "tooManyActions": "Demasiadas acciones. Espera un minuto e inténtalo de nuevo.",
+    "next": "Continuar",
+    "back": "Atrás",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "today": "Hoy",
+    "previous": "Anterior",
+    "nextItem": "Siguiente",
+    "expense": "Gasto",
+    "income": "Ingreso",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "loadFailed": "No se pudo cargar. Revisa tu conexión."
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "signInTitle": "Hola de nuevo",
+    "signUpTitle": "Crea tu cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "fullName": "Nombre completo",
+    "choosePassword": "Elige una contraseña (mínimo {{min}} caracteres)",
+    "createAccount": "Crear cuenta",
+    "noAccount": "¿Aún no tienes cuenta? Regístrate",
+    "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
+    "stepOf": "Paso {{step}} de {{total}}",
+    "errors": {
+      "nameRequired": "Escribe tu nombre completo",
+      "emailInvalid": "Ese correo no es válido",
+      "passwordShort": "La contraseña necesita al menos {{min}} caracteres",
+      "passwordRequired": "Escribe tu contraseña",
+      "invalidCredentials": "Correo o contraseña incorrectos",
+      "emailTaken": "Ese correo ya está registrado. Prueba a iniciar sesión",
+      "weakPassword": "Esa contraseña es demasiado débil. Elige otra",
+      "confirmEmail": "Confirma tu correo antes de iniciar sesión",
+      "network": "Sin conexión. Inténtalo de nuevo",
+      "generic": "Algo salió mal. Inténtalo de nuevo",
+      "codeInvalid": "El código es incorrecto o ha caducado. Pide uno nuevo",
+      "tooManyRequests": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo",
+      "locked": "Demasiadas contraseñas incorrectas. Inténtalo en {{minutes}} minutos o restablece tu contraseña",
+      "passwordLeaked": "Esta contraseña apareció en una filtración de datos. Elige otra"
+    },
+    "forgot": {
+      "title": "Restablece tu contraseña",
+      "emailHelp": "Escribe tu correo y te enviamos un código de 6 dígitos.",
+      "codeHelp": "Enviamos un código a {{email}}. Escríbelo junto con tu nueva contraseña.",
+      "sendCode": "Enviar código",
+      "code": "Código del correo",
+      "newPassword": "Nueva contraseña (mínimo {{min}} caracteres)",
+      "save": "Guardar nueva contraseña",
+      "resend": "Enviar un código nuevo",
+      "link": "¿Olvidaste tu contraseña?",
+      "backToSignIn": "Volver a iniciar sesión"
+    },
+    "or": "o",
+    "google": "Continuar con Google",
+    "googleFailed": "No se pudo iniciar sesión con Google. Inténtalo de nuevo.",
+    "apple": "Continuar con Apple",
+    "appleFailed": "No se pudo iniciar sesión con Apple. Inténtalo de nuevo.",
+    "declineTerms": "No acepto, cerrar sesión"
+  },
+  "settings": {
+    "language": "Idioma",
+    "languageHe": "עברית",
+    "languageEn": "English",
+    "languageEs": "Español",
+    "theme": "Tema",
+    "themeSystem": "Como el teléfono",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro"
+  },
+  "locked": {
+    "error": {
+      "title": "No se pudo cargar tu cuenta",
+      "body": "Revisa tu conexión e inténtalo de nuevo."
+    },
+    "choosePlan": "Elegir un plan",
+    "export": "Exportar datos a Excel",
+    "new": {
+      "title": "Bienvenido a Kaspilo",
+      "body": "Elige un plan para empezar. 14 días gratis."
+    },
+    "ended": {
+      "title": "Tu suscripción ha terminado",
+      "body": "Tus datos están guardados. Elige un plan para seguir donde lo dejaste."
+    }
+  },
+  "tabs": {
+    "today": "Hoy",
+    "stats": "Estadísticas",
+    "goals": "Metas",
+    "more": "Más"
+  },
+  "today": {
+    "totalExpenses": "Gastado este mes",
+    "leftOf": "Quedan {{left}} de {{total}}",
+    "left": "Quedan {{amount}}",
+    "overBy": "Excedido en {{amount}}",
+    "spentOf": "{{spent}} de {{budget}}",
+    "balanceThisPeriod": "Balance de este mes",
+    "categoriesThisPeriod": "Categorías de este mes",
+    "incomeSection": "Ingresos de este mes",
+    "depositsThisPeriod": "Depósitos de este mes",
+    "empty": "Aún no hay gastos este mes. Añade el primero.",
+    "addExpense": "Añadir gasto",
+    "addIncome": "Añadir ingreso"
+  },
+  "add": {
+    "title": {
+      "expense": "Añadir gasto",
+      "income": "Añadir ingreso"
+    },
+    "editTitle": {
+      "expense": "Editar gasto",
+      "income": "Editar ingreso"
+    },
+    "amount": "Importe",
+    "description": "Descripción",
+    "date": "Fecha",
+    "category": "Categoría",
+    "repeat": "Repetir / cuotas",
+    "repeatOptions": {
+      "none": "No",
+      "weekly": "Semanal",
+      "monthly": "Mensual",
+      "yearly": "Anual",
+      "installments": "Cuotas"
+    },
+    "installmentsCount": "Número de pagos (2–120)",
+    "installmentsEven": "{{count}} pagos mensuales de {{each}}",
+    "installmentsUneven": "{{count}} pagos mensuales: el primero {{first}}, luego {{each}}",
+    "recurringNote": "Se añade automáticamente a partir del {{date}}.",
+    "errors": {
+      "amount": "Escribe un importe válido",
+      "category": "Elige una categoría",
+      "installments": "Los pagos deben ser entre 2 y 120"
+    }
+  },
+  "categories": {
+    "unknown": "Sin categoría",
+    "name": "Nombre de la categoría",
+    "nameRequired": "Escribe un nombre para la categoría",
+    "add": "Nueva categoría",
+    "new": "Nueva",
+    "edit": "Editar categoría",
+    "budgetLine": "Presupuesto mensual: {{amount}}",
+    "moveUp": "Subir: {{name}}",
+    "moveDown": "Bajar: {{name}}",
+    "removeTitle": "¿Eliminar {{name}}?",
+    "removeBody": "Si tiene movimientos, se oculta y los movimientos siguen en el historial y en los totales.",
+    "defaults": {
+      "car": "Coche",
+      "food": "Comida y bebida",
+      "leisure": "Ocio",
+      "housing": "Vivienda",
+      "health": "Salud",
+      "shopping": "Compras",
+      "bills": "Facturas",
+      "other": "Otros",
+      "salary": "Sueldo"
+    }
+  },
+  "category": {
+    "spentThisPeriod": "Total de este mes",
+    "setBudget": "Fijar un presupuesto mensual",
+    "changeBudget": "Cambiar presupuesto",
+    "budgetTitle": "Presupuesto mensual: {{name}}",
+    "removeBudget": "Quitar presupuesto",
+    "monthlyBudget": "Presupuesto mensual",
+    "monthlyBudgetOptional": "Presupuesto mensual (opcional)",
+    "transactions": "Movimientos de este mes",
+    "empty": "Nada en esta categoría este mes."
+  },
+  "transactions": {
+    "deleteTitle": "¿Eliminar este movimiento?",
+    "empty": "Aún no hay movimientos."
+  },
+  "stats": {
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "expenses": "Gastos",
+    "income": "Ingresos",
+    "totalExpenses": "Total de gastos",
+    "balance": "Balance",
+    "saved": "Ahorrado",
+    "left": "Queda",
+    "totalIncome": "Total de ingresos",
+    "empty": "Nada en este periodo.",
+    "changeMonth": "{{change}} frente al mes pasado",
+    "changeYear": "{{change}} frente al año pasado"
+  },
+  "goals": {
+    "title": "Metas y ahorros",
+    "add": "Nueva meta",
+    "empty": "Aún no hay metas. Crea una y empieza a ahorrar.",
+    "target": "Objetivo: {{amount}}",
+    "saved": "Ahorrado: {{amount}}",
+    "deposit": "Depositar",
+    "depositTitle": "Depositar: {{name}}",
+    "depositNote": "Un depósito en una meta no cuenta como gasto.",
+    "depositNow": "Depositar ahora",
+    "alreadySaved": "Ya ahorrado",
+    "alreadySavedOptional": "Ya ahorrado (opcional)",
+    "alreadySavedNote": "Dinero que ahorraste antes. Cuenta para la meta y no se descuenta de tu balance.",
+    "name": "Nombre de la meta",
+    "targetAmount": "Importe objetivo",
+    "deleteTitle": "¿Eliminar {{name}}?",
+    "deleteBody": "La meta sale de tu lista. Sus depósitos siguen en el historial, las estadísticas y el archivo de Excel, salvo que también los elimines.",
+    "deleteKeep": "Eliminar la meta, conservar el historial",
+    "deleteErase": "Eliminar la meta y sus depósitos",
+    "depositDeleteTitle": "¿Eliminar este depósito?",
+    "depositDeleteBody": "El importe vuelve a tu balance.",
+    "depositDeleteBodyExisting": "Se descuenta de la meta. Tu balance no cambia.",
+    "savings": "Ahorros",
+    "errors": {
+      "name": "Escribe un nombre para la meta",
+      "target": "Escribe un importe objetivo válido"
+    }
+  },
+  "more": {
+    "account": "Mi cuenta",
+    "appleHiddenEmail": "Correo oculto por Apple",
+    "currency": "Moneda",
+    "currencyILS": "Séquel",
+    "currencyUSD": "Dólar",
+    "currencyEUR": "Euro",
+    "currencyNote": "Solo cambia el símbolo. Los importes no se convierten.",
+    "monthStart": "Inicio del mes de presupuesto",
+    "monthStartLabel": "Día del mes (1–31)",
+    "monthStartNote": "En un mes más corto, el mes de presupuesto empieza en su último día.",
+    "monthStartError": "Escribe un día del 1 al 31",
+    "overallBudget": "Presupuesto mensual total",
+    "notSet": "Sin fijar",
+    "categories": "Categorías",
+    "history": "Historial y exportación",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteTitle": "¿Eliminar tu cuenta?",
+    "deleteBody": "Todos tus datos se eliminan para siempre: movimientos, categorías, presupuestos y metas. No se puede deshacer.",
+    "deleteAppleNote": "Como iniciaste sesión con Apple, Apple te pedirá confirmarlo una vez más. Esto desconecta Kaspilo de tu ID de Apple.",
+    "deleteWord": "eliminar",
+    "deleteTypeToConfirm": "Escribe \"{{word}}\" para confirmar",
+    "deleteConfirm": "Eliminar la cuenta para siempre",
+    "deleteSubscriptionWarning": "Tienes una suscripción activa. Cancélala en la tienda o se te seguirá cobrando."
+  },
+  "history": {
+    "upcoming": "Próximos pagos ({{count}})",
+    "olderOffline": "Los movimientos más antiguos aparecen cuando vuelvas a tener conexión.",
+    "loadingMore": "Cargando más movimientos"
+  },
+  "export": {
+    "button": "Exportar a Excel (CSV)",
+    "date": "Fecha",
+    "type": "Tipo",
+    "category": "Categoría",
+    "description": "Descripción",
+    "amount": "Importe",
+    "done": "Archivo listo.",
+    "unavailable": "Este dispositivo no puede compartir archivos.",
+    "failed": "La exportación falló. Inténtalo de nuevo.",
+    "wallet": "Cartera"
+  },
+  "terms": {
+    "title": "Condiciones de uso",
+    "updated": "Última actualización: 20 de noviembre de 2026",
+    "iRead": "Acepto las condiciones de uso",
+    "readFirst": "Abre las condiciones de uso y acéptalas para continuar",
+    "openLink": "Leer las condiciones de uso",
+    "done": "Condiciones aceptadas",
+    "sections": [
+      {
+        "title": "1. Quiénes somos",
+        "body": "Kaspilo es una app de finanzas personales. La gestiona Yonatan Hershko como particular (el \"operador\", \"nosotros\"). Puedes escribirnos a: MyKaspilo@gmail.com.\nAl registrarte en Kaspilo o usarla, aceptas estas condiciones y la política de privacidad de la sección 9. Si no estás de acuerdo, no uses la app."
+      },
+      {
+        "title": "2. Qué hace Kaspilo",
+        "body": "• Kaspilo te ayuda a registrar ingresos y gastos, fijar presupuestos, ahorrar para metas y ver estadísticas.\n• Puedes tener hasta 4 carteras separadas (por ejemplo, personal y de negocio). Cada cartera tiene sus propias categorías, movimientos, presupuestos y metas.\n• Kaspilo es solo una herramienta de registro y seguimiento. No es asesoramiento financiero, de inversión, fiscal ni legal. Tus decisiones de dinero son tu responsabilidad. Antes de una decisión importante, consulta a un asesor autorizado.\n• Cada número de la app se calcula a partir de los datos que introduces. Si los datos son incorrectos, los resultados también lo serán.\n• Kaspilo no se conecta a tu cuenta bancaria y no hace pagos por ti."
+      },
+      {
+        "title": "3. Registro y cuenta",
+        "body": "• Te registras con un nombre, un correo electrónico y una contraseña.\n• Guarda bien tu contraseña. Eres responsable de todo lo que se haga en tu cuenta.\n• No hay límite de edad. Un usuario menor de 18 años necesita el consentimiento de su padre, madre o tutor para pagar una suscripción.\n• Una cuenta es para una sola persona. No puedes transferir ni vender una cuenta."
+      },
+      {
+        "title": "4. Suscripción y pago",
+        "body": "• El acceso a Kaspilo es una suscripción que se compra en la app a través de App Store (Apple) o Google Play: mensual o anual. El precio se muestra en la pantalla de pago antes de pagar.\n• Una suscripción nueva empieza con 14 días de prueba gratis, una vez por cuenta de Apple o Google. Si no cancelas al menos 24 horas antes de que termine la prueba, la tienda cobra el precio del plan que elegiste.\n• La suscripción se renueva sola al final de cada periodo hasta que la canceles. Se cancela en los ajustes de suscripciones de App Store o Google Play. El acceso sigue hasta el final del periodo que pagaste.\n• El pago lo gestionan Apple o Google según sus condiciones. Nunca vemos los datos de tu tarjeta.\n• Si un pago falla, la tienda lo vuelve a intentar durante un tiempo y el acceso sigue mientras tanto. Si sigue fallando, el acceso se bloquea.\n• El operador puede, a su criterio, dar acceso sin pago o sin fecha de fin.\n• Si el acceso termina, la app se bloquea. Tus datos no se eliminan: puedes exportarlos desde la pantalla de bloqueo y se conservan hasta que elimines tu cuenta.\n• Si el precio cambia, la tienda te avisa con antelación, como exigen sus reglas."
+      },
+      {
+        "title": "5. Cancelación y reembolsos",
+        "body": "• Los reembolsos de suscripciones compradas en la app los gestionan Apple o Google según sus reglas. Pídelo a través de la tienda: en Apple en reportaproblem.apple.com, en Google en tu historial de pedidos de Google Play.\n• Tus derechos según la Ley de Protección al Consumidor de Israel se mantienen. Para ayuda, escribe a MyKaspilo@gmail.com.\n• Si se da un reembolso, el acceso termina de inmediato. Tus datos se conservan.\n• Cancelar la suscripción en la tienda detiene los próximos cobros. No elimina tu cuenta; para eliminarla, consulta la sección 6.\n• Si dejamos de operar Kaspilo por completo, te avisaremos con antelación y detendremos la renovación."
+      },
+      {
+        "title": "6. Tus datos",
+        "body": "• Los datos que introduces te pertenecen.\n• Exportación: mientras tu suscripción esté activa, puedes exportar los movimientos de la cartera abierta a un archivo de Excel (CSV) desde Más → Historial y exportación, y los de cualquier cartera desde Más → Carteras. Si tu acceso está bloqueado, puedes exportar todos tus datos desde la pantalla de bloqueo.\n• Eliminación: puedes eliminar tu cuenta en cualquier momento desde Más → Eliminar cuenta. La eliminación es definitiva y no se puede deshacer. Incluye todas las carteras, movimientos, categorías, presupuestos, metas y la cuenta misma.\n• También puedes eliminar una sola cartera desde Más → Carteras. Esa eliminación también es definitiva: borra todos los datos de esa cartera, y tus otras carteras quedan igual.\n• Hacemos copias de seguridad del sistema con regularidad, pero no podemos prometer que nunca se pierdan datos. Exporta una copia de vez en cuando."
+      },
+      {
+        "title": "7. Usos prohibidos",
+        "body": "No puedes:\n• Intentar acceder a datos de otros usuarios o saltarte el bloqueo de suscripción.\n• Hackear, interrumpir o sobrecargar el sistema, ni ejecutar scripts o bots contra él.\n• Copiar, descompilar o aplicar ingeniería inversa a la app, salvo donde la ley lo permita.\n• Usar la app para cualquier fin ilegal."
+      },
+      {
+        "title": "8. Suspensión y cierre de la cuenta",
+        "body": "• Si incumples estas condiciones, podemos suspender o cerrar tu cuenta. Antes te enviaremos un aviso y te dejaremos explicarte, salvo que el incumplimiento sea grave o ponga en riesgo a otros usuarios.\n• Si tu cuenta se cierra, puedes pedir tus datos por correo."
+      },
+      {
+        "title": "9. Privacidad",
+        "body": "Qué guardamos:\n• Tu nombre y correo.\n• Las carteras, movimientos, categorías, presupuestos y metas que introduces.\n• Tus ajustes: idioma, tema, moneda y recordatorios.\n• El estado de tu suscripción (plan, prueba, fecha de renovación) y cuándo aceptaste las condiciones. Nunca los datos de tu tarjeta.\n• Un token de notificaciones push, si permitiste las notificaciones.\n• Datos de uso de la app: cuándo abriste la app y cuándo te registraste, con el tipo de dispositivo (iPhone o Android) y la versión de la app. Contamos el uso de la app, no tu dinero: importes, categorías y carteras nunca se incluyen.\nPara qué: solo para hacer funcionar la app, gestionar tu suscripción, enviar recordatorios y entender cuántas personas usan Kaspilo.\nQué no hacemos: no vendemos datos, no mostramos anuncios ni compartimos datos con empresas de marketing.\nQuién trata datos por nosotros:\n• Supabase aloja la base de datos en servidores en la nube fuera de Israel.\n• Expo, Apple y Google entregan las notificaciones.\n• Apple y Google gestionan los pagos de la suscripción. RevenueCat verifica por nosotros las suscripciones de las tiendas; recibe el id de tu cuenta, no tu nombre ni tu correo.\nSeguridad: cada usuario ve solo sus propios datos. La conexión está cifrada.\nTus derechos: puedes ver, corregir, exportar y eliminar tus datos. Para cualquier solicitud, escribe a MyKaspilo@gmail.com."
+      },
+      {
+        "title": "10. Disponibilidad y cambios en el servicio",
+        "body": "• Intentamos que la app esté disponible siempre, pero puede haber caídas y paradas de mantenimiento.\n• Podemos mejorar y cambiar la app. Si quitamos una función principal, te avisaremos con antelación."
+      },
+      {
+        "title": "11. Responsabilidad",
+        "body": "• La app se ofrece tal cual. Hacemos todo lo posible para que los cálculos sean correctos, pero no prometemos que no haya errores.\n• En la medida que la ley lo permita, nuestra responsabilidad se limita a lo que pagaste por la suscripción en los 12 meses anteriores al hecho.\n• Este límite no aplica a daños causados a propósito o por negligencia grave."
+      },
+      {
+        "title": "12. Propiedad intelectual",
+        "body": "El diseño, el código, el logo y el nombre Kaspilo pertenecen al operador. Recibes un derecho personal a usar la app mientras tu suscripción esté activa."
+      },
+      {
+        "title": "13. Cambios en estas condiciones",
+        "body": "• Si cambiamos estas condiciones, te avisaremos en la app o por correo al menos 14 días antes de que el cambio entre en vigor.\n• Si el cambio es importante, te pediremos que aceptes las condiciones de nuevo."
+      },
+      {
+        "title": "14. Ley aplicable",
+        "body": "Estas condiciones se rigen por la ley israelí. En la medida que la ley lo permita, son competentes los tribunales del distrito de Tel Aviv."
+      },
+      {
+        "title": "15. Contacto",
+        "body": "Para cualquier pregunta, solicitud o queja: MyKaspilo@gmail.com"
+      }
+    ]
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "intro": "Elige qué notificaciones recibes. Puedes cambiarlo cuando quieras.",
+    "soon": "Pronto",
+    "subscription": {
+      "title": "Suscripción",
+      "body": "Antes de que termine tu acceso, antes de que termine la prueba gratis y cuando falla un pago en la tienda."
+    },
+    "inactivity": {
+      "title": "Recordatorio de registro",
+      "body": "Un empujoncito suave si no abres la app en unos días."
+    },
+    "purchase": {
+      "title": "Compra detectada",
+      "body": "Después de pagar con Apple Pay o Google Pay, te ofrecemos añadir el gasto.",
+      "setUp": "Configurar",
+      "guide": "Guía de configuración",
+      "needsIos": "Necesita iOS 17 o posterior. Puedes seguir añadiendo gastos como siempre."
+    },
+    "off": {
+      "title": "Las notificaciones están desactivadas en este teléfono",
+      "body": "Para recibir notificaciones de Kaspilo, actívalas en los ajustes del teléfono.",
+      "openSettings": "Abrir ajustes"
+    },
+    "notAsked": {
+      "title": "Las notificaciones aún no están activadas",
+      "body": "Permite las notificaciones para que funcionen los interruptores de abajo.",
+      "allow": "Activar notificaciones"
+    },
+    "unsupported": "Este dispositivo no tiene notificaciones.",
+    "ask": {
+      "title": "¿Recibir recordatorios de Kaspilo?",
+      "body": "Te avisamos antes de que termine tu suscripción y te recordamos registrar si se te olvida. Sin spam, y puedes desactivar cada uno.",
+      "allow": "Sí, activar",
+      "later": "Ahora no"
+    },
+    "inactive": {
+      "1": {
+        "title": "¿Dónde te metiste? 🌱",
+        "body": "Unos días sin registrar. Un minuto ahora, un mejor futuro financiero después."
+      },
+      "2": {
+        "title": "Tu cartera te echa de menos",
+        "body": "Un registro rápido de gastos e ingresos te devuelve el control."
+      },
+      "3": {
+        "title": "Paso pequeño, gran hábito",
+        "body": "Registrar con constancia es el camino a un mejor futuro financiero. ¿Seguimos?"
+      }
+    },
+    "purchaseAlert": {
+      "title": "Compra detectada",
+      "withAmount": "{{amount}} en {{merchant}}. ¿La añadimos?",
+      "merchantOnly": "Compra en {{merchant}}. ¿La añadimos?",
+      "genericTitle": "Oye, detectamos una compra",
+      "genericBody": "Vamos a añadirla",
+      "channel": "Compras"
+    }
+  },
+  "purchaseSetup": {
+    "close": "Cerrar",
+    "intro": {
+      "title": "Configúralo una vez.\nLuego funciona solo.",
+      "body": "Configuraremos tu iPhone para que pase el importe y el comercio a Kaspilo después de cada pago con Apple Pay.",
+      "quick": "Es corto y solo lo configuras una vez.",
+      "private": "El importe y el comercio se quedan en tu teléfono. No se guarda nada hasta que añadas el gasto.",
+      "guided": "La guía tiene capturas que muestran dónde tocar.",
+      "manualBody": "Esta es la configuración manual para iOS {{version}}, aproximadamente un minuto.",
+      "start": "Vamos a configurarlo",
+      "later": "Lo haré después",
+      "ios27Title": "Tus pantallas pueden verse un poco distintas",
+      "ios27Body": "Las capturas de la guía son de iOS 26. En iOS 27 los pasos son parecidos, pero algunos botones cambiaron de lugar."
+    },
+    "update": {
+      "title": "La configuración automática necesita iOS 27 o posterior",
+      "body": "Para una captura automática sin complicaciones, actualiza tu iPhone a iOS 27 o posterior. Mientras tanto puedes configurarlo a mano o añadir gastos como siempre.",
+      "how": "Para actualizar: abre Ajustes → General → Actualización de software.",
+      "howButton": "Cómo actualizar a iOS 27",
+      "howNote": "Abre la guía de actualización de Apple",
+      "manual": "Configuración manual para iOS {{version}}",
+      "manualNote": "Unos pasos más, aproximadamente un minuto"
+    },
+    "guide": {
+      "stepOf": "Paso {{n}} de {{total}}",
+      "next": "Siguiente",
+      "back": "Atrás",
+      "openShortcuts": "Abrir Atajos",
+      "steps": {
+        "automation": {
+          "title": "Abre Atajos",
+          "body": "Ve a \"Automatización\" y toca \"Nueva automatización\" (o + arriba, si ya tienes alguna)."
+        },
+        "wallet": {
+          "title": "Elige \"Wallet\"",
+          "body": "Desplaza la lista hasta \"Wallet\" y tócalo."
+        },
+        "cards": {
+          "title": "Elige las tarjetas y toca \"Siguiente\"",
+          "body": "Deja seleccionadas las tarjetas con las que pagas y todas las categorías."
+        },
+        "search": {
+          "title": "Busca \"Kaspilo\"",
+          "body": "No \"Nuevo atajo en blanco\": escribe Kaspilo en la búsqueda de abajo y toca \"Kaspilo purchase\"."
+        },
+        "amount": {
+          "title": "Conecta el importe",
+          "body": "Toca Amount y elige \"Entrada del atajo\". Tócalo de nuevo y elige \"Importe\"."
+        },
+        "merchant": {
+          "title": "Conecta el comercio",
+          "body": "Toca Merchant y elige \"Entrada del atajo\". Tócalo de nuevo y elige \"Comercio\"."
+        },
+        "test": {
+          "title": "Comprueba que funciona",
+          "body": "(1) Toca ▶\uFE0E abajo: en unos segundos llega una notificación de prueba de Kaspilo.\n(2) Luego toca ✓ arriba para guardar."
+        },
+        "runNow": {
+          "title": "Elige \"Ejecutar inmediatamente\"",
+          "body": "Toca la nueva automatización, elige \"Ejecutar inmediatamente\", deja desactivado \"Notificar al ejecutarse\" y toca \"OK\"."
+        }
+      }
+    },
+    "quick": {
+      "intro": {
+        "title": "Captura automática",
+        "body": "Necesita iOS 27 o posterior. Una automatización sobre las notificaciones de Wallet, en 3 pasos cortos.",
+        "start": "Empezar",
+        "manual": "Configuración manual"
+      },
+      "add": {
+        "title": "Añade el atajo",
+        "short": "Se abre un atajo. Toca \"Añadir atajo\".",
+        "body": "Abriremos la app Atajos. Toca el botón grande \"Añadir atajo\" abajo y luego vuelve a Kaspilo.",
+        "card": "Kaspilo · Detección de compras",
+        "button": "Añadir atajo",
+        "open": "Abrir el atajo",
+        "already": "Ya lo añadí, continuar"
+      },
+      "turnOn": {
+        "title": "Activa la automatización",
+        "short": "Toca ‹ en la tarjeta \"Cuando…\" y activa \"Automatización\".",
+        "body": "Abriremos el atajo de Kaspilo. Activa su automatización de notificaciones, que incluye Wallet:",
+        "tap": "Toca el atajo de Kaspilo",
+        "card": "En la tarjeta \"Cuando…\": la flecha ‹ y luego el interruptor",
+        "mockOff": "La automatización está desactivada",
+        "mockWhen": "Cuando reciba una notificación de…",
+        "mockSwitch": "Automatización",
+        "note": "Comprueba que Wallet está seleccionada en la lista de apps y que se ejecuta inmediatamente. No hace falta un disparador de tarjeta aparte.",
+        "open": "Abrir el atajo"
+      },
+      "run": {
+        "title": "Toca ▶\uFE0E y permite",
+        "short": "Un toque en ▶\uFE0E abajo y luego permite.",
+        "question": "¿Tocaste ▶\uFE0E y permitiste?",
+        "body": "Si es así, ya está: llega una notificación de prueba de Kaspilo. Si no, vuelve al atajo y toca ▶\uFE0E ahora.",
+        "mock": "Toca ▶\uFE0E abajo",
+        "yes": "Sí, lo hice",
+        "again": "Intentar de nuevo"
+      }
+    },
+    "android": {
+      "title": "Detección de compras con Google Pay",
+      "body": "Para saber que pagaste, Kaspilo necesita acceso a las notificaciones de tu teléfono.",
+      "only": "Solo leemos las notificaciones de pago de Google Wallet: el importe y el comercio.",
+      "others": "Las notificaciones de las demás apps no se leen.",
+      "private": "Nada sale de tu teléfono ni se guarda hasta que añadas el gasto.",
+      "stepTitle": "En la siguiente pantalla",
+      "stepBody": "Activa Kaspilo en \"Acceso a notificaciones\" y luego vuelve aquí.",
+      "notYet": "Kaspilo aún no está activada en \"Acceso a notificaciones\". Actívala y vuelve aquí.",
+      "agree": "De acuerdo, abrir ajustes",
+      "again": "Abrir ajustes de nuevo"
+    },
+    "done": {
+      "title": "Todo listo",
+      "bodyIos": "En tu próximo pago con Apple Pay recibirás una notificación de Kaspilo. Al tocarla se abre un gasto con el importe y solo eliges la categoría.",
+      "bodyAndroid": "En tu próximo pago con Google Pay recibirás una notificación de Kaspilo. Al tocarla se abre un gasto con el importe y solo eliges la categoría.",
+      "finish": "Hecho"
+    }
+  },
+  "renew": {
+    "title": "Suscripción",
+    "endsOn": "Tu suscripción termina el {{date}}",
+    "daysLeft_one": "Queda 1 día",
+    "daysLeft_other": "Quedan {{count}} días",
+    "noExpiry": "Tu acceso no tiene fecha de fin.",
+    "how": "Para seguir después de esta fecha, elige un plan.",
+    "renewsOn": "Tu suscripción se renueva el {{date}}",
+    "billingIssue": "Tu pago no se completó. El acceso sigue hasta el {{date}}",
+    "howStore": "Tu suscripción se canceló y no se renovará. Puedes reactivarla en los ajustes de suscripciones de la tienda.",
+    "howStoreRenewing": "Cancela o cambia tu plan en los ajustes de suscripciones de la tienda.",
+    "howBilling": "Actualiza tu método de pago en la tienda y tu suscripción seguirá como siempre.",
+    "manage": "Gestionar suscripción"
+  },
+  "wallets": {
+    "title": "Carteras",
+    "new": "Nueva cartera",
+    "edit": "Editar cartera",
+    "name": "Nombre de la cartera",
+    "nameRequired": "Escribe un nombre para la cartera.",
+    "newNote": "Una cartera nueva empieza vacía, con las categorías predeterminadas.",
+    "defaults": {
+      "personal": "Personal"
+    },
+    "chipLabel": "Cartera: {{name}}",
+    "chipHint": "Cambiar, añadir o editar carteras",
+    "editNamed": "Editar {{name}}",
+    "manage": "Gestionar carteras",
+    "current": "Abierta ahora",
+    "limitNote": "Puedes tener hasta {{max}} carteras.",
+    "limitReached": "Ya tienes 4 carteras, el máximo permitido.",
+    "rowHint": "Abrir, editar, exportar o eliminar",
+    "open": "Abrir esta cartera",
+    "export": "Exportar a Excel (CSV)",
+    "delete": "Eliminar cartera",
+    "moveUp": "Subir {{name}}",
+    "moveDown": "Bajar {{name}}",
+    "lastNote": "Es tu única cartera, así que no se puede eliminar.",
+    "deleteTitle": "¿Eliminar {{name}}?",
+    "deleteBody": "Todos los movimientos, categorías, presupuestos y metas de esta cartera se eliminan para siempre. Tus otras carteras quedan igual. Puedes exportarla antes.",
+    "deleteTypeName": "Escribe \"{{name}}\" para confirmar",
+    "deleteConfirm": "Eliminar para siempre",
+    "exportFirst": "Exportar antes",
+    "inWallet": "En la cartera: {{name}}",
+    "settingsOf": "Ajustes de la cartera \"{{name}}\""
+  },
+  "offline": {
+    "notLoaded": "Aún no está cargado en este teléfono. Conéctate a internet para verlo.",
+    "bar": "Sin conexión. Lo que añadas se guarda y se envía después.",
+    "notSynced": "Sin sincronizar",
+    "rejected": "Pendiente: el servidor no lo aceptó",
+    "rejectedLine_one": "1 movimiento no se guardó. Revisar",
+    "rejectedLine_other": "{{count}} movimientos no se guardaron. Revisar",
+    "needsInternet": "Esto necesita conexión a internet.",
+    "repeatNeedsInternet": "Las repeticiones y las cuotas necesitan conexión a internet. Un ingreso o gasto único se puede añadir sin conexión.",
+    "signOutAnyway": "Cerrar sesión de todos modos",
+    "signOutWarning_one": "1 movimiento se añadió sin conexión y aún no se envió. Al cerrar sesión se elimina.",
+    "signOutWarning_other": "{{count}} movimientos se añadieron sin conexión y aún no se enviaron. Al cerrar sesión se eliminan."
+  },
+  "about": {
+    "title": "Acerca de",
+    "appName": "Kaspilo",
+    "blurb": "Kaspilo te ayuda a registrar ingresos y gastos, cumplir tu presupuesto y ahorrar para tus metas. Simple, tranquila y sin anuncios.",
+    "terms": "Condiciones de uso y privacidad",
+    "rate": "Valóranos",
+    "opensStore": "Abre la tienda",
+    "contact": "Contáctanos",
+    "opensMail": "Abre un correo nuevo",
+    "noMailApp": "No hay app de correo en este teléfono. Escríbenos a {{email}}. Mantén pulsada la dirección para copiarla.",
+    "version": "Versión {{version}}"
+  },
+  "onboarding": {
+    "progress": "Paso {{step}} de {{total}}",
+    "continue": "Continuar",
+    "later": "Lo fijo después",
+    "value": {
+      "eyebrow": "Te damos la bienvenida a Kaspilo",
+      "title": "Siembra buenos hábitos para un futuro que florezca",
+      "body": "Registra ingresos y gastos, fija metas y mira a dónde va tu dinero",
+      "feature1": "Ingresos y gastos en un segundo",
+      "feature2": "Metas de ahorro que se llenan",
+      "feature3": "Una imagen clara de cada mes",
+      "start": "Empezar",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "signIn": "Iniciar sesión"
+    },
+    "name": {
+      "title": "¿Cómo te llamamos?",
+      "body": "Así te saludará la app.",
+      "label": "Tu nombre"
+    },
+    "budget": {
+      "title": "{{name}}, ¿cuánto para gastos cada mes?",
+      "titleNoName": "¿Cuánto para gastos cada mes?",
+      "label": "Presupuesto mensual",
+      "note": "Es solo un comienzo. Puedes cambiarlo cuando quieras."
+    },
+    "purchase": {
+      "titleApple": "¿Pagaste con Apple Pay? Kaspilo ya lo sabe",
+      "titleGoogle": "¿Pagaste con Google Pay? Kaspilo ya lo sabe",
+      "chipAuto": "Configuración automática · 3 pasos",
+      "chipManual": "iOS {{version}} · configuración manual · 8 pasos",
+      "chipAndroid": "Configuración en 30 segundos",
+      "noteAuto": "Añade un atajo y actívalo. El importe y la tienda se quedan en tu teléfono hasta que guardes.",
+      "noteManual": "En iOS 27 y posterior la configuración es automática. Puedes actualizar tu iPhone o configurarlo a mano ahora con una guía con imágenes.",
+      "noteAndroid": "Kaspilo solo lee las notificaciones de pago de Google Wallet, nada más. El importe y la tienda se quedan en tu teléfono hasta que guardes.",
+      "how1": "Paga como siempre con tu teléfono",
+      "how2": "Llega un recordatorio con el importe",
+      "how3": "Un toque y el gasto queda guardado",
+      "setupAuto": "Configurar (1 min)",
+      "setupManual": "Configurar (1 min)",
+      "setupAndroid": "Configurar (30 s)",
+      "later": "Después",
+      "permissionNote": "Solo ahora pedimos permiso para notificaciones, para que esto funcione.",
+      "demoMerchant": "la tienda de la esquina",
+      "now": "ahora"
+    },
+    "ready": {
+      "title": "¡Tu espacio está listo, {{name}}!",
+      "titleNoName": "¡Tu espacio está listo!",
+      "body": "Abre tu cuenta y empieza.",
+      "name": "Nombre",
+      "budget": "Presupuesto mensual",
+      "email": "Registrarse con correo",
+      "privacy": "Tus datos son privados y seguros"
+    }
+  },
+  "quick": {
+    "saved": "Guardado: {{item}}",
+    "undo": "Deshacer",
+    "undone": "Deshecho",
+    "add": "Añadir gasto: {{item}}"
+  },
+  "paywall": {
+    "title": "Todo tu dinero en un solo lugar",
+    "subtitle": "Ingresos, gastos, presupuesto y ahorro",
+    "yearly": "Anual",
+    "monthly": "Mensual",
+    "saving": "Ahorra {{percent}}%",
+    "perYear": "{{price}} al año",
+    "perMonth": "{{price}} al mes",
+    "startTrial": "Empieza {{days}} días gratis",
+    "subscribe": "Suscribirme",
+    "legalTrial": "Después de {{days}} días, {{price}}. Se renueva sola, cancela cuando quieras.",
+    "legal": "{{price}}. Se renueva sola, cancela cuando quieras.",
+    "restore": "Restaurar compras",
+    "terms": "Términos y privacidad",
+    "notes": {
+      "cancelled": "Pago cancelado.",
+      "pending": "El pago está esperando a la tienda. El acceso se abre cuando se apruebe.",
+      "network": "Sin conexión a internet. Inténtalo de nuevo.",
+      "failed": "El pago no se completó. Inténtalo de nuevo.",
+      "unconfirmed": "La tienda lo aprobó, pero aún no pudimos confirmarlo. Toca Restaurar compras en un minuto.",
+      "restoreNone": "No se encontraron compras.",
+      "loadFailed": "No se pudieron cargar los planes. Revisa tu conexión.",
+      "unavailable": "Las compras no están disponibles en este dispositivo."
+    }
+  },
+  "billing": {
+    "bar": "El pago de tu suscripción no se completó. Actualiza tu método de pago",
+    "hint": "Abre los ajustes de suscripciones de la tienda"
+  }
+}

@@ -32,7 +32,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
 function ReadyShell({ children }: { children: ReactNode }) {
   const stats = useAsync(fetchStats, "stats");
   return (
-    <AdminShell pendingCount={stats.data?.pending_approvals ?? null}>
+    <AdminShell withoutAccessCount={stats.data?.without_access ?? null}>
       {children}
     </AdminShell>
   );

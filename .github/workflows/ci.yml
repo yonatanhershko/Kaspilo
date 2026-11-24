@@ -54,6 +54,7 @@ jobs:
         run: |
           deno check supabase/functions/*/index.ts
           deno lint supabase/functions
+          deno test --allow-env supabase/functions
 
   dependencies:
     name: Dependency report

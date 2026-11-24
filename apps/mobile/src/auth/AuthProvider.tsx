@@ -5,6 +5,7 @@ import { createContext, type ReactNode, use, useCallback, useEffect, useState } 
 import { AppState } from 'react-native';
 
 import { clearOfflineData, loadProfile as loadSavedProfile, saveProfile } from '@/lib/offlineCache';
+import { forgetPurchaser, identifyPurchaser } from '@/lib/purchases';
 import { secureStorage } from '@/lib/secure-storage';
 import { env } from '@/lib/env';
 import { AUTH_STORAGE_KEY, supabase } from '@/lib/supabase';
@@ -196,7 +197,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId, applyProfile]);
 
-  // An admin may approve while the app is in the background: re-check on return.
+  // RevenueCat customer id = the Supabase user id (docs/spec.md "How it is built").
+  useEffect(() => {
+    if (userId) void identifyPurchaser(userId);
+  }, [userId]);
+
+  // Access may change while the app is in the background (admin grant, store renewal): re-check on return.
   useEffect(() => {
     if (!userId) return;
     const sub = AppState.addEventListener('change', (state) => {
@@ -259,6 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) await supabase.auth.signOut({ scope: 'local' });
       await signOutGoogle();
+      await forgetPurchaser();
     },
     refreshProfile: async () => {
       if (userId) await fetchProfile(userId);

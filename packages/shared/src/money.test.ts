@@ -9,6 +9,8 @@ import {
   percentOf,
   periodBalance,
   splitInstallments,
+  yearlyPerMonth,
+  yearlySavingPercent,
 } from './money';
 
 describe('parseAmount', () => {
@@ -45,6 +47,7 @@ describe('formatting', () => {
   it('adds the currency sign without converting', () => {
     expect(formatMoney(185000, 'ILS')).toBe('₪ 1,850');
     expect(formatMoney(185000, 'USD')).toBe('$ 1,850');
+    expect(formatMoney(900, 'EUR')).toBe('€ 9');
   });
   it('round-trips through input', () => {
     for (const minor of [1, 99, 100, 1250, 25000, 123456789]) {
@@ -101,5 +104,21 @@ describe('periodBalance', () => {
   });
   it('can go negative', () => {
     expect(periodBalance(100, 0, 250)).toBe(-150);
+  });
+});
+
+describe('paywall prices', () => {
+  it('yearly per month is yearly / 12, half-up', () => {
+    expect(yearlyPerMonth(11290)).toBe(941);
+    expect(yearlyPerMonth(3049)).toBe(254);
+    expect(yearlyPerMonth(6)).toBe(1);
+    expect(yearlyPerMonth(5)).toBe(0);
+  });
+  it('saving is a whole percent, rounded down', () => {
+    expect(yearlySavingPercent(1290, 11290)).toBe(27);
+    expect(yearlySavingPercent(349, 3049)).toBe(27);
+    expect(yearlySavingPercent(1000, 12000)).toBe(0);
+    expect(yearlySavingPercent(1000, 13000)).toBe(0);
+    expect(yearlySavingPercent(0, 100)).toBe(0);
   });
 });

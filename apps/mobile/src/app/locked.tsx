@@ -1,64 +1,72 @@
-import { advisorWhatsAppUrl } from '@kaspilo/shared';
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { LockArt } from '@/components/nature/LockArt';
 import { Sway } from '@/components/nature/Sway';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
-import { Screen } from '@/components/ui/Screen';
-import { supabase } from '@/lib/supabase';
+import { Icon } from '@/components/ui/Icon';
 import { PressScale } from '@/components/ui/PressScale';
+import { Screen } from '@/components/ui/Screen';
+import { hasExportRows, useExportEverything } from '@/lib/lockedExport';
 
 /**
- * Shown to every signed-in user without access: waiting for approval, rejected, or expired. No way from here into the app.
+ * Every signed-in user without access (docs/spec.md "Locked screen"): never had access,
+ * or it ended. No way from here into the app except a plan. Access granted meanwhile
+ * (store or admin) is picked up on return to the app, and the guard opens the app.
  */
 export default function LockedScreen() {
   const { t } = useTranslation();
   const { profile, profileError, refreshProfile, signOut } = useAuth();
-  const [busy, setBusy] = useState<'check' | 'ask' | null>(null);
+  const exportAll = useExportEverything();
+  const [busy, setBusy] = useState<'retry' | 'export' | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [hasData, setHasData] = useState(false);
 
-  const status = profile?.status ?? 'pending_approval';
-  // 'active' can only reach this screen when the expiry date has just passed.
-  const kind = profileError
-    ? 'error'
-    : status === 'rejected'
-      ? 'rejected'
-      : status === 'expired' || status === 'active'
-        ? 'expired'
-        : 'pending';
+  // Never had access (no first access date) = new; otherwise it ended.
+  const kind = profileError ? 'error' : profile?.approved_at ? 'ended' : 'new';
 
-  const check = async () => {
-    setBusy('check');
-    setMessage(null);
-    await refreshProfile();
-    setBusy(null);
-    // If access was granted, the guard has already left this screen.
-    setMessage(t('locked.stillLocked'));
-  };
+  // Picks up access granted while this screen stays open (admin grant, a purchase on another phone).
+  const refresh = useRef(refreshProfile);
+  useEffect(() => {
+    refresh.current = refreshProfile;
+  });
+  useEffect(() => {
+    const timer = setInterval(() => void refresh.current(), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const askAgain = async () => {
-    setBusy('ask');
-    setMessage(null);
-    const { error } = await supabase.rpc('request_approval');
-    if (error) setMessage(t('common.errorGeneric'));
-    await refreshProfile();
-    setBusy(null);
-  };
-
-  const contact = async () => {
-    const text = t('locked.whatsappMessage', {
-      name: profile?.full_name || '',
-      email: profile?.email || '',
+  useEffect(() => {
+    if (kind === 'error') return;
+    let alive = true;
+    void hasExportRows().then((yes) => {
+      if (alive) setHasData(yes);
     });
+    return () => {
+      alive = false;
+    };
+  }, [kind]);
+
+  const retry = async () => {
+    setBusy('retry');
+    setMessage(null);
+    await refreshProfile();
+    setBusy(null);
+  };
+
+  const runExport = async () => {
+    setBusy('export');
+    setMessage(null);
     try {
-      await Linking.openURL(advisorWhatsAppUrl(text));
+      const shared = await exportAll();
+      if (!shared) setMessage(t('export.unavailable'));
     } catch {
-      setMessage(t('locked.whatsappFailed'));
+      setMessage(t('export.failed'));
     }
+    setBusy(null);
   };
 
   return (
@@ -67,33 +75,27 @@ export default function LockedScreen() {
         <LockArt />
       </Sway>
 
-      <AppText weight="bold" className="mt-6 text-center text-[26px] leading-[34px]">
+      <AppText weight="bold" accessibilityRole="header" className="mt-6 text-center text-[26px] leading-[34px]">
         {t(`locked.${kind}.title`)}
       </AppText>
-      <AppText className="mt-3 text-center text-[16px] leading-[24px]">
-        {t(`locked.${kind}.body`)}
-      </AppText>
+      <AppText className="mt-3 text-center text-[16px] leading-[24px]">{t(`locked.${kind}.body`)}</AppText>
 
       <View className="mt-8 w-full gap-3">
         {kind === 'error' ? (
-          <Button label={t('common.retry')} onPress={check} loading={busy === 'check'} />
+          <Button label={t('common.retry')} onPress={() => void retry()} loading={busy === 'retry'} />
         ) : (
           <>
-            <Button label={t('locked.contactAdvisor')} onPress={contact} />
-            {kind === 'rejected' && (
+            <Button label={t('locked.choosePlan')} onPress={() => router.push('/paywall')} />
+            {hasData && (
               <Button
-                label={t('locked.askAgain')}
-                variant="accent"
-                onPress={askAgain}
-                loading={busy === 'ask'}
+                variant="line"
+                label={t('locked.export')}
+                icon={<Icon name="tray-arrow-down" tone="primary" size={20} />}
+                onPress={() => void runExport()}
+                loading={busy === 'export'}
+                disabled={busy !== null}
               />
             )}
-            <Button
-              label={t('locked.checkAgain')}
-              variant="outline"
-              onPress={check}
-              loading={busy === 'check'}
-            />
           </>
         )}
       </View>

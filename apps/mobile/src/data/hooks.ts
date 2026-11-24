@@ -10,7 +10,7 @@ import {
 } from '@kaspilo/shared';
 import { useTranslation } from 'react-i18next';
 
-import { useLanguage } from '@/i18n';
+import { LOCALES, useLanguage } from '@/i18n';
 
 import { useSettings } from './queries';
 import { useWallet } from './walletContext';
@@ -58,7 +58,7 @@ export function useWalletName() {
 /** Date formatting in the active language. Input is a YYYY-MM-DD calendar date. */
 export function useDateFormat() {
   const language = useLanguage();
-  const locale = language === 'he' ? 'he-IL' : 'en-GB';
+  const locale = LOCALES[language];
   const make = (options: Intl.DateTimeFormatOptions) => {
     const format = new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' });
     // Parse as UTC and print as UTC so the calendar day never shifts.

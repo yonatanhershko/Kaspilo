@@ -24,9 +24,9 @@ Kaspilo helps people see where their money goes, with as little friction as poss
 - **Stats**: donut charts by month or year for expenses, income and balance, with the change from the last period.
 - **Goals**: savings goals with deposits. Deposits are kept apart from expenses.
 - **Recurring and installments**: weekly, monthly and yearly entries, and payments split evenly.
-- **Bilingual**: full Hebrew RTL and English, chosen from the phone's language.
+- **Three languages**: Hebrew, English and Spanish, chosen from the phone's language.
 
-Access is a yearly subscription. Users pay by **Bit**, and an admin approves each one by hand in the **admin dashboard**.
+Access is an in-app subscription (monthly or yearly, 14-day free trial) bought through the **App Store** or **Google Play**. An admin can also grant access by hand in the **admin dashboard**.
 
 ## Architecture
 
@@ -37,7 +37,7 @@ Access is a yearly subscription. Users pay by **Bit**, and an admin approves eac
 | Layer | What it does |
 | --- | --- |
 | **Mobile app** | Expo Router screens, NativeWind styling. React Query caches server data. AsyncStorage keeps the session, theme and language. |
-| **Admin dashboard** | Next.js on Vercel. Approves Bit payments, manages users and subscriptions through admin-only RPCs. |
+| **Admin dashboard** | Next.js on Vercel. Grants access, shows store subscriptions and analytics through admin-only RPCs. |
 | **Supabase** | Auth (email, OTP, reset), PostgreSQL with Row Level Security on every table, RPCs for totals, `pg_cron` for daily expiry. |
 | **Shared packages** | `@kaspilo/shared`: money math and budget periods. `@kaspilo/tokens`: one design system for both apps. |
 | **Offline + notifications** | Offline cache with a write queue that syncs when back online. Push notifications (daily reminder, subscription expiry) via Edge Function → Expo Push. |

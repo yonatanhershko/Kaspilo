@@ -18,4 +18,16 @@ export const env = {
     'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
     process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   ),
+  /**
+   * RevenueCat public SDK keys (not secret: they only identify the app to RevenueCat).
+   * Production: the real App Store / Google Play apps. Development: the RevenueCat
+   * Test Store key, so dev builds never touch real store products (docs/in-app-purchase.md).
+   */
+  revenueCat:
+    process.env.EXPO_PUBLIC_APP_ENV === 'production'
+      ? { ios: 'appl_kPflBzkzWfGBhbeSBjGdYXGGxLF', android: 'goog_VNepXKtYeMaxCzrVGzMHdbJGeAn' }
+      : {
+          ios: process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ?? '',
+          android: process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ?? '',
+        },
 } as const;
