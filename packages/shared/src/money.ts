@@ -61,6 +61,21 @@ export function percentOf(part: number, total: number): number {
   return tenths / 10;
 }
 
+/** Paywall: the yearly price per month, in minor units, rounded half-up (₪112.90 -> ₪9.41). */
+export function yearlyPerMonth(yearly: number): number {
+  return Math.floor((yearly * 2 + 12) / 24);
+}
+
+/**
+ * Paywall saving badge: 1 - yearly / (12 x monthly) as a whole percent, rounded DOWN
+ * (owner 2026-11-24: ₪12.90 / ₪112.90 -> 27). 0 when there is no saving.
+ */
+export function yearlySavingPercent(monthly: number, yearly: number): number {
+  const full = monthly * 12;
+  if (full <= 0 || yearly >= full) return 0;
+  return Math.floor(((full - yearly) * 100) / full);
+}
+
 /** Money left in a period: income minus goal deposits minus expenses. Negative means overspent. */
 export function periodBalance(income: number, saved: number, expense: number): number {
   return income - saved - expense;

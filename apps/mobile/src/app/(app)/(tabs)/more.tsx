@@ -8,6 +8,7 @@ import { isAppleUser, revokeApple } from '@/auth/apple';
 import { useAuth } from '@/auth/AuthProvider';
 import { AmountField } from '@/components/ui/AmountField';
 import { AppText } from '@/components/ui/AppText';
+import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
 import { Screen } from '@/components/ui/Screen';
@@ -15,9 +16,11 @@ import { TextField } from '@/components/ui/TextField';
 import { useMoney, useWalletName } from '@/data/hooks';
 import { useUpdateSettings, useUpdateWallet } from '@/data/queries';
 import { useOutbox } from '@/data/outbox';
+import { useStoreSubscription, willCharge } from '@/data/subscription';
 import { useWallet } from '@/data/walletContext';
 import { changeLanguage, LANGUAGE_NAMES, languages, useLanguage, useRowAlign } from '@/i18n';
 import type { Language, ThemePreference } from '@/lib/preferences';
+import { forgetOnServer, openManageSubscriptions } from '@/lib/purchases';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/theme/ThemeProvider';
 import { PressScale } from '@/components/ui/PressScale';
@@ -45,6 +48,9 @@ export default function MoreScreen() {
   const money = useMoney();
   // Transactions added offline and not sent yet are lost on sign out: warn first.
   const unsent = useOutbox().length;
+  // A store subscription keeps charging after the account is gone: say so before deleting.
+  const storeSub = useStoreSubscription().data;
+  const renewingStore = willCharge(storeSub);
 
   const [open, setOpen] = useState<Open>(null);
   const [text, setText] = useState('');
@@ -173,6 +179,7 @@ export default function MoreScreen() {
 
       {group([
         row('bell-outline', t('notifications.title'), null, () => router.push('/notifications')),
+        row('card-account-details-outline', t('renew.title'), null, () => router.push('/renew')),
         row('trash-can-outline', t('more.deleteAccount'), null, () => show('delete'), true),
       ])}
 
@@ -344,6 +351,8 @@ export default function MoreScreen() {
               void run(async () => {
                 // Apple users: revoke at Apple first. Closing Apple's sheet stops the deletion.
                 if ((await isAppleUser()) && (await revokeApple()) === 'cancelled') throw new Error('cancelled');
+                // Removes the user from RevenueCat; a failure must not block the deletion.
+                await forgetOnServer().catch(() => undefined);
                 const { error: failed } = await supabase.rpc('delete_account');
                 if (failed) throw new Error(failed.message);
                 await signOut();
@@ -351,6 +360,18 @@ export default function MoreScreen() {
           },
           { label: t('common.cancel'), variant: 'outline', onPress: close },
         ]}>
+        {renewingStore && (
+          <>
+            <AppText weight="medium" tone="danger" className="text-[15px] leading-[22px]">
+              {t('more.deleteSubscriptionWarning')}
+            </AppText>
+            <Button
+              variant="line"
+              label={t('renew.manage')}
+              onPress={() => void openManageSubscriptions(session?.user.id ?? null)}
+            />
+          </>
+        )}
         <AppText className="text-[15px] leading-[22px]">{t('more.deleteBody')}</AppText>
         {appleAccount && (
           <AppText className="text-[15px] leading-[22px]">{t('more.deleteAppleNote')}</AppText>

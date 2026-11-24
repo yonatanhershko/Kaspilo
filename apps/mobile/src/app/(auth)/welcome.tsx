@@ -1,16 +1,19 @@
 import { amountToInput, type Currency, formatMoney, parseAmount } from '@kaspilo/shared';
 import { router, useFocusEffect } from 'expo-router';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, type ReactNode, use, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
   FadeInDown,
+  type SharedValue,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withDelay,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -543,6 +546,61 @@ function DemoNotification({ currency, android }: { currency: Currency; android: 
   );
 }
 
+// ---- terms button nudge (owner 2026-11-24, option C) ----------------------------
+
+/** 0 → 1 → 0 progress of the one-time nudge, shared by the lift and the tint. */
+const NudgeContext = createContext<SharedValue<number> | null>(null);
+
+/**
+ * Once, shortly after the ready screen opens with the terms still unread: the terms button
+ * lifts a little, turns light green for a moment and settles with a small bounce. Not again
+ * on this visit, never with "reduce motion" (docs/spec.md "Onboarding").
+ */
+function TermsNudge({ play, children }: { play: boolean; children: ReactNode }) {
+  const reduceMotion = useReducedMotion();
+  const lift = useSharedValue(0);
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (!play || reduceMotion || played.current) return;
+    played.current = true;
+    const ease = Easing.inOut(Easing.quad);
+    // Slow and calm (owner 2026-11-24): about 2.8 s in all.
+    lift.value = withDelay(
+      900,
+      withSequence(
+        withTiming(1, { duration: 750, easing: ease }),
+        withTiming(-0.25, { duration: 650, easing: ease }),
+        withTiming(0.5, { duration: 550, easing: ease }),
+        withTiming(0, { duration: 850, easing: ease }),
+      ),
+    );
+  }, [play, reduceMotion, lift]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: -3 * Math.max(lift.value, 0) }, { scale: 1 + 0.04 * lift.value }],
+  }));
+
+  return (
+    <NudgeContext value={lift}>
+      <Animated.View style={style}>{children}</Animated.View>
+    </NudgeContext>
+  );
+}
+
+/** Light green wash behind the button's content while the nudge plays. */
+function NudgeTint() {
+  const { colors } = useTheme();
+  const lift = use(NudgeContext);
+  const style = useAnimatedStyle(() => ({ opacity: lift ? Math.max(lift.value, 0) : 0 }));
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 16, backgroundColor: colors.leafLight }, style]}
+    />
+  );
+}
+
 // ---- 5. ready ---------------------------------------------------------------
 
 function ReadyStep() {
@@ -605,19 +663,22 @@ function ReadyStep() {
           </View>
         ))}
       </View>
-      <PressScale
-        accessibilityRole="button"
-        accessibilityLabel={t('terms.openLink')}
-        accessibilityState={{ checked: termsRead }}
-        onPress={() => router.push('/terms')}
-        className={`min-h-[52px] items-center gap-3 rounded-lg border px-4 ${align.row} ${
-          termsRead ? 'border-primary bg-primary' : 'border-border bg-surface'
-        }`}>
-        {termsRead ? <Icon name="check-circle" tone="onPrimary" /> : <HugIcon color={colors.text} />}
-        <AppText tone={termsRead ? 'onPrimary' : 'text'} weight="medium" className="flex-1 text-[15px]">
-          {termsRead ? t('terms.done') : t('terms.openLink')}
-        </AppText>
-      </PressScale>
+      <TermsNudge play={!termsRead}>
+        <PressScale
+          accessibilityRole="button"
+          accessibilityLabel={t('terms.openLink')}
+          accessibilityState={{ checked: termsRead }}
+          onPress={() => router.push('/terms')}
+          className={`min-h-[52px] items-center gap-3 rounded-lg border px-4 ${align.row} ${
+            termsRead ? 'border-primary bg-primary' : 'border-border bg-surface'
+          }`}>
+          {!termsRead && <NudgeTint />}
+          {termsRead ? <Icon name="check-circle" tone="onPrimary" /> : <HugIcon color={colors.text} />}
+          <AppText tone={termsRead ? 'onPrimary' : 'text'} weight="medium" className="flex-1 text-[15px]">
+            {termsRead ? t('terms.done') : t('terms.openLink')}
+          </AppText>
+        </PressScale>
+      </TermsNudge>
 
       <View className="my-2 h-px bg-border" />
 

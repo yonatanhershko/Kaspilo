@@ -79,27 +79,19 @@
     "themeDark": "Oscuro"
   },
   "locked": {
-    "contactAdvisor": "Contactar al equipo de Kaspilo",
-    "checkAgain": "Comprobar de nuevo",
-    "askAgain": "Enviar la solicitud de nuevo",
-    "stillLocked": "Aún esperando la aprobación.",
-    "whatsappFailed": "No se pudo abrir WhatsApp. El número es 052-320-3902",
-    "whatsappMessage": "Hola, me registré en Kaspilo. Nombre: {{name}}, correo: {{email}}",
-    "pending": {
-      "title": "Tu cuenta está esperando aprobación",
-      "body": "Cuando el equipo de Kaspilo apruebe tu cuenta, tendrás acceso completo a la app."
-    },
-    "rejected": {
-      "title": "Tu solicitud no fue aprobada",
-      "body": "Contacta al equipo de Kaspilo o envía la solicitud de nuevo."
-    },
-    "expired": {
-      "title": "Tu suscripción terminó",
-      "body": "Tus datos se conservan. Contacta al equipo de Kaspilo para renovar tu acceso."
-    },
     "error": {
       "title": "No se pudo cargar tu cuenta",
       "body": "Revisa tu conexión e inténtalo de nuevo."
+    },
+    "choosePlan": "Elegir un plan",
+    "export": "Exportar datos a Excel",
+    "new": {
+      "title": "Bienvenido a Kaspilo",
+      "body": "Elige un plan para empezar. 14 días gratis."
+    },
+    "ended": {
+      "title": "Tu suscripción ha terminado",
+      "body": "Tus datos están guardados. Elige un plan para seguir donde lo dejaste."
     }
   },
   "tabs": {
@@ -256,7 +248,8 @@
     "deleteAppleNote": "Como iniciaste sesión con Apple, Apple te pedirá confirmarlo una vez más. Esto desconecta Kaspilo de tu ID de Apple.",
     "deleteWord": "eliminar",
     "deleteTypeToConfirm": "Escribe \"{{word}}\" para confirmar",
-    "deleteConfirm": "Eliminar la cuenta para siempre"
+    "deleteConfirm": "Eliminar la cuenta para siempre",
+    "deleteSubscriptionWarning": "Tienes una suscripción activa. Cancélala en la tienda o se te seguirá cobrando."
   },
   "history": {
     "upcoming": "Próximos pagos ({{count}})",
@@ -272,7 +265,8 @@
     "amount": "Importe",
     "done": "Archivo listo.",
     "unavailable": "Este dispositivo no puede compartir archivos.",
-    "failed": "La exportación falló. Inténtalo de nuevo."
+    "failed": "La exportación falló. Inténtalo de nuevo.",
+    "wallet": "Cartera"
   },
   "terms": {
     "title": "Condiciones de uso",
@@ -296,15 +290,15 @@
       },
       {
         "title": "4. Suscripción y pago",
-        "body": "• El acceso a Kaspilo es una suscripción por un periodo fijo. La duración y el precio dependen de la opción elegida y se te indican antes de pagar (por WhatsApp, teléfono o correo).\n• El pago se hace directamente al operador, fuera de la app. Cuando se recibe el pago, el operador lo aprueba a mano y el acceso se abre desde el día de la aprobación por el periodo que pagaste.\n• El operador puede, a su criterio, dar acceso sin pago o sin fecha de fin.\n• La suscripción no se renueva automáticamente. Recibes un aviso en la app 30 días y 7 días antes de que termine.\n• Si la suscripción termina y no la renuevas, el acceso a la app se bloquea hasta que pagues. Tus datos no se eliminan. Se conservan hasta que elimines tu cuenta.\n• Si el precio cambia, te avisaremos con antelación. El cambio no afecta a una suscripción que ya pagaste."
+        "body": "• El acceso a Kaspilo es una suscripción que se compra en la app a través de App Store (Apple) o Google Play: mensual o anual. El precio se muestra en la pantalla de pago antes de pagar.\n• Una suscripción nueva empieza con 14 días de prueba gratis, una vez por cuenta de Apple o Google. Si no cancelas al menos 24 horas antes de que termine la prueba, la tienda cobra el precio del plan que elegiste.\n• La suscripción se renueva sola al final de cada periodo hasta que la canceles. Se cancela en los ajustes de suscripciones de App Store o Google Play. El acceso sigue hasta el final del periodo que pagaste.\n• El pago lo gestionan Apple o Google según sus condiciones. Nunca vemos los datos de tu tarjeta.\n• Si un pago falla, la tienda lo vuelve a intentar durante un tiempo y el acceso sigue mientras tanto. Si sigue fallando, el acceso se bloquea.\n• El operador puede, a su criterio, dar acceso sin pago o sin fecha de fin.\n• Si el acceso termina, la app se bloquea. Tus datos no se eliminan: puedes exportarlos desde la pantalla de bloqueo y se conservan hasta que elimines tu cuenta.\n• Si el precio cambia, la tienda te avisa con antelación, como exigen sus reglas."
       },
       {
         "title": "5. Cancelación y reembolsos",
-        "body": "• Puedes cancelar una suscripción nueva dentro de los 14 días posteriores al pago, según la Ley de Protección al Consumidor de Israel. Si recibiste estas condiciones más tarde, los 14 días cuentan desde el día en que las recibiste.\n• Al cancelar así, te devolvemos el pago menos una tarifa de cancelación del 5% del precio o ₪100, lo que sea menor. El reembolso se envía por el mismo medio con el que pagaste, dentro de los 14 días posteriores a tu solicitud de cancelación.\n• Para cancelar, escribe a MyKaspilo@gmail.com.\n• Pasados 14 días no hay reembolso. Si no quieres continuar, simplemente no renueves.\n• Si dejamos de operar Kaspilo por completo, te devolveremos la parte no usada de tu suscripción.\n• Los reembolsos solo aplican a una suscripción pagada."
+        "body": "• Los reembolsos de suscripciones compradas en la app los gestionan Apple o Google según sus reglas. Pídelo a través de la tienda: en Apple en reportaproblem.apple.com, en Google en tu historial de pedidos de Google Play.\n• Tus derechos según la Ley de Protección al Consumidor de Israel se mantienen. Para ayuda, escribe a MyKaspilo@gmail.com.\n• Si se da un reembolso, el acceso termina de inmediato. Tus datos se conservan.\n• Cancelar la suscripción en la tienda detiene los próximos cobros. No elimina tu cuenta; para eliminarla, consulta la sección 6.\n• Si dejamos de operar Kaspilo por completo, te avisaremos con antelación y detendremos la renovación."
       },
       {
         "title": "6. Tus datos",
-        "body": "• Los datos que introduces te pertenecen.\n• Exportación: mientras tu suscripción esté activa, puedes exportar los movimientos de la cartera abierta a un archivo de Excel (CSV) desde Más → Historial y exportación, y los de cualquier cartera desde Más → Carteras. Si tu acceso está bloqueado, escríbenos y te enviaremos el archivo.\n• Eliminación: puedes eliminar tu cuenta en cualquier momento desde Más → Eliminar cuenta. La eliminación es definitiva y no se puede deshacer. Incluye todas las carteras, movimientos, categorías, presupuestos, metas y la cuenta misma.\n• También puedes eliminar una sola cartera desde Más → Carteras. Esa eliminación también es definitiva: borra todos los datos de esa cartera, y tus otras carteras quedan igual.\n• Hacemos copias de seguridad del sistema con regularidad, pero no podemos prometer que nunca se pierdan datos. Exporta una copia de vez en cuando."
+        "body": "• Los datos que introduces te pertenecen.\n• Exportación: mientras tu suscripción esté activa, puedes exportar los movimientos de la cartera abierta a un archivo de Excel (CSV) desde Más → Historial y exportación, y los de cualquier cartera desde Más → Carteras. Si tu acceso está bloqueado, puedes exportar todos tus datos desde la pantalla de bloqueo.\n• Eliminación: puedes eliminar tu cuenta en cualquier momento desde Más → Eliminar cuenta. La eliminación es definitiva y no se puede deshacer. Incluye todas las carteras, movimientos, categorías, presupuestos, metas y la cuenta misma.\n• También puedes eliminar una sola cartera desde Más → Carteras. Esa eliminación también es definitiva: borra todos los datos de esa cartera, y tus otras carteras quedan igual.\n• Hacemos copias de seguridad del sistema con regularidad, pero no podemos prometer que nunca se pierdan datos. Exporta una copia de vez en cuando."
       },
       {
         "title": "7. Usos prohibidos",
@@ -316,7 +310,7 @@
       },
       {
         "title": "9. Privacidad",
-        "body": "Qué guardamos:\n• Tu nombre y correo.\n• Las carteras, movimientos, categorías, presupuestos y metas que introduces.\n• Tus ajustes: idioma, tema, moneda y recordatorios.\n• El estado de tu suscripción y cuándo aceptaste las condiciones.\n• Un token de notificaciones push, si permitiste las notificaciones.\n• Datos de uso de la app: cuándo abriste la app y cuándo te registraste, con el tipo de dispositivo (iPhone o Android) y la versión de la app. Contamos el uso de la app, no tu dinero: importes, categorías y carteras nunca se incluyen.\nPara qué: solo para hacer funcionar la app, gestionar tu suscripción, enviar recordatorios y entender cuántas personas usan Kaspilo.\nQué no hacemos: no vendemos datos, no mostramos anuncios ni compartimos datos con empresas de marketing.\nQuién trata datos por nosotros:\n• Supabase aloja la base de datos en servidores en la nube fuera de Israel.\n• Expo, Apple y Google entregan las notificaciones.\nSeguridad: cada usuario ve solo sus propios datos. La conexión está cifrada.\nTus derechos: puedes ver, corregir, exportar y eliminar tus datos. Para cualquier solicitud, escribe a MyKaspilo@gmail.com."
+        "body": "Qué guardamos:\n• Tu nombre y correo.\n• Las carteras, movimientos, categorías, presupuestos y metas que introduces.\n• Tus ajustes: idioma, tema, moneda y recordatorios.\n• El estado de tu suscripción (plan, prueba, fecha de renovación) y cuándo aceptaste las condiciones. Nunca los datos de tu tarjeta.\n• Un token de notificaciones push, si permitiste las notificaciones.\n• Datos de uso de la app: cuándo abriste la app y cuándo te registraste, con el tipo de dispositivo (iPhone o Android) y la versión de la app. Contamos el uso de la app, no tu dinero: importes, categorías y carteras nunca se incluyen.\nPara qué: solo para hacer funcionar la app, gestionar tu suscripción, enviar recordatorios y entender cuántas personas usan Kaspilo.\nQué no hacemos: no vendemos datos, no mostramos anuncios ni compartimos datos con empresas de marketing.\nQuién trata datos por nosotros:\n• Supabase aloja la base de datos en servidores en la nube fuera de Israel.\n• Expo, Apple y Google entregan las notificaciones.\n• Apple y Google gestionan los pagos de la suscripción. RevenueCat verifica por nosotros las suscripciones de las tiendas; recibe el id de tu cuenta, no tu nombre ni tu correo.\nSeguridad: cada usuario ve solo sus propios datos. La conexión está cifrada.\nTus derechos: puedes ver, corregir, exportar y eliminar tus datos. Para cualquier solicitud, escribe a MyKaspilo@gmail.com."
       },
       {
         "title": "10. Disponibilidad y cambios en el servicio",
@@ -495,11 +489,11 @@
         "open": "Abrir el atajo"
       },
       "run": {
-        "title": "Toca ▶︎ y permite",
-        "short": "Un toque en ▶︎ abajo y luego permite.",
-        "question": "¿Tocaste ▶︎ y permitiste?",
-        "body": "Si es así, ya está: llega una notificación de prueba de Kaspilo. Si no, vuelve al atajo y toca ▶︎ ahora.",
-        "mock": "Toca ▶︎ abajo",
+        "title": "Toca ▶\uFE0E y permite",
+        "short": "Un toque en ▶\uFE0E abajo y luego permite.",
+        "question": "¿Tocaste ▶\uFE0E y permitiste?",
+        "body": "Si es así, ya está: llega una notificación de prueba de Kaspilo. Si no, vuelve al atajo y toca ▶\uFE0E ahora.",
+        "mock": "Toca ▶\uFE0E abajo",
         "yes": "Sí, lo hice",
         "again": "Intentar de nuevo"
       }
@@ -524,14 +518,18 @@
     }
   },
   "renew": {
-    "title": "Renovar suscripción",
+    "title": "Suscripción",
     "endsOn": "Tu suscripción termina el {{date}}",
     "daysLeft_one": "Queda 1 día",
     "daysLeft_other": "Quedan {{count}} días",
     "noExpiry": "Tu acceso no tiene fecha de fin.",
-    "how": "Para renovar, contacta al equipo de Kaspilo por WhatsApp. El equipo amplía tu acceso.",
-    "contact": "Contactar al equipo de Kaspilo por WhatsApp",
-    "whatsappMessage": "Hola, quiero renovar mi suscripción a Kaspilo. Nombre: {{name}}, correo: {{email}}"
+    "how": "Para seguir después de esta fecha, elige un plan.",
+    "renewsOn": "Tu suscripción se renueva el {{date}}",
+    "billingIssue": "Tu pago no se completó. El acceso sigue hasta el {{date}}",
+    "howStore": "Tu suscripción se canceló y no se renovará. Puedes reactivarla en los ajustes de suscripciones de la tienda.",
+    "howStoreRenewing": "Cancela o cambia tu plan en los ajustes de suscripciones de la tienda.",
+    "howBilling": "Actualiza tu método de pago en la tienda y tu suscripción seguirá como siempre.",
+    "manage": "Gestionar suscripción"
   },
   "wallets": {
     "title": "Carteras",
@@ -651,5 +649,34 @@
     "undo": "Deshacer",
     "undone": "Deshecho",
     "add": "Añadir gasto: {{item}}"
+  },
+  "paywall": {
+    "title": "Todo tu dinero en un solo lugar",
+    "subtitle": "Ingresos, gastos, presupuesto y ahorro",
+    "yearly": "Anual",
+    "monthly": "Mensual",
+    "saving": "Ahorra {{percent}}%",
+    "perYear": "{{price}} al año",
+    "perMonth": "{{price}} al mes",
+    "startTrial": "Empieza {{days}} días gratis",
+    "subscribe": "Suscribirme",
+    "legalTrial": "Después de {{days}} días, {{price}}. Se renueva sola, cancela cuando quieras.",
+    "legal": "{{price}}. Se renueva sola, cancela cuando quieras.",
+    "restore": "Restaurar compras",
+    "terms": "Términos y privacidad",
+    "notes": {
+      "cancelled": "Pago cancelado.",
+      "pending": "El pago está esperando a la tienda. El acceso se abre cuando se apruebe.",
+      "network": "Sin conexión a internet. Inténtalo de nuevo.",
+      "failed": "El pago no se completó. Inténtalo de nuevo.",
+      "unconfirmed": "La tienda lo aprobó, pero aún no pudimos confirmarlo. Toca Restaurar compras en un minuto.",
+      "restoreNone": "No se encontraron compras.",
+      "loadFailed": "No se pudieron cargar los planes. Revisa tu conexión.",
+      "unavailable": "Las compras no están disponibles en este dispositivo."
+    }
+  },
+  "billing": {
+    "bar": "El pago de tu suscripción no se completó. Actualiza tu método de pago",
+    "hint": "Abre los ajustes de suscripciones de la tienda"
   }
 }

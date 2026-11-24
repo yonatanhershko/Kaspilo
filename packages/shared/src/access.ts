@@ -16,13 +16,6 @@ export function daysUntilExpiry(profile: Pick<Profile, 'expires_at'>, now = new 
   return Math.ceil((new Date(profile.expires_at).getTime() - now.getTime()) / 86_400_000);
 }
 
-/** Kaspilo team WhatsApp contact for the locked screen (international format, no plus sign). */
-export const ADVISOR_WHATSAPP_NUMBER = '972523203902';
-
-export function advisorWhatsAppUrl(message: string): string {
-  return `https://wa.me/${ADVISOR_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-}
-
 /**
  * True for an address from Apple's "Hide My Email" (sign in with Apple). It forwards to
  * the user's real inbox, but means nothing to read, so screens show a label instead.
