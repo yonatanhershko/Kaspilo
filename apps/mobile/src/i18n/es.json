@@ -653,6 +653,8 @@
   "paywall": {
     "title": "Todo tu dinero en un solo lugar",
     "subtitle": "Ingresos, gastos, presupuesto y ahorro",
+    "howToTrial": "Elige un plan y toca \"Empieza {{days}} días gratis\". Solo se cobra después de la prueba.",
+    "howTo": "Elige un plan y toca \"Suscribirme\".",
     "yearly": "Anual",
     "monthly": "Mensual",
     "saving": "Ahorra {{percent}}%",
