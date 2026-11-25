@@ -1,0 +1,5 @@
+# Firebase config for Android push. On EAS it is a file variable, which `eas build` on the
+# GitHub runner never receives, so including it made the runner's and EAS's runtime versions
+# differ and stopped the Android build. Native-only: an EAS Update can't change it anyway.
+**/eas-environment-secrets/**
+google-services.json

@@ -124,7 +124,7 @@ export function QuickExpenses({
             scaleTo={0.94}
             hitSlop={{ top: 6, bottom: 6 }}
             className={`h-9 items-center gap-1.5 rounded-full border-[1.5px] border-secondary bg-surface px-3.5 active:opacity-80 ${align.row}`}>
-            {category && <Icon name={category.icon} size={17} color={category.color} />}
+            {category && <Icon name={category.icon} size={17} color={category.color} set="category" />}
             <AppText className="text-[14px]" numberOfLines={1}>
               {name}
             </AppText>

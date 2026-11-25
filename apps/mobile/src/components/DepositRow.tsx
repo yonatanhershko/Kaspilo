@@ -37,7 +37,7 @@ export function DepositRow({
         accessible
         accessibilityLabel={`${label}: ${name}, ${money.format(deposit.amount)}, ${dayMonthShort(deposit.date)}`}
         className={`min-h-[60px] flex-1 items-center gap-3 py-2 ${align.row} ${align.he ? 'pr-3' : 'pl-3'}`}>
-        <CategoryIcon icon={goal?.icon ?? 'piggy-bank'} color={colors.primary} size={38} />
+        <CategoryIcon icon={goal?.icon ?? 'piggy-bank'} color={colors.primary} size={38} classic />
         <View className="flex-1">
           <AppText className="text-[15px]" numberOfLines={1}>
             {name}

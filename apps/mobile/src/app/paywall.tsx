@@ -178,7 +178,13 @@ export default function PaywallScreen() {
           <ActivityIndicator accessibilityLabel={t('common.loading')} />
         </View>
       ) : plans ? (
-        <View className="mt-6 w-full gap-3" accessibilityRole="radiogroup">
+        <AppText weight="medium" className="mt-5 text-center text-[15px] leading-[22px]">
+          {withTrial ? t('paywall.howToTrial', { days: TRIAL_DAYS }) : t('paywall.howTo')}
+        </AppText>
+      ) : null}
+
+      {!loading && plans ? (
+        <View className="mt-4 w-full gap-3" accessibilityRole="radiogroup">
           {yearly && (
             <PlanCard
               selected={choice === 'yearly'}

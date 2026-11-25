@@ -12,3 +12,4 @@
 - Touch targets at least 44×44 pt. Text contrast at least 4.5:1 in both themes.
 - Font: Rubik (Hebrew + Latin).
 - Every screen handles loading, empty, error and success states.
+- Icons (owner 2026-11-25): the owner's hand-drawn set in `apps/mobile/assets/icons/pen` (24×24, stroke `currentColor`) replaces Material icons through the name maps in `components/ui/Icon.tsx`; `node scripts/pen-icons.mjs` rebuilds `penIcons.ts` after adding a file. Not covered yet, so kept Material on purpose (one screen never mixes styles): icon pickers, wallets, goals, the More screen. Small utility glyphs (chevrons, close, check, eye) stay Material.

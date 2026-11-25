@@ -234,6 +234,7 @@ export default function TodayScreen() {
                     <SummaryCard
                       name={goal.name}
                       icon={goal.icon}
+                      classicIcon
                       color={colors.primary}
                       amount={amount}
                       onPress={() => router.push('/goals')}
@@ -278,12 +279,15 @@ function SummaryCard({
   color,
   amount,
   onPress,
+  classicIcon = false,
 }: {
   name: string;
   icon: string;
   color: string;
   amount: number;
   onPress: () => void;
+  /** Goals keep the Material icons (the hand-drawn set has no goal pictures yet). */
+  classicIcon?: boolean;
 }) {
   const money = useMoney();
   const align = useRowAlign();
@@ -293,7 +297,7 @@ function SummaryCard({
       accessibilityLabel={`${name}, ${money.format(amount)}`}
       onPress={onPress}
       className={`items-center gap-3 rounded-xl border border-border bg-surface p-3 active:opacity-80 ${align.row}`}>
-      <CategoryIcon icon={icon} color={color} />
+      <CategoryIcon icon={icon} color={color} classic={classicIcon} />
       <View className="flex-1">
         <AppText weight="medium" className="text-[17px]" numberOfLines={1}>
           {name}

@@ -653,6 +653,8 @@
   "paywall": {
     "title": "All your money in one place",
     "subtitle": "Income, expenses, budget and savings",
+    "howToTrial": "Pick a plan, then tap \"Start {{days}} days free\". You're charged only after the trial.",
+    "howTo": "Pick a plan, then tap \"Subscribe\".",
     "yearly": "Yearly",
     "monthly": "Monthly",
     "saving": "Save {{percent}}%",

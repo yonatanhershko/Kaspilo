@@ -94,7 +94,7 @@ export default function MoreScreen() {
       accessibilityLabel={value ? `${label}: ${value}` : label}
       onPress={onPress}
       className={`min-h-[56px] items-center gap-3 px-4 active:opacity-70 ${align.row}`}>
-      <Icon name={icon} tone={danger ? 'danger' : 'primary'} />
+      <Icon name={icon} tone={danger ? 'danger' : 'primary'} set="classic" />
       <AppText tone={danger ? 'danger' : 'text'} className="flex-1 text-[16px]">
         {label}
       </AppText>
