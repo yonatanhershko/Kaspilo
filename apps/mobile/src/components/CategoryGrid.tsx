@@ -63,7 +63,7 @@ export function CategoryForm({
             className={`h-11 w-11 items-center justify-center rounded-full border ${
               item === icon ? 'border-primary bg-surface' : 'border-transparent'
             }`}>
-            <Icon name={item} color={item === icon ? color : undefined} tone="muted" />
+            <Icon name={item} color={item === icon ? color : undefined} tone="muted" set="classic" />
           </PressScale>
         ))}
       </ScrollView>
